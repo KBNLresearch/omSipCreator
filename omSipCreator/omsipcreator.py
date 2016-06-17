@@ -94,15 +94,49 @@ def parseCommandLine():
     return(args)
 
 def main():
+
+    # Constants (put in config file later)
+    fileMetaBatch = "metabatch.csv"    
+
     # Get input from command line
     args = parseCommandLine()
     batchIn = os.path.normpath(args.batchIn)
     dirOut = os.path.normpath(args.dirOut)
 
+    # Check if batch dir exists
     if os.path.isdir(batchIn) == False:
         msg = "input batch directory does not exist"
         errorExit(msg)
 
+    # Check if batch-level metadata file exists
+    metaBatch = os.path.normpath(batchIn + "/" + fileMetaBatch)
+    if os.path.isfile(metaBatch) == False:
+        msg = "File " + metaBatch + " does not exist"
+        errorExit(msg)
+
+    # Read batch-level metadata file as byte object
+    try:
+        f = open(metaBatch,"rb")
+        metaBatchData = f.read()
+        f.close() 
+    except IOError:
+        msg = "cannot read " + metaBatch
+        errorExit(msg)
+    
+    # Parse CSV
+    try:
+        metaBatchCSV = csv.reader(metaBatchData)
+        metaBatchCSV = csv.reader(metaBatchData)
+
+        for row in metaBatchCSV:
+            print(row)
+            #print(', '.join(row))
+
+    except csv.Error:
+        msg = "error parsing CSV"
+        errorExit(msg)  
+
+    """
     # Create output dir if it doesn't exist already
     if os.path.isdir(dirOut) == False:
         try:
@@ -110,9 +144,8 @@ def main():
         except IOError:
             msg = "cannot create output directory"
             errorExit(msg)
+    """
 
-
-    print(batchIn + " " + dirOut)
 
 if __name__ == "__main__":
     main()
