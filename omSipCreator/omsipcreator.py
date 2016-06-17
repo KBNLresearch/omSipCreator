@@ -114,28 +114,28 @@ def main():
         msg = "File " + metaBatch + " does not exist"
         errorExit(msg)
 
-    # Read batch-level metadata file as byte object
+    # Read batch-level metadata file as CSV
     try:
-        f = open(metaBatch,"rb")
-        metaBatchData = f.read()
-        f.close() 
+        fMetaBatch = open(metaBatch,"rb")
+        metaBatchCSV = csv.reader(fMetaBatch)
     except IOError:
         msg = "cannot read " + metaBatch
         errorExit(msg)
-    
+
     # Parse CSV
     try:
-        metaBatchCSV = csv.reader(metaBatchData)
-        metaBatchCSV = csv.reader(metaBatchData)
 
         for row in metaBatchCSV:
-            print(row)
-            #print(', '.join(row))
-
+            #print(row)
+            print(', '.join(row))
+    
+        fMetaBatch.close()
+ 
     except csv.Error:
         msg = "error parsing CSV"
         errorExit(msg)  
 
+    
     """
     # Create output dir if it doesn't exist already
     if os.path.isdir(dirOut) == False:
