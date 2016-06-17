@@ -114,12 +114,11 @@ def main():
         msg = "File " + metaBatch + " does not exist"
         errorExit(msg)
 
-    # Read batch-level metadata file as CSV
+    # Read batch-level metadata file as CSV and import to list
     try:
         fMetaBatch = open(metaBatch,"rb")
         metaBatchCSV = csv.reader(fMetaBatch)
-        for row in metaBatchCSV:
-            print(', '.join(row))
+        lMetaBatch = list(metaBatchCSV)
         fMetaBatch.close()
     except IOError:
         msg = "cannot read " + metaBatch
@@ -128,6 +127,8 @@ def main():
         msg = "error parsing CSV"
         errorExit(msg) 
     
+    print(lMetaBatch)
+
     """
     # Create output dir if it doesn't exist already
     if os.path.isdir(dirOut) == False:
