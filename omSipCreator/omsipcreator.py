@@ -120,6 +120,10 @@ def main():
     batchIn = os.path.normpath(args.batchIn)
     dirOut = os.path.normpath(args.dirOut)
 
+    # TODO: perhaps the checks below (which now all result in an errorexit)
+    # could be formalised a bit, so that they can be reworked into a validation
+    # report. 
+
     # Check if batch dir exists
     if os.path.isdir(batchIn) == False:
         msg = "input batch directory does not exist"
