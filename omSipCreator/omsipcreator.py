@@ -79,9 +79,15 @@ def errorExit(msg):
 def getColumnNumber(CSVHeader, matchString):
     # Search for matchString in CSVHeader and return 
     # column number (first occurrence)
-    # NOTE: what happens if 2 columns mistakenly have same name?
+    # Also check number of occurrences of matchString, and exit
+    # if greater than 1
     try:
         col = CSVHeader.index(matchString)
+        occurs = CSVHeader.count(matchString)
+
+        if occurs > 1:
+            msg = "found more than 1 occurrence of column " + matchString
+            errorExit(msg)
         return(col)
     except ValueError:
         msg = "column " + matchString + " missing in CSV file"
