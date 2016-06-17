@@ -76,6 +76,17 @@ def errorExit(msg):
     sys.stderr.write(msgString)
     sys.exit()
 
+def getColumnNumber(CSVHeader, matchString):
+    # Search for matchString in CSVHeader and return 
+    # column number (first occurrence)
+    # NOTE: what happens if 2 columns mistakenly have same name?
+    try:
+        col = CSVHeader.index(matchString)
+        return(col)
+    except ValueError:
+        msg = "column " + matchString + " missing in CSV file"
+        errorExit(msg)
+
 def parseCommandLine():
     # Add arguments
 
@@ -125,9 +136,17 @@ def main():
         errorExit(msg)
     except csv.Error:
         msg = "error parsing CSV"
-        errorExit(msg) 
+        errorExit(msg)
+
+    # Find column positions of metadata fields, based on header row
+    # If any columns are missing, SIP creator will exit with error message
+    colIPIdentifier = getColumnNumber(lMetaBatch[0], "IPIdentifier")
+    colIPIdentifierParent = getColumnNumber(lMetaBatch[0], "IPIdentifierParent")
+    colImagePath = getColumnNumber(lMetaBatch[0],"imagePath")
+    colVolumeNumber = getColumnNumber(lMetaBatch[0],"volumeNumber")
+    colCarrierType = getColumnNumber(lMetaBatch[0],"carrierType")
     
-    print(lMetaBatch)
+    print(colIPIdentifier, colIPIdentifierParent, colImagePath, colVolumeNumber, colCarrierType)
 
     """
     # Create output dir if it doesn't exist already
