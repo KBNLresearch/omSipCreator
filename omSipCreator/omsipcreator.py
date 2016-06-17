@@ -7,8 +7,37 @@ import codecs
 import csv
 import hashlib
 
-# For checksumming, check this:
-# http://stackoverflow.com/questions/3431825/generating-an-md5-checksum-of-a-file
+"""
+NOTES
+-----
+
+## Checksumming
+
+Check out this:  
+
+<http://stackoverflow.com/questions/3431825/generating-an-md5-checksum-of-a-file>
+
+## Batch validation
+
+Before doing ANYTHING, we'll also need to do some basic validation at 
+the batch level, e.g.:
+
+* Check for duplicate identifier - volumeNumber combinations (not permitted)
+* Check for presence of different carrierTypes within one identifier (no permitted)
+* Check for missing checksums
+* Checksum verification for all items in batch
+* Check if all imagePath fields in CSV correspond to actual dir in batch
+* Check if all dirs in batch are represented as an imagePath field
+
+This validation could either be done within this SIP creator, or as a separate script.
+
+## Code reuse
+
+* Metamorfoze Batch converter (CSV, validation, progress and error logging)
+* KB-python-API (importing of bibliographical metadata from GGC)
+* For metadata generation in e.g. METS format some libs probably exist already 
+
+"""
 
 
 # Script name
