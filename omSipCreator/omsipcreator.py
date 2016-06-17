@@ -118,23 +118,15 @@ def main():
     try:
         fMetaBatch = open(metaBatch,"rb")
         metaBatchCSV = csv.reader(fMetaBatch)
+        for row in metaBatchCSV:
+            print(', '.join(row))
+        fMetaBatch.close()
     except IOError:
         msg = "cannot read " + metaBatch
         errorExit(msg)
-
-    # Parse CSV
-    try:
-
-        for row in metaBatchCSV:
-            #print(row)
-            print(', '.join(row))
-    
-        fMetaBatch.close()
- 
     except csv.Error:
         msg = "error parsing CSV"
-        errorExit(msg)  
-
+        errorExit(msg) 
     
     """
     # Create output dir if it doesn't exist already
