@@ -113,7 +113,7 @@ def parseCommandLine():
 def main():
 
     # Constants (put in config file later)
-    fileMetaBatch = "metabatch.csv"    
+    fileMetaCarriers = "metacarriers.csv"    
 
     # Get input from command line
     args = parseCommandLine()
@@ -130,31 +130,33 @@ def main():
         errorExit(msg)
 
     # Check if batch-level metadata file exists
-    metaBatch = os.path.normpath(batchIn + "/" + fileMetaBatch)
-    if os.path.isfile(metaBatch) == False:
-        msg = "File " + metaBatch + " does not exist"
+    metaCarriers = os.path.normpath(batchIn + "/" + fileMetaCarriers)
+    if os.path.isfile(metaCarriers) == False:
+        msg = "File " + metaCarriers + " does not exist"
         errorExit(msg)
 
     # Read batch-level metadata file as CSV and import to list
     try:
-        fMetaBatch = open(metaBatch,"rb")
-        metaBatchCSV = csv.reader(fMetaBatch)
-        lMetaBatch = list(metaBatchCSV)
-        fMetaBatch.close()
+        fMetaCarriers = open(metaCarriers,"rb")
+        metaCarriersCSV = csv.reader(fMetaCarriers)
+        lMetaCarriers = list(metaCarriersCSV)
+        fMetaCarriers.close()
     except IOError:
-        msg = "cannot read " + metaBatch
+        msg = "cannot read " + metaCarriers
         errorExit(msg)
     except csv.Error:
-        msg = "error parsing CSV"
+        msg = "error parsing carrier metadata CSV"
         errorExit(msg)
 
+    # Set up dictionary to store column headings and corrsponding col numbers
+    
     # Find column positions of metadata fields, based on header row
     # If any columns are missing, SIP creator will exit with error message
-    colIPIdentifier = getColumnNumber(lMetaBatch[0], "IPIdentifier")
-    colIPIdentifierParent = getColumnNumber(lMetaBatch[0], "IPIdentifierParent")
-    colImagePath = getColumnNumber(lMetaBatch[0],"imagePath")
-    colVolumeNumber = getColumnNumber(lMetaBatch[0],"volumeNumber")
-    colCarrierType = getColumnNumber(lMetaBatch[0],"carrierType")
+    colIPIdentifier = getColumnNumber(lMetaCarriers[0], "IPIdentifier")
+    colIPIdentifierParent = getColumnNumber(lMetaCarriers[0], "IPIdentifierParent")
+    colImagePath = getColumnNumber(lMetaCarriers[0],"imagePath")
+    colVolumeNumber = getColumnNumber(lMetaCarriers[0],"volumeNumber")
+    colCarrierType = getColumnNumber(lMetaCarriers[0],"carrierType")
     
     print(colIPIdentifier, colIPIdentifierParent, colImagePath, colVolumeNumber, colCarrierType)
 
