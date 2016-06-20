@@ -157,6 +157,7 @@ def main():
                                 'carrierType']
 
     # Check that there is exactly one occurrence of each mandatory column
+    # TODO: bad things will happen in case of missing cols, so maybe re-introduce errorExit 
     for requiredCol in requiredColsMetaCarriers:
         occurs = headerMetaCarriers.count(requiredCol)
         if occurs != 1:
@@ -164,7 +165,7 @@ def main():
             " (expected 1)"
             errors.append(error)
 
-    # Set up dictionary to store header fields and corresponding col numbers
+    # Set up dictionary to store header fields and corresponding column numbers
     colsMetaCarriers = {}
 
     col = 0
@@ -175,7 +176,16 @@ def main():
     # Sort rows by IPIdentifier field
     rowsMetaCarriers.sort(key=itemgetter(0))
 
-    print(rowsMetaCarriers)
+    # Group by IPIdentifier field - creates a grouper object for each IP 
+    metaCarriersByIP = groupby(rowsMetaCarriers, itemgetter(0))
+
+    # Iterate over IPs
+    for key, group in metaCarriersByIP:
+        # key is IPIdentifier (by which we grouped data)
+        # group is another iterator (!)
+        print(key, group)
+        for record in group:
+            print(record)
 
     # Iterate over all carrier entries    
 
@@ -189,7 +199,7 @@ def main():
             volumeNumber = carrier[colsMetaCarriers["volumeNumber"]]
             carrierType = carrier[colsMetaCarriers["carrierType"]]
 
-            print(IPIdentifier)
+            #print(IPIdentifier)
 
         row += 1
         
