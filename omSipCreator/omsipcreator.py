@@ -198,10 +198,13 @@ def main():
             volumeNumber = carrier[colsMetaCarriers["volumeNumber"]]
             carrierType = carrier[colsMetaCarriers["carrierType"]]
 
-            # TODO: * validate parent PPN (see above)
+            # TODO: * validate parent PPN (see above) and/or check existence of corresponding catalog record
+            #       * check for relation between IPIdentifier and IPIdentifierParent (if possible / meaningful)
             #       * check if imagePath is valid file path and/or exists
             #       * check if volumeNumber is an integer number
             #       * check if carrierType is part of controlled vocabulary
+            #       * check imagePath against *all other* imagePath values in batch
+            #       * check IPIdentifierParent against *all other* IPIdentifierParent  values in batch
 
             # Update lists
             IPIdentifiersParent.append(IPIdentifierParent)
