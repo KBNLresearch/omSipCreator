@@ -161,9 +161,8 @@ def main():
     for requiredCol in requiredColsMetaCarriers:
         occurs = headerMetaCarriers.count(requiredCol)
         if occurs != 1:
-            error = "found " + str(occurs) + " occurrences of column " + requiredCol + " in " + fileMetaCarriers + \
-            " (expected 1)"
-            errors.append(error)
+            errors.append("found " + str(occurs) + " occurrences of column " + requiredCol + " in " + fileMetaCarriers + \
+            " (expected 1)")
 
     # Set up dictionary to store header fields and corresponding column numbers
     colsMetaCarriers = {}
@@ -180,32 +179,62 @@ def main():
     metaCarriersByIP = groupby(rowsMetaCarriers, itemgetter(0))
 
     # Iterate over IPs
-    for key, group in metaCarriersByIP:
-        # key is IPIdentifier (by which we grouped data)
-        # group is another iterator (!)
-        print(key, group)
-        for record in group:
-            print(record)
+    for IPIdentifier, carriers in metaCarriersByIP:
+        # IP is IPIdentifier (by which we grouped data)
+        # carriers is another iterator that contains individual carrier records
 
-    # Iterate over all carrier entries    
+        # TODO: perhaps we can validate PPN, based on conventions/restrictions?
 
-    row = 0
-    for carrier in rowsMetaCarriers:
-        # Ignore header row
-        if row != 0:
-            IPIdentifier = carrier[colsMetaCarriers["IPIdentifier"]]
+        # Set up lists for all record fields in this IP (needed for verifification only)
+        IPIdentifiersParent = []
+        imagePaths = []
+        volumeNumbers = []
+        carrierTypes = []
+        
+        for carrier in carriers:
+            # Iterate over carrier records that are part of this IP 
             IPIdentifierParent = carrier[colsMetaCarriers["IPIdentifierParent"]]
             imagePath = carrier[colsMetaCarriers["imagePath"]]
             volumeNumber = carrier[colsMetaCarriers["volumeNumber"]]
             carrierType = carrier[colsMetaCarriers["carrierType"]]
 
-            #print(IPIdentifier)
+            # TODO: * validate parent PPN (see above)
+            #       * check if imagePath is valid file path and/or exists
+            #       * check if volumeNumber is an integer number
+            #       * check if carrierType is part of controlled vocabulary
 
-        row += 1
-        
+            # Update lists
+            IPIdentifiersParent.append(IPIdentifierParent)
+            imagePaths.append(imagePath)
+            volumeNumbers.append(volumeNumber)
+            carrierTypes.append(carrierType)
     
+       
+        # Check for obvious errors
+
+        # Parent IP identifiers must all be equal 
+        if IPIdentifiersParent.count(IPIdentifiersParent[0]) != len(IPIdentifiersParent):
+            errors.append("IP " + str(IPIdentifier) + ": multiple values found for 'IPIdentifierParent'")
+
+        # imagePath values must all be unique (no duplicates!)
+        uniqueImagePaths = set(imagePaths)
+        if len(uniqueImagePaths) != len(imagePaths):
+            errors.append("IP " + str(IPIdentifier) + ": duplicate values found for 'imagePath'") 
+
+        # Volume numbers must all be unique
+        uniqueVolumeNumbers = set(volumeNumbers)
+        if len(uniqueVolumeNumbers) != len(volumeNumbers):
+            errors.append("IP " + str(IPIdentifier) + ": duplicate values found for 'volumeNumber'")
+
+        # Carrier types must all be equal 
+        if carrierTypes.count(carrierTypes[0]) != len(carrierTypes):
+            errors.append("IP " + str(IPIdentifier) + ": multiple values found for 'carrierType'")
+
+        # Report warning if volumeNumbers does not contain consecutive numbers, starting with '1'
+ 
+          
     #print(colsMetaCarriers)
-    #print(errors)
+    print(errors)
 
     """
     # Create output dir if it doesn't exist already
