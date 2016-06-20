@@ -6,6 +6,8 @@ import argparse
 import codecs
 import csv
 import hashlib
+from operator import itemgetter
+from itertools import groupby
 
 """
 NOTES
@@ -23,7 +25,7 @@ Before doing ANYTHING, we'll also need to do some basic validation at
 the batch level, e.g.:
 
 * Check for duplicate identifier - volumeNumber combinations (not permitted)
-* Check for presence of different carrierTypes within one identifier (no permitted)
+* Check for presence of different carrierTypes within one identifier (not permitted)
 * Check for missing checksums
 * Checksum verification for all items in batch
 * Check if all imagePath fields in CSV correspond to actual dir in batch
@@ -118,11 +120,13 @@ def main():
         msg = "File " + metaCarriers + " does not exist"
         errorExit(msg)
 
-    # Read batch-level metadata file as CSV and import to list
+    # Read carrier-level metadata file as CSV and import header and
+    # row data to 2 separate lists
     try:
         fMetaCarriers = open(metaCarriers,"rb")
         metaCarriersCSV = csv.reader(fMetaCarriers)
-        lMetaCarriers = list(metaCarriersCSV)
+        headerMetaCarriers = next(metaCarriersCSV)
+        rowsMetaCarriers = [row for row in metaCarriersCSV]
         fMetaCarriers.close()
     except IOError:
         msg = "cannot read " + metaCarriers
@@ -130,6 +134,20 @@ def main():
     except csv.Error:
         msg = "error parsing carrier metadata CSV"
         errorExit(msg)
+
+    # Remove any empty list elements (e.g. due to EOL chars)
+    # to avoid trouble with itemgetter
+    for item in rowsMetaCarriers:
+        if item == []:
+            rowsMetaCarriers.remove(item)
+
+    # ********
+    # ** Verification of carrier-level metadata file **
+    # ******** 
+
+    # Set up lists for storing errors and warnings
+    errors = []
+    warnings = []
 
     # Header values of mandatory columns
     requiredColsMetaCarriers = ['IPIdentifier',
@@ -140,22 +158,44 @@ def main():
 
     # Check that there is exactly one occurrence of each mandatory column
     for requiredCol in requiredColsMetaCarriers:
-        occurs = lMetaCarriers[0].count(requiredCol)
+        occurs = headerMetaCarriers.count(requiredCol)
         if occurs != 1:
-            msg = "found " + str(occurs) + " occurrences of column " + requiredCol + " in " + fileMetaCarriers + \
-            "\n(expected 1)"
-            errorExit(msg)
+            error = "found " + str(occurs) + " occurrences of column " + requiredCol + " in " + fileMetaCarriers + \
+            " (expected 1)"
+            errors.append(error)
 
-    # Set up dictionary to store header fields and corrsponding col numbers
+    # Set up dictionary to store header fields and corresponding col numbers
     colsMetaCarriers = {}
 
     col = 0
-    for header in lMetaCarriers[0]:
+    for header in headerMetaCarriers:
         colsMetaCarriers[header] = col
         col += 1
+
+    # Sort rows by IPIdentifier field
+    rowsMetaCarriers.sort(key=itemgetter(0))
+
+    print(rowsMetaCarriers)
+
+    # Iterate over all carrier entries    
+
+    row = 0
+    for carrier in rowsMetaCarriers:
+        # Ignore header row
+        if row != 0:
+            IPIdentifier = carrier[colsMetaCarriers["IPIdentifier"]]
+            IPIdentifierParent = carrier[colsMetaCarriers["IPIdentifierParent"]]
+            imagePath = carrier[colsMetaCarriers["imagePath"]]
+            volumeNumber = carrier[colsMetaCarriers["volumeNumber"]]
+            carrierType = carrier[colsMetaCarriers["carrierType"]]
+
+            print(IPIdentifier)
+
+        row += 1
         
-    """
-    print(colsMetaCarriers)
+    
+    #print(colsMetaCarriers)
+    #print(errors)
 
     """
     # Create output dir if it doesn't exist already
