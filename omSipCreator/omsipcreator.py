@@ -76,23 +76,6 @@ def errorExit(msg):
     sys.stderr.write(msgString)
     sys.exit()
 
-def getColumnNumber(CSVHeader, matchString):
-    # Search for matchString in CSVHeader and return 
-    # column number (first occurrence)
-    # Also check number of occurrences of matchString, and exit
-    # if greater than 1
-    try:
-        col = CSVHeader.index(matchString)
-        occurs = CSVHeader.count(matchString)
-
-        if occurs > 1:
-            msg = "found more than 1 occurrence of column " + matchString
-            errorExit(msg)
-        return(col)
-    except ValueError:
-        msg = "column " + matchString + " missing in CSV file"
-        errorExit(msg)
-
 def parseCommandLine():
     # Add arguments
 
@@ -148,17 +131,31 @@ def main():
         msg = "error parsing carrier metadata CSV"
         errorExit(msg)
 
-    # Set up dictionary to store column headings and corrsponding col numbers
-    
-    # Find column positions of metadata fields, based on header row
-    # If any columns are missing, SIP creator will exit with error message
-    colIPIdentifier = getColumnNumber(lMetaCarriers[0], "IPIdentifier")
-    colIPIdentifierParent = getColumnNumber(lMetaCarriers[0], "IPIdentifierParent")
-    colImagePath = getColumnNumber(lMetaCarriers[0],"imagePath")
-    colVolumeNumber = getColumnNumber(lMetaCarriers[0],"volumeNumber")
-    colCarrierType = getColumnNumber(lMetaCarriers[0],"carrierType")
-    
-    print(colIPIdentifier, colIPIdentifierParent, colImagePath, colVolumeNumber, colCarrierType)
+    # Header values of mandatory columns
+    requiredColsMetaCarriers = ['IPIdentifier',
+                                'IPIdentifierParent',
+                                'imagePath',
+                                'volumeNumber',
+                                'carrierType']
+
+    # Check that there is exactly one occurrence of each mandatory column
+    for requiredCol in requiredColsMetaCarriers:
+        occurs = lMetaCarriers[0].count(requiredCol)
+        if occurs != 1:
+            msg = "found " + str(occurs) + " occurrences of column " + requiredCol + " in " + fileMetaCarriers + \
+            "\n(expected 1)"
+            errorExit(msg)
+
+    # Set up dictionary to store header fields and corrsponding col numbers
+    colsMetaCarriers = {}
+
+    col = 0
+    for header in lMetaCarriers[0]:
+        colsMetaCarriers[header] = col
+        col += 1
+        
+    """
+    print(colsMetaCarriers)
 
     """
     # Create output dir if it doesn't exist already
