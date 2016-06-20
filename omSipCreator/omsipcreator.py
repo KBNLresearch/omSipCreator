@@ -78,6 +78,15 @@ def errorExit(msg):
     sys.stderr.write(msgString)
     sys.exit()
 
+def RepresentsInt(s):
+    # Check if string value represents integer
+    # Source: http://stackoverflow.com/a/1267145/1209004
+    try: 
+        int(s)
+        return True
+    except ValueError:
+        return False
+
 def parseCommandLine():
     # Add arguments
 
@@ -201,10 +210,16 @@ def main():
             # TODO: * validate parent PPN (see above) and/or check existence of corresponding catalog record
             #       * check for relation between IPIdentifier and IPIdentifierParent (if possible / meaningful)
             #       * check if imagePath is valid file path and/or exists
-            #       * check if volumeNumber is an integer number
             #       * check if carrierType is part of controlled vocabulary
             #       * check imagePath against *all other* imagePath values in batch
             #       * check IPIdentifierParent against *all other* IPIdentifierParent  values in batch
+
+            # Check for obvious errors
+
+            # VolumeNumber string must represent integer
+            if RepresentsInt(volumeNumber) != True:
+                errors.append("IP " + IPIdentifier + ": '" + volumeNumber + \
+                "' is illegal value for 'volumeNumber' (must be integer)") 
 
             # Update lists
             IPIdentifiersParent.append(IPIdentifierParent)
@@ -213,25 +228,25 @@ def main():
             carrierTypes.append(carrierType)
     
        
-        # Check for obvious errors
+        # More error checking
 
         # Parent IP identifiers must all be equal 
         if IPIdentifiersParent.count(IPIdentifiersParent[0]) != len(IPIdentifiersParent):
-            errors.append("IP " + str(IPIdentifier) + ": multiple values found for 'IPIdentifierParent'")
+            errors.append("IP " + IPIdentifier + ": multiple values found for 'IPIdentifierParent'")
 
         # imagePath values must all be unique (no duplicates!)
         uniqueImagePaths = set(imagePaths)
         if len(uniqueImagePaths) != len(imagePaths):
-            errors.append("IP " + str(IPIdentifier) + ": duplicate values found for 'imagePath'") 
+            errors.append("IP " + IPIdentifier + ": duplicate values found for 'imagePath'") 
 
         # Volume numbers must all be unique
         uniqueVolumeNumbers = set(volumeNumbers)
         if len(uniqueVolumeNumbers) != len(volumeNumbers):
-            errors.append("IP " + str(IPIdentifier) + ": duplicate values found for 'volumeNumber'")
+            errors.append("IP " + IPIdentifier + ": duplicate values found for 'volumeNumber'")
 
         # Carrier types must all be equal 
         if carrierTypes.count(carrierTypes[0]) != len(carrierTypes):
-            errors.append("IP " + str(IPIdentifier) + ": multiple values found for 'carrierType'")
+            errors.append("IP " + IPIdentifier + ": multiple values found for 'carrierType'")
 
         # Report warning if volumeNumbers does not contain consecutive numbers, starting with '1'
  
