@@ -2,6 +2,7 @@
 
 import sys
 import os
+import glob
 import argparse
 import codecs
 import csv
@@ -28,7 +29,7 @@ the batch level, e.g.:
 * Check for presence of different carrierTypes within one identifier (not permitted) X
 * Check for missing checksums
 * Checksum verification for all items in batch
-* Check if all imagePath fields in CSV correspond to actual dir in batch
+* Check if all imagePath fields in CSV correspond to actual dir in batch X
 * Check if all dirs in batch are represented as an imagePath field
 
 This validation could either be done within this SIP creator, or as a separate script.
@@ -79,15 +80,26 @@ def errorExit(errors):
         sys.stderr.write("Error - " + error + "\n")
     sys.exit()
 
-def RepresentsInt(s):
-    # Check if string value represents integer
-    # Source: http://stackoverflow.com/a/1267145/1209004
-    try: 
-        int(s)
-        return True
-    except ValueError:
-        return False
+def processImagePath(IPIdentifier, imagePathFull):
+    # Process contents of imagepath directory
+    # TODO: check file type / extension matches carrierType!
+    
+    # All files in directory
+    allFiles = glob.glob(imagePathFull + "/*")
+    
+    # Find MD5 files (by extension)
+    MD5Files = [i for i in allFiles if i.endswith('.md5')]
 
+    # Find any other files
+    otherFiles = [i for i in allFiles if not i.endswith('.md5')]
+       
+    # Number of MD5 files must be exactly 1
+    noMD5Files = len(MD5Files)
+    
+    if noMD5Files != 1:
+        errors.append("IP " + IPIdentifier + ": found " + str(noMD5Files) + " '.md5' files in directory '" \
+        + imagePathFull + "', expected 1")
+    
 def parseCommandLine():
     # Add arguments
 
@@ -126,9 +138,12 @@ def main():
                                 'dvd-video']
     
     # Set up lists for storing errors and warnings
+    # Defined as global so we can easily add to them within functions
+    global errors
+    global warnings
     errors = []
     warnings = []
-
+    
     # Get input from command line
     args = parseCommandLine()
     batchIn = os.path.normpath(args.batchIn)
@@ -171,7 +186,7 @@ def main():
             rowsMetaCarriers.remove(item)
 
     # ********
-    # ** Verification of carrier-level metadata file **
+    # ** Process carrier-level metadata file **
     # ******** 
 
     # Check that there is exactly one occurrence of each mandatory column
@@ -220,7 +235,6 @@ def main():
 
             # TODO: * validate parent PPN (see above) and/or check existence of corresponding catalog record
             #       * check for relation between IPIdentifier and IPIdentifierParent (if possible / meaningful)
-            #       * check if imagePath is valid file path and/or exists
             #       * check imagePath against *all other* imagePath values in batch
             #       * check IPIdentifierParent against *all other* IPIdentifierParent  values in batch
 
@@ -232,12 +246,15 @@ def main():
             # Check if imagePath is existing directory
             
             # Full path, relative to batchIn TODO: check behaviour on Window$
-            imagePathFull = os.path.join(batchIn, imagePath) 
-            if os.path.isdir(os.path.normpath(imagePathFull)) == False:
+            imagePathFull = os.path.normpath(os.path.join(batchIn, imagePath)) 
+            if os.path.isdir(imagePathFull) == False:
                 errors.append("IP " + IPIdentifier + ": '" + imagePath + \
-                "' is not a directory") 
-
-            # convert volumeNumber to integer (so we can do more checking later)
+                "' is not a directory")
+            
+            # Process contents of imagePath directory
+            processImagePath(IPIdentifier,imagePathFull)
+            
+            # convert volumeNumber to integer (so we can do more checking below)
             try:
                 volumeNumbers.append(int(volumeNumber))
             except ValueError:
