@@ -24,8 +24,8 @@ Check out this:
 Before doing ANYTHING, we'll also need to do some basic validation at 
 the batch level, e.g.:
 
-* Check for duplicate identifier - volumeNumber combinations (not permitted)
-* Check for presence of different carrierTypes within one identifier (not permitted)
+* Check for duplicate identifier - volumeNumber combinations (not permitted) X
+* Check for presence of different carrierTypes within one identifier (not permitted) X
 * Check for missing checksums
 * Checksum verification for all items in batch
 * Check if all imagePath fields in CSV correspond to actual dir in batch
@@ -74,9 +74,9 @@ def printInfo(msg):
     msgString=(msg + "\n")
     sys.stderr.write(msgString)
  
-def errorExit(msg):
-    msgString=("Error: " + msg + "\n")
-    sys.stderr.write(msgString)
+def errorExit(errors):
+    for error in errors:
+        sys.stderr.write("Error - " + error + "\n")
     sys.exit()
 
 def RepresentsInt(s):
@@ -111,9 +111,23 @@ def main():
     
     # Carrier metadata file - basic capture-level metadata about carriers
     fileMetaCarriers = "metacarriers.csv"
+
+    # Header values of mandatory columns in carrier metadata file
+    requiredColsMetaCarriers = ['IPIdentifier',
+                                'IPIdentifierParent',
+                                'imagePath',
+                                'volumeNumber',
+                                'carrierType']
     
     # Controlled vocabulary for 'carrierType' field
-    carrierTypeAllowedValues = ['cd-rom', 'cd-audio', 'dvd-rom', 'dvd-video']
+    carrierTypeAllowedValues = ['cd-rom',
+                                'cd-audio',
+                                'dvd-rom',
+                                'dvd-video']
+    
+    # Set up lists for storing errors and warnings
+    errors = []
+    warnings = []
 
     # Get input from command line
     args = parseCommandLine()
@@ -126,14 +140,14 @@ def main():
 
     # Check if batch dir exists
     if os.path.isdir(batchIn) == False:
-        msg = "input batch directory does not exist"
-        errorExit(msg)
+        errors.append("input batch directory does not exist")
+        errorExit(errors)
 
     # Check if batch-level metadata file exists
     metaCarriers = os.path.normpath(batchIn + "/" + fileMetaCarriers)
     if os.path.isfile(metaCarriers) == False:
-        msg = "File " + metaCarriers + " does not exist"
-        errorExit(msg)
+        errors.append("file " + metaCarriers + " does not exist")
+        errorExit(errors)
 
     # Read carrier-level metadata file as CSV and import header and
     # row data to 2 separate lists
@@ -144,11 +158,11 @@ def main():
         rowsMetaCarriers = [row for row in metaCarriersCSV]
         fMetaCarriers.close()
     except IOError:
-        msg = "cannot read " + metaCarriers
-        errorExit(msg)
+        errors.append("cannot read " + metaCarriers)
+        errorExit(errors)
     except csv.Error:
-        msg = "error parsing carrier metadata CSV"
-        errorExit(msg)
+        errors.append("error parsing " + metaCarriers)
+        errorExit(errors)
 
     # Remove any empty list elements (e.g. due to EOL chars)
     # to avoid trouble with itemgetter
@@ -160,24 +174,15 @@ def main():
     # ** Verification of carrier-level metadata file **
     # ******** 
 
-    # Set up lists for storing errors and warnings
-    errors = []
-    warnings = []
-
-    # Header values of mandatory columns
-    requiredColsMetaCarriers = ['IPIdentifier',
-                                'IPIdentifierParent',
-                                'imagePath',
-                                'volumeNumber',
-                                'carrierType']
-
     # Check that there is exactly one occurrence of each mandatory column
-    # TODO: bad things will happen in case of missing cols, so maybe re-introduce errorExit 
+ 
     for requiredCol in requiredColsMetaCarriers:
         occurs = headerMetaCarriers.count(requiredCol)
         if occurs != 1:
-            errors.append("found " + str(occurs) + " occurrences of column " + requiredCol + " in " + fileMetaCarriers + \
+            errors.append("found " + str(occurs) + " occurrences of column '" + requiredCol + "' in " + fileMetaCarriers + \
             " (expected 1)")
+            # No point in continuing if we end up here ...
+            errorExit(errors)
 
     # Set up dictionary to store header fields and corresponding column numbers
     colsMetaCarriers = {}
@@ -207,7 +212,7 @@ def main():
         carrierTypes = []
         
         for carrier in carriers:
-            # Iterate over carrier records that are part of this IP 
+            # Iterate over carrier records that are part of this IP
             IPIdentifierParent = carrier[colsMetaCarriers["IPIdentifierParent"]]
             imagePath = carrier[colsMetaCarriers["imagePath"]]
             volumeNumber = carrier[colsMetaCarriers["volumeNumber"]]
@@ -216,18 +221,11 @@ def main():
             # TODO: * validate parent PPN (see above) and/or check existence of corresponding catalog record
             #       * check for relation between IPIdentifier and IPIdentifierParent (if possible / meaningful)
             #       * check if imagePath is valid file path and/or exists
-            #       * check if carrierType is part of controlled vocabulary
             #       * check imagePath against *all other* imagePath values in batch
             #       * check IPIdentifierParent against *all other* IPIdentifierParent  values in batch
 
-            # Check for obvious errors
-            
-            # Check carrierType value against controlled vocabulary 
-            if carrierType not in carrierTypeAllowedValues:
-                errors.append("IP " + IPIdentifier + ": '" + carrierType + \
-                "' is illegal value for 'carrierType'")
-
-            # Update lists
+            # Update lists and check for some obvious errors
+                      
             IPIdentifiersParent.append(IPIdentifierParent)
             imagePaths.append(imagePath)
 
@@ -238,9 +236,14 @@ def main():
                 # Raises error if volumeNumber string doesn't represent integer
                 errors.append("IP " + IPIdentifier + ": '" + volumeNumber + \
                 "' is illegal value for 'volumeNumber' (must be integer)") 
+
+            # Check carrierType value against controlled vocabulary 
+            if carrierType not in carrierTypeAllowedValues:
+                errors.append("IP " + IPIdentifier + ": '" + carrierType + \
+                "' is illegal value for 'carrierType'")
             carrierTypes.append(carrierType)
            
-        # More error checking
+        # IP-level consistency checks
 
         # Parent IP identifiers must all be equal 
         if IPIdentifiersParent.count(IPIdentifiersParent[0]) != len(IPIdentifiersParent):
@@ -273,8 +276,6 @@ def main():
             warnings.append("IP " + IPIdentifier + ": values for 'volumeNumber' are not consecutive")
             
  
-          
-    #print(colsMetaCarriers)
     print(errors)
     print(warnings)
 
@@ -285,7 +286,7 @@ def main():
             os.makedirs(dirOut)
         except IOError:
             msg = "cannot create output directory"
-            errorExit(msg)
+            errorExit(errors)
     """
 
 
