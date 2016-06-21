@@ -128,11 +128,10 @@ def processImagePath(IPIdentifier, imagePathFull):
         allFilesinMD5 = []
         for entry in MD5FromFile:
             md5Sum = entry[0]
-            fileName = entry[1]
+            fileName = entry[1] # Raises IndexError if entry only 1 col (malformed MD5 file)!
             fileNameWithPath = os.path.normpath(imagePathFull + "/" + fileName) 
             allFilesinMD5.append(fileNameWithPath)
             
-        
         # Check if any files in directory are missing from MD5 file
         for f in otherFiles:
             if f not in allFilesinMD5:
