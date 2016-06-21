@@ -108,7 +108,12 @@ def parseCommandLine():
 def main():
 
     # Constants (put in config file later)
-    fileMetaCarriers = "metacarriers.csv"    
+    
+    # Carrier metadata file - basic capture-level metadata about carriers
+    fileMetaCarriers = "metacarriers.csv"
+    
+    # Controlled vocabulary for 'carrierType' field
+    carrierTypeAllowedValues = ['cd-rom', 'cd-audio', 'dvd-rom', 'dvd-video']
 
     # Get input from command line
     args = parseCommandLine()
@@ -216,6 +221,11 @@ def main():
             #       * check IPIdentifierParent against *all other* IPIdentifierParent  values in batch
 
             # Check for obvious errors
+            
+            # Check carrierType value against controlled vocabulary 
+            if carrierType not in carrierTypeAllowedValues:
+                errors.append("IP " + IPIdentifier + ": '" + carrierType + \
+                "' is illegal value for 'carrierType'")
 
             # Update lists
             IPIdentifiersParent.append(IPIdentifierParent)
