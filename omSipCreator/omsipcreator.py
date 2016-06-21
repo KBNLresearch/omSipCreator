@@ -27,7 +27,7 @@ the batch level, e.g.:
 
 * Check for duplicate identifier - volumeNumber combinations (not permitted) X
 * Check for presence of different carrierTypes within one identifier (not permitted) X
-* Check for missing checksums
+* Check for missing checksums X
 * Checksum verification for all items in batch
 * Check if all imagePath fields in CSV correspond to actual dir in batch X
 * Check if all dirs in batch are represented as an imagePath field
