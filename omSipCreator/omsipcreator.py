@@ -228,6 +228,14 @@ def main():
                       
             IPIdentifiersParent.append(IPIdentifierParent)
             imagePaths.append(imagePath)
+            
+            # Check if imagePath is existing directory
+            
+            # Full path, relative to batchIn TODO: check behaviour on Window$
+            imagePathFull = os.path.join(batchIn, imagePath) 
+            if os.path.isdir(os.path.normpath(imagePathFull)) == False:
+                errors.append("IP " + IPIdentifier + ": '" + imagePath + \
+                "' is not a directory") 
 
             # convert volumeNumber to integer (so we can do more checking later)
             try:
@@ -242,6 +250,8 @@ def main():
                 errors.append("IP " + IPIdentifier + ": '" + carrierType + \
                 "' is illegal value for 'carrierType'")
             carrierTypes.append(carrierType)
+            
+
            
         # IP-level consistency checks
 
@@ -270,7 +280,7 @@ def main():
             str(volumeNumbers[0]) + "'")
             
         # Report warning if volumeNumber does not contain consecutive numbers (indicates either missing 
-        # volumes of data entry error)
+        # volumes or data entry error)
         
         if sorted(volumeNumbers) != range(min(volumeNumbers), max(volumeNumbers) + 1):
             warnings.append("IP " + IPIdentifier + ": values for 'volumeNumber' are not consecutive")
