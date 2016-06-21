@@ -80,25 +80,54 @@ def errorExit(errors):
         sys.stderr.write("Error - " + error + "\n")
     sys.exit()
 
+def readMD5(fileIn):
+    # Read MD 5 file, return contents as nested list
+
+    try:
+        data = []
+        f = open(fileIn,"r")
+        for row in f:
+            rowSplit = row.split()
+            data.append(rowSplit)    
+        f.close()
+        return(data)
+    except IOError:
+        errors.append("cannot read '" + fileIn + "'")
+        errorExit(errors)
+     
 def processImagePath(IPIdentifier, imagePathFull):
     # Process contents of imagepath directory
-    # TODO: check file type / extension matches carrierType!
+    # TODO: * check file type / extension matches carrierType!
+    #       * check if all files in directory are included in MD5 file
+    
+    skipChecksumVerification = False
     
     # All files in directory
     allFiles = glob.glob(imagePathFull + "/*")
     
     # Find MD5 files (by extension)
     MD5Files = [i for i in allFiles if i.endswith('.md5')]
-
-    # Find any other files
-    otherFiles = [i for i in allFiles if not i.endswith('.md5')]
-       
+      
     # Number of MD5 files must be exactly 1
     noMD5Files = len(MD5Files)
     
     if noMD5Files != 1:
         errors.append("IP " + IPIdentifier + ": found " + str(noMD5Files) + " '.md5' files in directory '" \
         + imagePathFull + "', expected 1")
+        # If we end up here, checksum file either does not exist, or it is ambiguous 
+        # which file should be used. No point in doing the checksum verification in that case.  
+        skipChecksumVerification = True
+
+    # Any other files (ISOs, audio files)
+    otherFiles = [i for i in allFiles if not i.endswith('.md5')]
+    noOtherFiles = len(otherFiles)
+    
+    if skipChecksumVerification == False:
+        MD5FromFile = readMD5(MD5Files[0])
+        for entry in MD5FromFile:
+            md5Sum = entry[0]
+            fileName = entry[1]
+            fileNameWithPath = os.path.normpath(imagePathFull + "/" + fileName)                
     
 def parseCommandLine():
     # Add arguments
@@ -194,8 +223,8 @@ def main():
     for requiredCol in requiredColsMetaCarriers:
         occurs = headerMetaCarriers.count(requiredCol)
         if occurs != 1:
-            errors.append("found " + str(occurs) + " occurrences of column '" + requiredCol + "' in " + fileMetaCarriers + \
-            " (expected 1)")
+            errors.append("found " + str(occurs) + " occurrences of column '" + requiredCol + "' in " + \
+            fileMetaCarriers + " (expected 1)")
             # No point in continuing if we end up here ...
             errorExit(errors)
 
