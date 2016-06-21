@@ -98,7 +98,6 @@ def readMD5(fileIn):
 def processImagePath(IPIdentifier, imagePathFull):
     # Process contents of imagepath directory
     # TODO: * check file type / extension matches carrierType!
-    #       * check if all files in directory are included in MD5 file
     
     skipChecksumVerification = False
     
@@ -124,10 +123,21 @@ def processImagePath(IPIdentifier, imagePathFull):
     
     if skipChecksumVerification == False:
         MD5FromFile = readMD5(MD5Files[0])
+        
+        # List which will store names of all files that are referenced in the MD5 file
+        allFilesinMD5 = []
         for entry in MD5FromFile:
             md5Sum = entry[0]
             fileName = entry[1]
-            fileNameWithPath = os.path.normpath(imagePathFull + "/" + fileName)                
+            fileNameWithPath = os.path.normpath(imagePathFull + "/" + fileName) 
+            allFilesinMD5.append(fileNameWithPath)
+            
+        
+        # Check if any files in directory are missing from MD5 file
+        for f in otherFiles:
+            if f not in allFilesinMD5:
+                errors.append("IP " + IPIdentifier + ": file '" + f + "' not referenced in '" + \
+                MD5Files[0] + "'")           
     
 def parseCommandLine():
     # Add arguments
