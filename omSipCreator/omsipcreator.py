@@ -38,9 +38,10 @@ This validation could either be done within this SIP creator, or as a separate s
 * Metamorfoze Batch converter (CSV, validation, progress and error logging)
 * KB-python-API (importing of bibliographical metadata from GGC)
 * For metadata generation in e.g. METS format some libs probably exist already 
+* Extract + re-use metadata from ISO images, e.g. using:
+     https://github.com/KBNLresearch/verifyISOSize
 
 """
-
 
 # Script name
 scriptPath, scriptName = os.path.split(sys.argv[0])
@@ -216,18 +217,19 @@ def main():
 
             # Check for obvious errors
 
-            # VolumeNumber string must represent integer
-            if RepresentsInt(volumeNumber) != True:
-                errors.append("IP " + IPIdentifier + ": '" + volumeNumber + \
-                "' is illegal value for 'volumeNumber' (must be integer)") 
-
             # Update lists
             IPIdentifiersParent.append(IPIdentifierParent)
             imagePaths.append(imagePath)
-            volumeNumbers.append(volumeNumber)
+
+            # convert volumeNumber to integer (so we can do more checking later)
+            try:
+                volumeNumbers.append(int(volumeNumber))
+            except ValueError:
+                # Raises error if volumeNumber string doesn't represent integer
+                errors.append("IP " + IPIdentifier + ": '" + volumeNumber + \
+                "' is illegal value for 'volumeNumber' (must be integer)") 
             carrierTypes.append(carrierType)
-    
-       
+           
         # More error checking
 
         # Parent IP identifiers must all be equal 
@@ -248,11 +250,23 @@ def main():
         if carrierTypes.count(carrierTypes[0]) != len(carrierTypes):
             errors.append("IP " + IPIdentifier + ": multiple values found for 'carrierType'")
 
-        # Report warning if volumeNumbers does not contain consecutive numbers, starting with '1'
+        # Report warning if lower value of volumeNumber not equal to '1'
+        volumeNumbers.sort()
+        if volumeNumbers[0] != 1:
+            warnings.append("IP " + IPIdentifier + ": expected '1' as lower value for 'volumeNumber', found '" + \
+            str(volumeNumbers[0]) + "'")
+            
+        # Report warning if volumeNumber does not contain consecutive numbers (indicates either missing 
+        # volumes of data entry error)
+        
+        if sorted(volumeNumbers) != range(min(volumeNumbers), max(volumeNumbers) + 1):
+            warnings.append("IP " + IPIdentifier + ": values for 'volumeNumber' are not consecutive")
+            
  
           
     #print(colsMetaCarriers)
     print(errors)
+    print(warnings)
 
     """
     # Create output dir if it doesn't exist already
