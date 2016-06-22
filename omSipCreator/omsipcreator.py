@@ -94,6 +94,21 @@ def readMD5(fileIn):
     except IOError:
         errors.append("cannot read '" + fileIn + "'")
         errorExit(errors)
+
+def generate_file_md5(fileIn):
+    # Generate MD5 hash of file
+    # fileIn is read in chunks to ensure it will work with (very) large files as well
+    # Adapted from: http://stackoverflow.com/a/1131255/1209004
+
+    blocksize = 2**20
+    m = hashlib.md5()
+    with open(fileIn, "rb") as f:
+        while True:
+            buf = f.read(blocksize)
+            if not buf:
+                break
+            m.update( buf )
+    return m.hexdigest()
      
 def processImagePath(IPIdentifier, imagePathFull):
     # Process contents of imagepath directory
@@ -124,12 +139,20 @@ def processImagePath(IPIdentifier, imagePathFull):
     if skipChecksumVerification == False:
         MD5FromFile = readMD5(MD5Files[0])
         
-        # List which will store names of all files that are referenced in the MD5 file
+        # List which to store names of all files that are referenced in the MD5 file
         allFilesinMD5 = []
         for entry in MD5FromFile:
             md5Sum = entry[0]
             fileName = entry[1] # Raises IndexError if entry only 1 col (malformed MD5 file)!
-            fileNameWithPath = os.path.normpath(imagePathFull + "/" + fileName) 
+            fileNameWithPath = os.path.normpath(imagePathFull + "/" + fileName)
+            
+            # Calculate MD5 hash of actual file
+            md5SumCalculated = generate_file_md5(fileNameWithPath)
+            
+            if md5SumCalculated != md5Sum:
+                errors.append("IP " + IPIdentifier + ": checksum mismatch for file '" + fileNameWithPath + "'")
+                        
+            # Append file name to list 
             allFilesinMD5.append(fileNameWithPath)
             
         # Check if any files in directory are missing from MD5 file
