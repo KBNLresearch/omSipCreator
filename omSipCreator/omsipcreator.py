@@ -14,6 +14,20 @@ from itertools import groupby
 NOTES
 -----
 
+## SIP structure
+
+Current code based on multi-volume SIPS. But OAIS allow one to describe a composite object as an
+Archival Information Collection (AIC). This may be a better solution, which would imply 
+single-volume SIPs. See also:
+
+http://qanda.digipres.org/1121/creation-practices-optical-carriers-that-multiple-volumes
+
+## Metadata
+
+LoC has a METS profile for audio CDs:
+
+<http://www.loc.gov/standards/mets/profiles/00000007.html>
+
 ## Checksumming
 
 Check out this:  
@@ -41,8 +55,7 @@ This validation could either be done within this SIP creator, or as a separate s
 * For metadata generation in e.g. METS format some libs probably exist already 
 * Extract + re-use metadata from ISO images, e.g. using:
      https://github.com/KBNLresearch/verifyISOSize
-
-"""
+ """
 
 # Script name
 scriptPath, scriptName = os.path.split(sys.argv[0])
@@ -396,11 +409,16 @@ def main():
         + metaCarriers + "'")
  
     # Print errors and warnings
-    #for error in errors:
+    err.write("Batch validation yielded " + str(len(errors)) + " errors and " + str(len(warnings)) + " warnings \n" )
+    
+    for error in errors:
+        err.write("Error - " + error + "\n")
         
+    for warning in warnings:
+        err.write("Warning - " + warning + "\n") 
  
-    print(errors)
-    print(warnings)
+    #print(errors)
+    #print(warnings)
 
     """
     # Create output dir if it doesn't exist already
