@@ -66,18 +66,10 @@ def get_main_dir():
     if main_is_frozen():
         return os.path.dirname(sys.executable)
     return os.path.dirname(sys.argv[0])
-
-def printWarning(msg):
-    msgString=("User warning: " + msg +"\n")
-    sys.stderr.write(msgString)
-
-def printInfo(msg):
-    msgString=(msg + "\n")
-    sys.stderr.write(msgString)
  
-def errorExit(errors):
+def errorExit(errors,terminal):
     for error in errors:
-        sys.stderr.write("Error - " + error + "\n")
+        terminal.write("Error - " + error + "\n")
     sys.exit()
     
 def get_immediate_subdirectories(a_dir):
@@ -101,7 +93,7 @@ def readMD5(fileIn):
         return(data)
     except IOError:
         errors.append("cannot read '" + fileIn + "'")
-        errorExit(errors)
+        errorExit(errors,err)
 
 def generate_file_md5(fileIn):
     # Generate MD5 hash of file
@@ -190,6 +182,9 @@ def main():
 
     # Constants (put in config file later)
     
+    # Flag that indicates (batch) validation-only mode or SIP-creation mode
+    createSIPs = True
+    
     # Carrier metadata file - basic capture-level metadata about carriers
     fileMetaCarriers = "metacarriers.csv"
 
@@ -213,6 +208,14 @@ def main():
     errors = []
     warnings = []
     
+    # Set encoding of the terminal to UTF-8
+    if sys.version.startswith("2"):
+        out = codecs.getwriter("UTF-8")(sys.stdout)
+        err = codecs.getwriter("UTF-8")(sys.stderr)
+    elif sys.version.startswith("3"):
+        out = codecs.getwriter("UTF-8")(sys.stdout.buffer)
+        err = codecs.getwriter("UTF-8")(sys.stderr.buffer)
+       
     # Get input from command line
     args = parseCommandLine()
     batchIn = os.path.normpath(args.batchIn)
@@ -221,7 +224,7 @@ def main():
     # Check if batch dir exists
     if os.path.isdir(batchIn) == False:
         errors.append("input batch directory does not exist")
-        errorExit(errors)
+        errorExit(errors,err)
         
     # Get listing of all directories (not files) in batch dir (used later for completeness check)
     # Note: all entries as full, absolute file paths!
@@ -235,7 +238,7 @@ def main():
     metaCarriers = os.path.normpath(batchIn + "/" + fileMetaCarriers)
     if os.path.isfile(metaCarriers) == False:
         errors.append("file " + metaCarriers + " does not exist")
-        errorExit(errors)
+        errorExit(errors,err)
 
     # Read carrier-level metadata file as CSV and import header and
     # row data to 2 separate lists
@@ -249,10 +252,10 @@ def main():
         fMetaCarriers.close()
     except IOError:
         errors.append("cannot read " + metaCarriers)
-        errorExit(errors)
+        errorExit(errors,err)
     except csv.Error:
         errors.append("error parsing " + metaCarriers)
-        errorExit(errors)
+        errorExit(errors,err)
 
     # Remove any empty list elements (e.g. due to EOL chars)
     # to avoid trouble with itemgetter
@@ -272,7 +275,7 @@ def main():
             errors.append("found " + str(occurs) + " occurrences of column '" + requiredCol + "' in " + \
             fileMetaCarriers + " (expected 1)")
             # No point in continuing if we end up here ...
-            errorExit(errors)
+            errorExit(errors,err)
 
     # Set up dictionary to store header fields and corresponding column numbers
     colsMetaCarriers = {}
@@ -391,6 +394,10 @@ def main():
     for directory in diffDirs:
         errors.append("IP " + IPIdentifier + ": directory '" + directory + "' not referenced in '"\
         + metaCarriers + "'")
+ 
+    # Print errors and warnings
+    #for error in errors:
+        
  
     print(errors)
     print(warnings)
