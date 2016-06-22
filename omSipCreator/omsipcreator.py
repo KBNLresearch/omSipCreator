@@ -28,9 +28,9 @@ the batch level, e.g.:
 * Check for duplicate identifier - volumeNumber combinations (not permitted) X
 * Check for presence of different carrierTypes within one identifier (not permitted) X
 * Check for missing checksums X
-* Checksum verification for all items in batch
+* Checksum verification for all items in batch X
 * Check if all imagePath fields in CSV correspond to actual dir in batch X
-* Check if all dirs in batch are represented as an imagePath field
+* Check if all dirs in batch are represented as an imagePath field X
 
 This validation could either be done within this SIP creator, or as a separate script.
 
@@ -79,6 +79,14 @@ def errorExit(errors):
     for error in errors:
         sys.stderr.write("Error - " + error + "\n")
     sys.exit()
+    
+def get_immediate_subdirectories(a_dir):
+    subDirs = []
+    for root, dirs, files in os.walk(a_dir):
+        for dir in dirs:
+            subDirs.append(os.path.join(root, dir))
+
+    return(subDirs)
 
 def readMD5(fileIn):
     # Read MD 5 file, return contents as nested list
@@ -107,7 +115,7 @@ def generate_file_md5(fileIn):
             buf = f.read(blocksize)
             if not buf:
                 break
-            m.update( buf )
+            m.update(buf)
     return m.hexdigest()
      
 def processImagePath(IPIdentifier, imagePathFull):
@@ -148,7 +156,7 @@ def processImagePath(IPIdentifier, imagePathFull):
             
             # Calculate MD5 hash of actual file
             md5SumCalculated = generate_file_md5(fileNameWithPath)
-            
+                                   
             if md5SumCalculated != md5Sum:
                 errors.append("IP " + IPIdentifier + ": checksum mismatch for file '" + fileNameWithPath + "'")
                         
@@ -210,16 +218,20 @@ def main():
     batchIn = os.path.normpath(args.batchIn)
     dirOut = os.path.normpath(args.dirOut)
 
-    # TODO: perhaps the checks below (which now all result in an errorexit)
-    # could be formalised a bit, so that they can be reworked into a validation
-    # report. 
-
     # Check if batch dir exists
     if os.path.isdir(batchIn) == False:
         errors.append("input batch directory does not exist")
         errorExit(errors)
-
-    # Check if batch-level metadata file exists
+        
+    # Get listing of all directories (not files) in batch dir (used later for completeness check)
+    # Note: all entries as full, absolute file paths!
+    dirsInBatch = get_immediate_subdirectories(batchIn)
+    
+    # List for storing directories as extracted from carrier metadata file (see below)
+    # Note: all entries as full, absolute file paths!
+    dirsInMetaCarriers = [] 
+    
+    # Check if batch-level carrier metadata file exists
     metaCarriers = os.path.normpath(batchIn + "/" + fileMetaCarriers)
     if os.path.isfile(metaCarriers) == False:
         errors.append("file " + metaCarriers + " does not exist")
@@ -227,6 +239,8 @@ def main():
 
     # Read carrier-level metadata file as CSV and import header and
     # row data to 2 separate lists
+    # TODO: make this work in Python 3, see also:
+    # http://stackoverflow.com/a/5181085/1209004
     try:
         fMetaCarriers = open(metaCarriers,"rb")
         metaCarriersCSV = csv.reader(fMetaCarriers)
@@ -308,6 +322,11 @@ def main():
             
             # Full path, relative to batchIn TODO: check behaviour on Window$
             imagePathFull = os.path.normpath(os.path.join(batchIn, imagePath)) 
+            imagePathAbs = os.path.abspath(imagePathFull)
+            
+            # Append absolute path to list (used later for completeness check)
+            dirsInMetaCarriers.append(imagePathAbs)
+            
             if os.path.isdir(imagePathFull) == False:
                 errors.append("IP " + IPIdentifier + ": '" + imagePath + \
                 "' is not a directory")
@@ -328,9 +347,7 @@ def main():
                 errors.append("IP " + IPIdentifier + ": '" + carrierType + \
                 "' is illegal value for 'carrierType'")
             carrierTypes.append(carrierType)
-            
-
-           
+                   
         # IP-level consistency checks
 
         # Parent IP identifiers must all be equal 
@@ -362,7 +379,18 @@ def main():
         
         if sorted(volumeNumbers) != range(min(volumeNumbers), max(volumeNumbers) + 1):
             warnings.append("IP " + IPIdentifier + ": values for 'volumeNumber' are not consecutive")
-            
+    
+    # Check if directories that are part of batch are all represented in carrier metadata file
+    # (reverse already covered by checks above)
+    
+    # Diff as list
+    diffDirs = list(set(dirsInBatch) - set(dirsInMetaCarriers))
+    
+    # Report each item in list as an error
+    
+    for directory in diffDirs:
+        errors.append("IP " + IPIdentifier + ": directory '" + directory + "' not referenced in '"\
+        + metaCarriers + "'")
  
     print(errors)
     print(warnings)
