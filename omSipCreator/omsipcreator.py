@@ -205,6 +205,7 @@ def main():
     # Constants (put in config file later)
     
     # Flag that indicates (batch) validation-only mode or SIP-creation mode
+    global createSIPs
     createSIPs = True
     
     # Carrier metadata file - basic capture-level metadata about carriers
@@ -291,14 +292,13 @@ def main():
         # Potentially dangerous, so ask for user confirmation 
         if os.path.isdir(dirOut) == True:
         
-            out.write("This will remove existing directory '" + dirOut + \
-            "' and all of its contents!\nDo you really want to proceed (Y/N)? > ")
+            out.write("This will overwrite existing directory '" + dirOut + \
+            "' and remove its contents!\nDo you really want to proceed (Y/N)? > ")
             response = input()
             
             if response.upper() == "Y":
                 try:
-                    print("shutil.rmtree(dirOut)")
-                    #shutil.rmtree(dirOut)
+                    shutil.rmtree(dirOut)
                 except OSError:
                     errors.append("cannot remove '" + dirOut + "'" )
                     errorExit(errors,err)
@@ -436,19 +436,18 @@ def main():
     # Diff as list
     diffDirs = list(set(dirsInBatch) - set(dirsInMetaCarriers))
     
-   
     # Report each item in list as an error
     
     for directory in diffDirs:
         errors.append("IP " + IPIdentifier + ": directory '" + directory + "' not referenced in '"\
         + metaCarriers + "'")
  
-    # Print errors and warnings
+    # Output errors and warnings
     err.write("Batch validation yielded " + str(len(errors)) + " errors and " + str(len(warnings)) + " warnings \n" )
-    
+    err.write("**** Errors ****\n")
     for error in errors:
         err.write("Error - " + error + "\n")
-        
+    err.write("**** Warnings ****\n")    
     for warning in warnings:
         err.write("Warning - " + warning + "\n") 
  
