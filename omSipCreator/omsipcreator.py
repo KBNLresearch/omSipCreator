@@ -58,6 +58,22 @@ the batch level, e.g.:
 
 This validation could either be done within this SIP creator, or as a separate script.
 
+## Quality checks on image files
+
+* ISO 'validation' (see also paper Woods & others)
+* WAV validation (JHOVE?)
+
+## SIP creation
+
+* Create SIP directory structure X
+* Copy files to  SIP X
+* Post-copy checksum verification X
+* Generate structural metadata in METS format
+* Include automated format identification w. Apache Tika
+* ISO characterisation (executables, environments) using Freiburg code
+* Extract metadata from ISO Primary Volume Descriptors
+* Import bibliographical metadata from KB catalogue
+
 ## Code reuse
 
 * Metamorfoze Batch converter (CSV, validation, progress and error logging)
@@ -136,6 +152,8 @@ def generate_file_md5(fileIn):
 def processImagePath(IPIdentifier, imagePathFull, SIPPath, volumeNumber, carrierType):
     # Process contents of imagepath directory
     # TODO: * check file type / extension matches carrierType!
+    # TODO: currently lots of file path manipulations which make things hard to read, 
+    # could be better structured with more understandable naming conventions.
     
     # Default state of flag that is set to "True" if checksums are missing 
     skipChecksumVerification = False
