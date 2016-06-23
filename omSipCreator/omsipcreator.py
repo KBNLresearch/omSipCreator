@@ -7,6 +7,7 @@ import argparse
 import codecs
 import csv
 import hashlib
+import metsrw
 from operator import itemgetter
 from itertools import groupby
 
@@ -16,7 +17,7 @@ NOTES
 
 ## SIP structure
 
-Current code based on multi-volume SIPS. But OAIS allow one to describe a composite object as an
+Current code based on multi-volume SIPS. But OAIS allows one to describe a composite object as an
 Archival Information Collection (AIC). This may be a better solution, which would imply 
 single-volume SIPs. See also:
 
@@ -89,7 +90,7 @@ def get_immediate_subdirectories(a_dir):
     subDirs = []
     for root, dirs, files in os.walk(a_dir):
         for dir in dirs:
-            subDirs.append(os.path.join(root, dir))
+            subDirs.append(os.path.abspath(os.path.join(root, dir)))
 
     return(subDirs)
 
@@ -401,6 +402,10 @@ def main():
     
     # Diff as list
     diffDirs = list(set(dirsInBatch) - set(dirsInMetaCarriers))
+    
+    print(dirsInBatch)
+    print ("-----")
+    print(dirsInMetaCarriers)
     
     # Report each item in list as an error
     
