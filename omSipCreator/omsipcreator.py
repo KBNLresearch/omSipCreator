@@ -3,6 +3,7 @@
 import sys
 import os
 import shutil
+import ntpath
 import glob
 import argparse
 import codecs
@@ -132,10 +133,11 @@ def generate_file_md5(fileIn):
             m.update(buf)
     return m.hexdigest()
      
-def processImagePath(IPIdentifier, imagePathFull):
+def processImagePath(IPIdentifier, imagePathFull, SIPPath):
     # Process contents of imagepath directory
     # TODO: * check file type / extension matches carrierType!
     
+    # TODO defines as flag in main
     skipChecksumVerification = False
     
     # All files in directory
@@ -165,14 +167,16 @@ def processImagePath(IPIdentifier, imagePathFull):
         allFilesinMD5 = []
         for entry in MD5FromFile:
             md5Sum = entry[0]
-            fileName = entry[1] # Raises IndexError if entry only 1 col (malformed MD5 file)!
+            # Strip away file paths if necessary
+            fileName = ntpath.basename(entry[1]) # Raises IndexError if entry only 1 col (malformed MD5 file)!
             fileNameWithPath = os.path.normpath(imagePathFull + "/" + fileName)
             
             # Calculate MD5 hash of actual file
             md5SumCalculated = generate_file_md5(fileNameWithPath)
                                    
             if md5SumCalculated != md5Sum:
-                errors.append("IP " + IPIdentifier + ": checksum mismatch for file '" + fileNameWithPath + "'")
+                errors.append("IP " + IPIdentifier + ": checksum mismatch for file '" + \
+                fileNameWithPath + "'")
                         
             # Append file name to list 
             allFilesinMD5.append(fileNameWithPath)
@@ -180,8 +184,25 @@ def processImagePath(IPIdentifier, imagePathFull):
         # Check if any files in directory are missing from MD5 file
         for f in otherFiles:
             if f not in allFilesinMD5:
-                errors.append("IP " + IPIdentifier + ": file '" + f + "' not referenced in '" + \
-                MD5Files[0] + "'")           
+                errors.append("IP " + IPIdentifier + ": file '" + f + \
+                "' not referenced in '" + \
+                MD5Files[0] + "'")
+                
+        if createSIPs == True:
+            # Copy files to SIP directory
+            
+            # Get file names from MD5 file, as this is the easiest way to make
+            # post-copy checksum verification work.
+            for entry in MD5FromFile:
+                md5Sum = entry[0]
+                fileName = ntpath.basename(entry[1]) 
+                fSIP = os.path.join(SIPPath,fileName)
+                try:
+                    shutil.copy2(f,fSIP)
+                except OSError:
+                    errors.append("IP " + IPIdentifier + ": cannot copy '"\
+                    + f + "' to '" + SIPPath + "'")
+                    errorExit(errors,err)           
     
 def parseCommandLine():
     # Add arguments
@@ -342,6 +363,16 @@ def main():
     for IPIdentifier, carriers in metaCarriersByIP:
         # IP is IPIdentifier (by which we grouped data)
         # carriers is another iterator that contains individual carrier records
+        
+        if createSIPs == True:
+            # Create SIP directory
+            dirSIP = os.path.join(dirOut,IPIdentifier)
+            try:
+                os.makedirs(dirSIP)
+            except OSError:
+                errors.append("cannot create '" + dirSIP + "'" )
+                errorExit(errors,err)
+            
 
         # TODO: perhaps we can validate PPN, based on conventions/restrictions?
 
@@ -382,7 +413,7 @@ def main():
                 "' is not a directory")
             
             # Process contents of imagePath directory
-            processImagePath(IPIdentifier,imagePathFull)
+            processImagePath(IPIdentifier,imagePathFull,dirSIP)
             
             # convert volumeNumber to integer (so we can do more checking below)
             try:
