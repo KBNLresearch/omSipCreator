@@ -203,14 +203,23 @@ def processImagePath(IPIdentifier, imagePathFull, SIPPath, volumeNumber, carrier
             # post-copy checksum verification work.
             for entry in MD5FromFile:
                 md5Sum = entry[0]
-                fileName = ntpath.basename(entry[1]) 
+                # Maybe overkill, but ensures things go as intended irrespective whether
+                # filename is given in MD5 file with or without path
+                fileName = ntpath.basename(entry[1])
                 fSIP = os.path.join(dirVolume,fileName)
                 try:
-                    shutil.copy2(f,fSIP)
+                    # All the filepath fiddling is a bit ugly ... 
+                    shutil.copy2(os.path.join(imagePathFull,ntpath.basename(fileName)),fSIP)
                 except OSError:
                     errors.append("IP " + IPIdentifier + ": cannot copy '"\
                     + f + "' to '" + SIPPath + "'")
-                    errorExit(errors,err)           
+                    errorExit(errors,err)
+            
+                # Calculate MD5 hash of copied file, and verify against known value
+                md5SumCalculated = generate_file_md5(fSIP)                               
+                if md5SumCalculated != md5Sum:
+                    errors.append("IP " + IPIdentifier + ": checksum mismatch for file '" + \
+                    fSIP + "'")         
     
 def parseCommandLine():
     # Add arguments
@@ -260,6 +269,9 @@ def main():
     errors = []
     warnings = []
     
+    global out
+    global err
+       
     # Set encoding of the terminal to UTF-8
     if sys.version.startswith("2"):
         out = codecs.getwriter("UTF-8")(sys.stdout)
