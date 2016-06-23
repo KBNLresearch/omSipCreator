@@ -133,7 +133,7 @@ def generate_file_md5(fileIn):
             m.update(buf)
     return m.hexdigest()
      
-def processImagePath(IPIdentifier, imagePathFull, SIPPath):
+def processImagePath(IPIdentifier, imagePathFull, SIPPath, volumeNumber, carrierType):
     # Process contents of imagepath directory
     # TODO: * check file type / extension matches carrierType!
     
@@ -189,14 +189,22 @@ def processImagePath(IPIdentifier, imagePathFull, SIPPath):
                 MD5Files[0] + "'")
                 
         if createSIPs == True:
-            # Copy files to SIP directory
+            # Create Volume directory
+            dirVolume = os.path.join(SIPPath, volumeNumber)
+            try:
+                os.makedirs(dirVolume)
+            except OSError:
+                errors.append("IP " + IPIdentifier + ": cannot create '" + dirVolume + "'" )
+                errorExit(errors,err)
+            
+            # Copy files to SIP Volume directory
             
             # Get file names from MD5 file, as this is the easiest way to make
             # post-copy checksum verification work.
             for entry in MD5FromFile:
                 md5Sum = entry[0]
                 fileName = ntpath.basename(entry[1]) 
-                fSIP = os.path.join(SIPPath,fileName)
+                fSIP = os.path.join(dirVolume,fileName)
                 try:
                     shutil.copy2(f,fSIP)
                 except OSError:
@@ -413,7 +421,7 @@ def main():
                 "' is not a directory")
             
             # Process contents of imagePath directory
-            processImagePath(IPIdentifier,imagePathFull,dirSIP)
+            processImagePath(IPIdentifier,imagePathFull,dirSIP, volumeNumber, carrierType)
             
             # convert volumeNumber to integer (so we can do more checking below)
             try:
