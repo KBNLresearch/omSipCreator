@@ -2,6 +2,7 @@
 
 import sys
 import os
+import shutil
 import glob
 import argparse
 import codecs
@@ -10,6 +11,13 @@ import hashlib
 import metsrw
 from operator import itemgetter
 from itertools import groupby
+
+# Bind raw_input (Python 3) to input (Python 2)
+# Source: http://stackoverflow.com/a/21731110/1209004
+try:
+   input = raw_input
+except NameError:
+   pass
 
 """
 NOTES
@@ -277,6 +285,31 @@ def main():
         if item == []:
             rowsMetaCarriers.remove(item)
 
+    # Create output directory if in SIP creation mode
+    if createSIPs == True:
+        # Remove output dir tree if it exists already
+        # Potentially dangerous, so ask for user confirmation 
+        if os.path.isdir(dirOut) == True:
+        
+            out.write("This will remove existing directory '" + dirOut + \
+            "' and all of its contents!\nDo you really want to proceed (Y/N)? > ")
+            response = input()
+            
+            if response.upper() == "Y":
+                try:
+                    print("shutil.rmtree(dirOut)")
+                    #shutil.rmtree(dirOut)
+                except OSError:
+                    errors.append("cannot remove '" + dirOut + "'" )
+                    errorExit(errors,err)
+                
+        # Create new dir
+        try:
+            os.makedirs(dirOut)
+        except OSError:
+            errors.append("cannot create '" + dirOut + "'" )
+            errorExit(errors,err)
+
     # ********
     # ** Process carrier-level metadata file **
     # ******** 
@@ -403,10 +436,7 @@ def main():
     # Diff as list
     diffDirs = list(set(dirsInBatch) - set(dirsInMetaCarriers))
     
-    print(dirsInBatch)
-    print ("-----")
-    print(dirsInMetaCarriers)
-    
+   
     # Report each item in list as an error
     
     for directory in diffDirs:
@@ -422,19 +452,6 @@ def main():
     for warning in warnings:
         err.write("Warning - " + warning + "\n") 
  
-    #print(errors)
-    #print(warnings)
-
-    """
-    # Create output dir if it doesn't exist already
-    if os.path.isdir(dirOut) == False:
-        try:
-            os.makedirs(dirOut)
-        except IOError:
-            msg = "cannot create output directory"
-            errorExit(errors)
-    """
-
 
 if __name__ == "__main__":
     main()
