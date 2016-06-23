@@ -137,7 +137,7 @@ def processImagePath(IPIdentifier, imagePathFull, SIPPath, volumeNumber, carrier
     # Process contents of imagepath directory
     # TODO: * check file type / extension matches carrierType!
     
-    # TODO defines as flag in main
+    # Default state of flag that is set to "True" if checksums are missing 
     skipChecksumVerification = False
     
     # All files in directory
