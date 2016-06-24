@@ -9,7 +9,6 @@ import argparse
 import codecs
 import csv
 import hashlib
-import metsrw
 from operator import itemgetter
 from itertools import groupby
 from lxml import etree
@@ -211,8 +210,12 @@ def processImagePath(IPIdentifier, imagePathFull, SIPPath, volumeNumber, carrier
                 errors.append("IP " + IPIdentifier + ": file '" + f + \
                 "' not referenced in '" + \
                 MD5Files[0] + "'")
+        
+        # Create METS fileGrp entry (will remain empty if createSIPs != True)
+        fileGrp = etree.Element("fileGrp")
                 
         if createSIPs == True:
+       
             # Create Volume directory
             dirVolume = os.path.join(SIPPath, volumeNumber)
             try:
@@ -242,12 +245,18 @@ def processImagePath(IPIdentifier, imagePathFull, SIPPath, volumeNumber, carrier
                 md5SumCalculated = generate_file_md5(fSIP)                               
                 if md5SumCalculated != md5Sum:
                     errors.append("IP " + IPIdentifier + ": checksum mismatch for file '" + \
-                    fSIP + "'") 
-                    
-                # Generate METS fileGrp entry
-                fileGrp = etree.Element("fileGrp")
+                    fSIP + "'")
+               
+                # Create METS file and FLocat elements
+                fileElt = etree.Element("file", ) 
+                fLocat = etree.Element("FLocat", xlink:href=os.path.join(volumeNumber ,fileName))
                 
-                return(fileGrp)             
+                fileElt.append(fLocat)
+                
+                fileGrp.append(fileElt)
+                    
+                
+        return(fileGrp)             
                 
                          
     
@@ -474,8 +483,8 @@ def main():
             # TEST return fileGrp element
             
             fileGrp = processImagePath(IPIdentifier,imagePathFull,dirSIP, volumeNumber, carrierType)
-            
-            fileSec.append(fileGrp)
+            if createSIPs == True:
+                fileSec.append(fileGrp)
             
             print(etree.tostring(mets, pretty_print=True))
                         
