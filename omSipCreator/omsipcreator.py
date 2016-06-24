@@ -12,6 +12,7 @@ import hashlib
 import metsrw
 from operator import itemgetter
 from itertools import groupby
+from lxml import etree
 
 # Bind raw_input (Python 3) to input (Python 2)
 # Source: http://stackoverflow.com/a/21731110/1209004
@@ -68,7 +69,8 @@ This validation could either be done within this SIP creator, or as a separate s
 * Create SIP directory structure X
 * Copy files to  SIP X
 * Post-copy checksum verification X
-* Generate structural metadata in METS format
+* Generate structural metadata in METS format: 
+  for an example see: https://github.com/artefactual/automation-tools/pull/15/files
 * Include automated format identification w. Apache Tika
 * ISO characterisation (executables, environments) using Freiburg code
 * Extract metadata from ISO Primary Volume Descriptors
@@ -240,7 +242,14 @@ def processImagePath(IPIdentifier, imagePathFull, SIPPath, volumeNumber, carrier
                 md5SumCalculated = generate_file_md5(fSIP)                               
                 if md5SumCalculated != md5Sum:
                     errors.append("IP " + IPIdentifier + ": checksum mismatch for file '" + \
-                    fSIP + "'")         
+                    fSIP + "'") 
+                    
+                # Generate METS fileGrp entry
+                fileGrp = etree.Element("fileGrp")
+                
+                return(fileGrp)             
+                
+                         
     
 def parseCommandLine():
     # Add arguments
@@ -406,6 +415,12 @@ def main():
         # carriers is another iterator that contains individual carrier records
         
         if createSIPs == True:
+            # Create METS element for this SIP and add subelements for dmdSec, fileSec and structMap
+            mets = etree.Element("mets")
+            dmdSec = etree.SubElement(mets, "dmdSec")
+            fileSec = etree.SubElement(mets, "fileSec")
+            structMap = etree.SubElement(mets, "structMap") 
+            
             # Create SIP directory
             dirSIP = os.path.join(dirOut,IPIdentifier)
             try:
@@ -454,8 +469,16 @@ def main():
                 "' is not a directory")
             
             # Process contents of imagePath directory
-            processImagePath(IPIdentifier,imagePathFull,dirSIP, volumeNumber, carrierType)
+            #processImagePath(IPIdentifier,imagePathFull,dirSIP, volumeNumber, carrierType)
             
+            # TEST return fileGrp element
+            
+            fileGrp = processImagePath(IPIdentifier,imagePathFull,dirSIP, volumeNumber, carrierType)
+            
+            fileSec.append(fileGrp)
+            
+            print(etree.tostring(mets, pretty_print=True))
+                        
             # convert volumeNumber to integer (so we can do more checking below)
             try:
                 volumeNumbers.append(int(volumeNumber))
