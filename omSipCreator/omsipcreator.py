@@ -121,12 +121,16 @@ def get_immediate_subdirectories(a_dir):
 
 def readMD5(fileIn):
     # Read MD 5 file, return contents as nested list
+    # Also strip away any file paths if they exist (return names only)
 
     try:
         data = []
         f = open(fileIn,"r")
         for row in f:
             rowSplit = row.split()
+            # Second col contains file name. Strip away any path components if they are present
+            fileName = rowSplit[1] # Raises IndexError if entry only 1 col (malformed MD5 file)!
+            rowSplit[1] = ntpath.basename(fileName) 
             data.append(rowSplit)    
         f.close()
         return(data)
@@ -185,8 +189,8 @@ def processImagePath(IPIdentifier, imagePathFull, SIPPath, volumeNumber, carrier
         allFilesinMD5 = []
         for entry in MD5FromFile:
             md5Sum = entry[0]
-            # Strip away file paths if necessary
-            fileName = ntpath.basename(entry[1]) # Raises IndexError if entry only 1 col (malformed MD5 file)!
+            fileName = entry[1] # Raises IndexError if entry only 1 col (malformed MD5 file)!
+            # Normalise file path relative to imagePath
             fileNameWithPath = os.path.normpath(imagePathFull + "/" + fileName)
             
             # Calculate MD5 hash of actual file
@@ -221,16 +225,15 @@ def processImagePath(IPIdentifier, imagePathFull, SIPPath, volumeNumber, carrier
             # post-copy checksum verification work.
             for entry in MD5FromFile:
                 md5Sum = entry[0]
-                # Maybe overkill, but ensures things go as intended irrespective whether
-                # filename is given in MD5 file with or without path
-                fileName = ntpath.basename(entry[1])
+                fileName = entry[1]
+                # Contstruct path relative to volume directory
                 fSIP = os.path.join(dirVolume,fileName)
                 try:
-                    # All the filepath fiddling is a bit ugly ... 
-                    shutil.copy2(os.path.join(imagePathFull,ntpath.basename(fileName)),fSIP)
+                    # Copy to volume dir
+                    shutil.copy2(os.path.join(imagePathFull,fileName),fSIP)
                 except OSError:
                     errors.append("IP " + IPIdentifier + ": cannot copy '"\
-                    + f + "' to '" + SIPPath + "'")
+                    + fileName + "' to '" + fSIP + "'")
                     errorExit(errors,err)
             
                 # Calculate MD5 hash of copied file, and verify against known value
