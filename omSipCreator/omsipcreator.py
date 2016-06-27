@@ -191,8 +191,12 @@ def processImagePath(IPIdentifier, imagePathFull, SIPPath, volumeNumber, carrier
     noOtherFiles = len(otherFiles)
     
     if skipChecksumVerification == False:
+        # Read contents of checksum file to list
         MD5FromFile = readMD5(MD5Files[0])
         
+        # Sort ascending by file name - this ensures correct order when making structMap
+        MD5FromFile.sort(key=itemgetter(1))
+                
         # List which to store names of all files that are referenced in the MD5 file
         allFilesinMD5 = []
         for entry in MD5FromFile:
