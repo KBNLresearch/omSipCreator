@@ -82,6 +82,13 @@ This validation could either be done within this SIP creator, or as a separate s
 * For metadata generation in e.g. METS format some libs probably exist already 
 * Extract + re-use metadata from ISO images, e.g. using:
      https://github.com/KBNLresearch/verifyISOSize
+     
+
+## TODO
+
+Script needs some MAJOR refactoring, as it's a bit of an unstructured
+mess right now.
+
  """
 
 # Script name
