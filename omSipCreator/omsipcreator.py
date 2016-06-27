@@ -161,11 +161,14 @@ def generate_file_md5(fileIn):
             m.update(buf)
     return m.hexdigest()
      
-def processImagePath(IPIdentifier, imagePathFull, SIPPath, volumeNumber, carrierType):
+def processImagePath(IPIdentifier, imagePathFull, SIPPath, volumeNumber, carrierType, fileCounterStart):
     # Process contents of imagepath directory
     # TODO: * check file type / extension matches carrierType!
     # TODO: currently lots of file path manipulations which make things hard to read, 
     # could be better structured with more understandable naming conventions.
+    
+    # Counter used to assign file IDs, must be unique fore each file within SIP
+    fileCounter = fileCounterStart
     
     # Default state of flag that is set to "True" if checksums are missing 
     skipChecksumVerification = False
@@ -211,6 +214,9 @@ def processImagePath(IPIdentifier, imagePathFull, SIPPath, volumeNumber, carrier
             if md5SumCalculated != md5Sum:
                 errors.append("IP " + IPIdentifier + ": checksum mismatch for file '" + \
                 fileNameWithPath + "'")
+                
+            # Get file size and append to MD5FromFile list (needed later for METS file entry)
+            entry.append(str(os.path.getsize(fileNameWithPath)))
                         
             # Append file name to list 
             allFilesinMD5.append(fileNameWithPath)
@@ -243,6 +249,7 @@ def processImagePath(IPIdentifier, imagePathFull, SIPPath, volumeNumber, carrier
             for entry in MD5FromFile:
                 md5Sum = entry[0]
                 fileName = entry[1]
+                fileSize = entry[2]
                 # Contstruct path relative to volume directory
                 fSIP = os.path.join(dirVolume,fileName)
                 try:
@@ -262,13 +269,17 @@ def processImagePath(IPIdentifier, imagePathFull, SIPPath, volumeNumber, carrier
                 # Create METS file and FLocat elements
                 fileElt = etree.Element("file", )
                 fileElt = etree.SubElement(fileGrp, "{%s}file" %(mets_ns))
+                fileElt.attrib["ID"] = "FILE_" + str(fileCounter).zfill(3) 
+                fileElt.attrib["SIZE"] = fileSize
+                fileCounter += 1
                 fLocat = etree.SubElement(fileElt, "{%s}FLocat" %(mets_ns))
                 fLocat.attrib["LOCTYPE"] = "URL"
                 # File locations relative to SIP root (= location of METS file)
                 fLocat.attrib[etree.QName(xlink_ns, "href")] = "file://./" + os.path.join(volumeNumber ,fileName)
-                #fLocat.attrib[etree.QName(xlink_ns, "title")] = fileName
+                #TODO add MIMETYPE, SIZE, ID
+                # fileSize = str(os.path.getsize(file))
                                    
-        return(fileGrp)             
+        return(fileGrp, fileCounter)             
                 
                          
     
@@ -451,7 +462,9 @@ def main():
             mets = etree.Element(metsName, nsmap = NSMAP)
             dmdSec = etree.SubElement(mets, "{%s}dmdSec" %(mets_ns))
             fileSec = etree.SubElement(mets, "{%s}fileSec" %(mets_ns))
-            structMap = etree.SubElement(mets, "{%s}structMap" %(mets_ns)) 
+            structMap = etree.SubElement(mets, "{%s}structMap" %(mets_ns))
+            # Initialise counter that is used to assign file IDs
+            fileCounterStart = 1 
             
             # Create SIP directory
             dirSIP = os.path.join(dirOut,IPIdentifier)
@@ -505,7 +518,12 @@ def main():
             
             # TEST return fileGrp element
             
-            fileGrp = processImagePath(IPIdentifier,imagePathFull,dirSIP, volumeNumber, carrierType)
+            #fileGrp = processImagePath(IPIdentifier,imagePathFull,dirSIP, volumeNumber, carrierType)
+            fileGrp, fileCounter = processImagePath(IPIdentifier,imagePathFull,dirSIP, volumeNumber, carrierType, fileCounterStart)
+            
+            # Update fileCounterStart
+            fileCounterStart = fileCounter
+            
             if createSIPs == True:
                 fileSec.append(fileGrp)
                             
