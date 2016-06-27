@@ -276,8 +276,8 @@ def processImagePath(IPIdentifier, imagePathFull, SIPPath, volumeNumber, carrier
                 fLocat.attrib["LOCTYPE"] = "URL"
                 # File locations relative to SIP root (= location of METS file)
                 fLocat.attrib[etree.QName(xlink_ns, "href")] = "file://./" + os.path.join(volumeNumber ,fileName)
-                #TODO add MIMETYPE, SIZE, ID
-                # fileSize = str(os.path.getsize(file))
+                #TODO add MIMETYPE
+
                                    
         return(fileGrp, fileCounter)             
                 
