@@ -212,8 +212,9 @@ def processImagePath(IPIdentifier, imagePathFull, SIPPath, volumeNumber, carrier
                 MD5Files[0] + "'")
         
         # Create METS fileGrp entry (will remain empty if createSIPs != True)
-        fileGrp = etree.Element("fileGrp")
-                
+        fileGrpName = etree.QName(mets_ns, "fileGrp")
+        fileGrp = etree.Element(fileGrpName, nsmap = NSMAP)
+                        
         if createSIPs == True:
        
             # Create Volume directory
@@ -248,14 +249,12 @@ def processImagePath(IPIdentifier, imagePathFull, SIPPath, volumeNumber, carrier
                     fSIP + "'")
                
                 # Create METS file and FLocat elements
-                fileElt = etree.Element("file", ) 
-                fLocat = etree.Element("FLocat", xlink:href=os.path.join(volumeNumber ,fileName))
                 
-                fileElt.append(fLocat)
-                
-                fileGrp.append(fileElt)
-                    
-                
+                fileElt = etree.Element("file", )
+                fileElt = etree.SubElement(fileGrp, "{%s}file" %(mets_ns))
+                fLocat = etree.SubElement(fileElt, "{%s}FLocat" %(mets_ns))
+                fLocat.attrib[etree.QName(xlink_ns, "href")] = os.path.join(volumeNumber ,fileName)
+                                   
         return(fileGrp)             
                 
                          
@@ -300,7 +299,17 @@ def main():
                                 'cd-audio',
                                 'dvd-rom',
                                 'dvd-video']
+                                
+    # Define name spaces for METS output
+    global mets_ns
+    global xlink_ns
+    global NSMAP
+    mets_ns = 'http://www.loc.gov/METS'
+    xlink_ns = 'http://www.w3.org/1999/xlink'
     
+    NSMAP =  {"mets" : mets_ns,
+         "xlink" : xlink_ns}
+       
     # Set up lists for storing errors and warnings
     # Defined as global so we can easily add to them within functions
     global errors
@@ -425,10 +434,11 @@ def main():
         
         if createSIPs == True:
             # Create METS element for this SIP and add subelements for dmdSec, fileSec and structMap
-            mets = etree.Element("mets")
-            dmdSec = etree.SubElement(mets, "dmdSec")
-            fileSec = etree.SubElement(mets, "fileSec")
-            structMap = etree.SubElement(mets, "structMap") 
+            metsName = etree.QName(mets_ns, "mets")
+            mets = etree.Element(metsName, nsmap = NSMAP)
+            dmdSec = etree.SubElement(mets, "{%s}dmdSec" %(mets_ns))
+            fileSec = etree.SubElement(mets, "{%s}fileSec" %(mets_ns))
+            structMap = etree.SubElement(mets, "{%s}structMap" %(mets_ns)) 
             
             # Create SIP directory
             dirSIP = os.path.join(dirOut,IPIdentifier)
@@ -485,7 +495,7 @@ def main():
             fileGrp = processImagePath(IPIdentifier,imagePathFull,dirSIP, volumeNumber, carrierType)
             if createSIPs == True:
                 fileSec.append(fileGrp)
-            
+                            
             print(etree.tostring(mets, pretty_print=True))
                         
             # convert volumeNumber to integer (so we can do more checking below)
