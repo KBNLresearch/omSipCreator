@@ -249,11 +249,13 @@ def processImagePath(IPIdentifier, imagePathFull, SIPPath, volumeNumber, carrier
                     fSIP + "'")
                
                 # Create METS file and FLocat elements
-                
                 fileElt = etree.Element("file", )
                 fileElt = etree.SubElement(fileGrp, "{%s}file" %(mets_ns))
                 fLocat = etree.SubElement(fileElt, "{%s}FLocat" %(mets_ns))
-                fLocat.attrib[etree.QName(xlink_ns, "href")] = os.path.join(volumeNumber ,fileName)
+                fLocat.attrib["LOCTYPE"] = "URL"
+                # File locations relative to SIP root (= location of METS file)
+                fLocat.attrib[etree.QName(xlink_ns, "href")] = "file://./" + os.path.join(volumeNumber ,fileName)
+                #fLocat.attrib[etree.QName(xlink_ns, "title")] = fileName
                                    
         return(fileGrp)             
                 
@@ -304,7 +306,7 @@ def main():
     global mets_ns
     global xlink_ns
     global NSMAP
-    mets_ns = 'http://www.loc.gov/METS'
+    mets_ns = 'http://www.loc.gov/METS/'
     xlink_ns = 'http://www.w3.org/1999/xlink'
     
     NSMAP =  {"mets" : mets_ns,
