@@ -89,6 +89,8 @@ This validation could either be done within this SIP creator, or as a separate s
 Script needs some MAJOR refactoring, as it's a bit of an unstructured
 mess right now.
 
+Probably best approach would be to create Classes for batches, SIPs, etc. 
+
  """
 
 # Script name
