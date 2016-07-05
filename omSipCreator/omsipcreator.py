@@ -106,6 +106,20 @@ __version__ = "0.1.0"
 parser = argparse.ArgumentParser(
     description="SIP creation tool for optical media images")
 
+# Class for Carrier entry
+class Carrier:
+
+    def __init__(self, IPIdentifier, IPIdentifierParent, imagePathFull, volumeNumber, carrierType):
+        self.IPIdentifier = IPIdentifier
+        self.IPIdentifierParent = IPIdentifierParent
+        self.imagePathFull = imagePathFull
+        self.volumeNumber = volumeNumber
+        self.carrierType = carrierType
+
+    def testreturnIPIdentifier(self):
+        return self.IPIdentifier
+
+
 def main_is_frozen():
     return (hasattr(sys, "frozen") or  # new py2exe
             hasattr(sys, "importers")  # old py2exe
@@ -163,7 +177,7 @@ def generate_file_md5(fileIn):
             m.update(buf)
     return m.hexdigest()
      
-def processImagePath(IPIdentifier, imagePathFull, SIPPath, volumeNumber, carrierType, fileCounterStart):
+def processImagePath(carrier, SIPPath, fileCounterStart):
     # Process contents of imagepath directory
     # TODO: * check file type / extension matches carrierType!
     # TODO: currently lots of file path manipulations which make things hard to read, 
@@ -176,7 +190,7 @@ def processImagePath(IPIdentifier, imagePathFull, SIPPath, volumeNumber, carrier
     skipChecksumVerification = False
     
     # All files in directory
-    allFiles = glob.glob(imagePathFull + "/*")
+    allFiles = glob.glob(carrier.imagePathFull + "/*")
     
     # Find MD5 files (by extension)
     MD5Files = [i for i in allFiles if i.endswith('.md5')]
@@ -185,8 +199,8 @@ def processImagePath(IPIdentifier, imagePathFull, SIPPath, volumeNumber, carrier
     noMD5Files = len(MD5Files)
     
     if noMD5Files != 1:
-        errors.append("IP " + IPIdentifier + ": found " + str(noMD5Files) + " '.md5' files in directory '" \
-        + imagePathFull + "', expected 1")
+        errors.append("IP " + carrier.IPIdentifier + ": found " + str(noMD5Files) + " '.md5' files in directory '" \
+        + carrier.imagePathFull + "', expected 1")
         # If we end up here, checksum file either does not exist, or it is ambiguous 
         # which file should be used. No point in doing the checksum verification in that case.  
         skipChecksumVerification = True
@@ -208,13 +222,13 @@ def processImagePath(IPIdentifier, imagePathFull, SIPPath, volumeNumber, carrier
             md5Sum = entry[0]
             fileName = entry[1] # Raises IndexError if entry only 1 col (malformed MD5 file)!
             # Normalise file path relative to imagePath
-            fileNameWithPath = os.path.normpath(imagePathFull + "/" + fileName)
+            fileNameWithPath = os.path.normpath(carrier.imagePathFull + "/" + fileName)
             
             # Calculate MD5 hash of actual file
             md5SumCalculated = generate_file_md5(fileNameWithPath)
                                    
             if md5SumCalculated != md5Sum:
-                errors.append("IP " + IPIdentifier + ": checksum mismatch for file '" + \
+                errors.append("IP " + carrier.IPIdentifier + ": checksum mismatch for file '" + \
                 fileNameWithPath + "'")
                 
             # Get file size and append to MD5FromFile list (needed later for METS file entry)
@@ -226,7 +240,7 @@ def processImagePath(IPIdentifier, imagePathFull, SIPPath, volumeNumber, carrier
         # Check if any files in directory are missing from MD5 file
         for f in otherFiles:
             if f not in allFilesinMD5:
-                errors.append("IP " + IPIdentifier + ": file '" + f + \
+                errors.append("IP " + carrier.IPIdentifier + ": file '" + f + \
                 "' not referenced in '" + \
                 MD5Files[0] + "'")
         
@@ -237,11 +251,11 @@ def processImagePath(IPIdentifier, imagePathFull, SIPPath, volumeNumber, carrier
         if createSIPs == True:
        
             # Create Volume directory
-            dirVolume = os.path.join(SIPPath, volumeNumber)
+            dirVolume = os.path.join(SIPPath, carrier.volumeNumber)
             try:
                 os.makedirs(dirVolume)
             except OSError:
-                errors.append("IP " + IPIdentifier + ": cannot create '" + dirVolume + "'" )
+                errors.append("IP " + carrier.IPIdentifier + ": cannot create '" + carrier.dirVolume + "'" )
                 errorExit(errors,err)
             
             # Copy files to SIP Volume directory
@@ -252,34 +266,45 @@ def processImagePath(IPIdentifier, imagePathFull, SIPPath, volumeNumber, carrier
                 md5Sum = entry[0]
                 fileName = entry[1]
                 fileSize = entry[2]
+                # Generate unique file ID
+                fileID = "FILE_" + str(fileCounter).zfill(3) 
                 # Contstruct path relative to volume directory
                 fSIP = os.path.join(dirVolume,fileName)
                 try:
                     # Copy to volume dir
-                    shutil.copy2(os.path.join(imagePathFull,fileName),fSIP)
+                    shutil.copy2(os.path.join(carrier.imagePathFull,fileName),fSIP)
                 except OSError:
-                    errors.append("IP " + IPIdentifier + ": cannot copy '"\
+                    errors.append("IP " + carrier.IPIdentifier + ": cannot copy '"\
                     + fileName + "' to '" + fSIP + "'")
                     errorExit(errors,err)
             
                 # Calculate MD5 hash of copied file, and verify against known value
                 md5SumCalculated = generate_file_md5(fSIP)                               
                 if md5SumCalculated != md5Sum:
-                    errors.append("IP " + IPIdentifier + ": checksum mismatch for file '" + \
+                    errors.append("IP " + carrier.IPIdentifier + ": checksum mismatch for file '" + \
                     fSIP + "'")
                
                 # Create METS file and FLocat elements
                 fileElt = etree.Element("file", )
                 fileElt = etree.SubElement(fileGrp, "{%s}file" %(mets_ns))
-                fileElt.attrib["ID"] = "FILE_" + str(fileCounter).zfill(3) 
+                fileElt.attrib["ID"] = fileID 
                 fileElt.attrib["SIZE"] = fileSize
                 fileCounter += 1
                 fLocat = etree.SubElement(fileElt, "{%s}FLocat" %(mets_ns))
                 fLocat.attrib["LOCTYPE"] = "URL"
                 # File locations relative to SIP root (= location of METS file)
-                fLocat.attrib[etree.QName(xlink_ns, "href")] = "file://./" + os.path.join(volumeNumber ,fileName)
-                #TODO add MIMETYPE
-
+                fLocat.attrib[etree.QName(xlink_ns, "href")] = "file://./" + os.path.join(carrier.volumeNumber ,fileName)
+                
+                # MIME type
+                # TODO replace by proper signature-based identification (e.g. Fido) 
+                if fileName.endswith(".iso"):
+                    mimeType = "application/x-iso9660"
+                elif fileName.endswith(".wav"):
+                    mimeType = "audio/x-wav"
+                else:
+                    mimeType = "application/octet-stream"   
+                fLocat.attrib["MIMETYPE"] = mimeType
+              
                                    
         return(fileGrp, fileCounter)             
                 
@@ -518,10 +543,11 @@ def main():
             # Process contents of imagePath directory
             #processImagePath(IPIdentifier,imagePathFull,dirSIP, volumeNumber, carrierType)
             
-            # TEST return fileGrp element
+            # Create Carrier class instance for this carrier
+            thisCarrier = Carrier(IPIdentifier, IPIdentifierParent, imagePathFull, volumeNumber, carrierType)
             
-            #fileGrp = processImagePath(IPIdentifier,imagePathFull,dirSIP, volumeNumber, carrierType)
-            fileGrp, fileCounter = processImagePath(IPIdentifier,imagePathFull,dirSIP, volumeNumber, carrierType, fileCounterStart)
+            #fileGrp, fileCounter = processImagePath(IPIdentifier,imagePathFull,dirSIP, volumeNumber, carrierType, fileCounterStart)
+            fileGrp, fileCounter = processImagePath(thisCarrier, dirSIP, fileCounterStart)
             
             # Update fileCounterStart
             fileCounterStart = fileCounter
