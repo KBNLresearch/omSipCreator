@@ -504,6 +504,9 @@ def main():
             mets.attrib[etree.QName(xsi_ns, "schemaLocation")] = metsSchema       
             # Subelements for dmdSec, fileSec and structMap
             dmdSec = etree.SubElement(mets, "{%s}dmdSec" %(mets_ns))
+            # Add identifier
+            # TODO: do we need any more than this? probably not ..
+            dmdSec.attrib["ID"] = "dmdID"
             fileSec = etree.SubElement(mets, "{%s}fileSec" %(mets_ns))
             fileGrp = etree.SubElement(fileSec, "{%s}fileGrp" %(mets_ns))
             structMap = etree.SubElement(mets, "{%s}structMap" %(mets_ns))
