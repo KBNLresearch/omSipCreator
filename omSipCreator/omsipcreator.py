@@ -367,9 +367,12 @@ def main():
     global NSMAP
     mets_ns = 'http://www.loc.gov/METS/'
     xlink_ns = 'http://www.w3.org/1999/xlink'
+    xsi_ns = 'http://www.w3.org/2001/XMLSchema-instance'
+    metsSchema = 'http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd'
     
     NSMAP =  {"mets" : mets_ns,
-         "xlink" : xlink_ns}
+         "xlink" : xlink_ns,
+         "xsi": xsi_ns}
        
     # Set up lists for storing errors and warnings
     # Defined as global so we can easily add to them within functions
@@ -494,9 +497,12 @@ def main():
         # carriers is another iterator that contains individual carrier records
         
         if createSIPs == True:
-            # Create METS element for this SIP and add subelements for dmdSec, fileSec and structMap
+            # Create METS element for this SIP
             metsName = etree.QName(mets_ns, "mets")
             mets = etree.Element(metsName, nsmap = NSMAP)
+            # Add schema reference
+            mets.attrib[etree.QName(xsi_ns, "schemaLocation")] = metsSchema       
+            # Subelements for dmdSec, fileSec and structMap
             dmdSec = etree.SubElement(mets, "{%s}dmdSec" %(mets_ns))
             fileSec = etree.SubElement(mets, "{%s}fileSec" %(mets_ns))
             fileGrp = etree.SubElement(fileSec, "{%s}fileGrp" %(mets_ns))
@@ -515,7 +521,7 @@ def main():
             except OSError:
                 errors.append("cannot create '" + dirSIP + "'" )
                 errorExit(errors,err)
-            
+         
 
         # TODO: perhaps we can validate PPN, based on conventions/restrictions?
 
