@@ -288,7 +288,6 @@ def processImagePath(carrier, SIPPath, fileCounterStart):
                     fSIP + "'")
                
                 # Create METS file and FLocat elements
-                fileElt = etree.Element("file", )
                 fileElt = etree.SubElement(fileGrp, "{%s}file" %(mets_ns))
                 fileElt.attrib["ID"] = fileID 
                 fileElt.attrib["SIZE"] = fileSize
@@ -308,7 +307,12 @@ def processImagePath(carrier, SIPPath, fileCounterStart):
                     mimeType = "application/octet-stream"   
                 fLocat.attrib["MIMETYPE"] = mimeType
                 
-                # Create structmap divisor element 
+                # Create track divisor element for structmap
+                # TODO: might need to re-name for CD-ROMs and DVDs (just following LoC profile for *audio* CDs for now) 
+                divTrack = etree.SubElement(divDisc, "{%s}div" %(mets_ns))
+                divTrack.attrib["TYPE"] = "cd:track"
+                fptr = etree.SubElement(divTrack, "{%s}fptr" %(mets_ns))
+                fptr.attrib["FILEID"] = fileID
               
                                    
         return(fileGrp, divDisc, fileCounter)             
