@@ -176,8 +176,9 @@ def generate_file_md5(fileIn):
                 break
             m.update(buf)
     return m.hexdigest()
+
      
-def processImagePath(carrier, SIPPath, fileCounterStart):
+def processImagePath(carrier, fileGrp, SIPPath, fileCounterStart):
     # Process contents of imagepath directory
     # TODO: * check file type / extension matches carrierType!
     # TODO: currently lots of file path manipulations which make things hard to read, 
@@ -244,9 +245,7 @@ def processImagePath(carrier, SIPPath, fileCounterStart):
                 "' not referenced in '" + \
                 MD5Files[0] + "'")
         
-        # Create METS fileGrp and div entry (will remain empty if createSIPs != True)
-        fileGrpName = etree.QName(mets_ns, "fileGrp")
-        fileGrp = etree.Element(fileGrpName, nsmap = NSMAP)
+        # Create METS div entry (will remain empty if createSIPs != True)
         divDiscName = etree.QName(mets_ns, "div")
         divDisc = etree.Element(divDiscName, nsmap = NSMAP)
         divDisc.attrib["TYPE"] = "cd:disc"
@@ -500,6 +499,7 @@ def main():
             mets = etree.Element(metsName, nsmap = NSMAP)
             dmdSec = etree.SubElement(mets, "{%s}dmdSec" %(mets_ns))
             fileSec = etree.SubElement(mets, "{%s}fileSec" %(mets_ns))
+            fileGrp = etree.SubElement(fileSec, "{%s}fileGrp" %(mets_ns))
             structMap = etree.SubElement(mets, "{%s}structMap" %(mets_ns))
             divCDObject = etree.SubElement(structMap, "{%s}div" %(mets_ns))
             # TODO: following LoC METS profile for audio CDs here, needs to be adapted for CD-ROMs, DVDs.  
@@ -562,13 +562,12 @@ def main():
             thisCarrier = Carrier(IPIdentifier, IPIdentifierParent, imagePathFull, volumeNumber, carrierType)
             
             #fileGrp, fileCounter = processImagePath(IPIdentifier,imagePathFull,dirSIP, volumeNumber, carrierType, fileCounterStart)
-            fileGrp, divDisc, fileCounter = processImagePath(thisCarrier, dirSIP, fileCounterStart)
+            fileGrp, divDisc, fileCounter = processImagePath(thisCarrier, fileGrp, dirSIP, fileCounterStart)
             
             # Update fileCounterStart
             fileCounterStart = fileCounter
             
             if createSIPs == True:
-                fileSec.append(fileGrp)
                 divCDObject.append(divDisc)
             
             # Write METS file to SIP directory                                
