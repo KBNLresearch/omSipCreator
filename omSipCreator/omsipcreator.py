@@ -248,7 +248,7 @@ def processImagePath(carrier, SIPPath, fileCounterStart):
         fileGrpName = etree.QName(mets_ns, "fileGrp")
         fileGrp = etree.Element(fileGrpName, nsmap = NSMAP)
         divDiscName = etree.QName(mets_ns, "div")
-        divDisc = etree.Element(fileGrpName, nsmap = NSMAP)
+        divDisc = etree.Element(divDiscName, nsmap = NSMAP)
         divDisc.attrib["TYPE"] = "cd:disc"
                         
         if createSIPs == True:
@@ -297,7 +297,7 @@ def processImagePath(carrier, SIPPath, fileCounterStart):
                 # File locations relative to SIP root (= location of METS file)
                 fLocat.attrib[etree.QName(xlink_ns, "href")] = "file://./" + os.path.join(carrier.volumeNumber ,fileName)
                 
-                # MIME type
+                # Add MIME type and checksum to file element
                 # TODO replace by proper signature-based identification (e.g. Fido) 
                 if fileName.endswith(".iso"):
                     mimeType = "application/x-iso9660"
@@ -305,8 +305,10 @@ def processImagePath(carrier, SIPPath, fileCounterStart):
                     mimeType = "audio/x-wav"
                 else:
                     mimeType = "application/octet-stream"   
-                fLocat.attrib["MIMETYPE"] = mimeType
-                
+                fileElt.attrib["MIMETYPE"] = mimeType
+                fileElt.attrib["CHECKSUM"] = md5Sum
+                fileElt.attrib["CHECKSUMTYPE"] = "MD5"
+                                
                 # Create track divisor element for structmap
                 # TODO: might need to re-name for CD-ROMs and DVDs (just following LoC profile for *audio* CDs for now) 
                 divTrack = etree.SubElement(divDisc, "{%s}div" %(mets_ns))
@@ -568,9 +570,14 @@ def main():
             if createSIPs == True:
                 fileSec.append(fileGrp)
                 divCDObject.append(divDisc)
-                                            
-            print(etree.tostring(mets, pretty_print=True))
-                        
+            
+            # Write METS file to SIP directory                                
+            metsAsString = etree.tostring(mets, pretty_print=True, encoding="UTF-8")
+            metsFname = os.path.join(dirSIP,"mets.xml")
+            
+            with open(metsFname, "w") as text_file:
+                text_file.write(metsAsString)
+                                               
             # convert volumeNumber to integer (so we can do more checking below)
             try:
                 volumeNumbers.append(int(volumeNumber))
