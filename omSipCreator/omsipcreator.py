@@ -490,8 +490,11 @@ def main():
 
     # Group by IPIdentifier field - creates a grouper object for each IP 
     metaCarriersByIP = groupby(rowsMetaCarriers, itemgetter(0))
+    
+    # ********
+    # ** Iterate over IPs**
+    # ******** 
 
-    # Iterate over IPs
     for IPIdentifier, carriers in metaCarriersByIP:
         # IP is IPIdentifier (by which we grouped data)
         # carriers is another iterator that contains individual carrier records
@@ -543,7 +546,6 @@ def main():
 
             # TODO: * validate parent PPN (see above) and/or check existence of corresponding catalog record
             #       * check for relation between IPIdentifier and IPIdentifierParent (if possible / meaningful)
-            #       * check imagePath against *all other* imagePath values in batch
             #       * check IPIdentifierParent against *all other* IPIdentifierParent  values in batch
 
             # Update lists and check for some obvious errors
@@ -563,29 +565,14 @@ def main():
             if os.path.isdir(imagePathFull) == False:
                 errors.append("IP " + IPIdentifier + ": '" + imagePath + \
                 "' is not a directory")
-            
-            # Process contents of imagePath directory
-            #processImagePath(IPIdentifier,imagePathFull,dirSIP, volumeNumber, carrierType)
-            
+                        
             # Create Carrier class instance for this carrier
             thisCarrier = Carrier(IPIdentifier, IPIdentifierParent, imagePathFull, volumeNumber, carrierType)
-            
-            #fileGrp, fileCounter = processImagePath(IPIdentifier,imagePathFull,dirSIP, volumeNumber, carrierType, fileCounterStart)
             fileGrp, divDisc, fileCounter = processImagePath(thisCarrier, fileGrp, dirSIP, fileCounterStart)
             
             # Update fileCounterStart
             fileCounterStart = fileCounter
-            
-            if createSIPs == True:
-                divCDObject.append(divDisc)
-            
-            # Write METS file to SIP directory                                
-            metsAsString = etree.tostring(mets, pretty_print=True, encoding="UTF-8")
-            metsFname = os.path.join(dirSIP,"mets.xml")
-            
-            with open(metsFname, "w") as text_file:
-                text_file.write(metsAsString)
-                                               
+                                                          
             # convert volumeNumber to integer (so we can do more checking below)
             try:
                 volumeNumbers.append(int(volumeNumber))
@@ -599,6 +586,17 @@ def main():
                 errors.append("IP " + IPIdentifier + ": '" + carrierType + \
                 "' is illegal value for 'carrierType'")
             carrierTypes.append(carrierType)
+            
+            # Update METS metadata and write to file
+            if createSIPs == True:
+                divCDObject.append(divDisc)
+            
+                # Write METS file to SIP directory                                
+                metsAsString = etree.tostring(mets, pretty_print=True, encoding="UTF-8")
+                metsFname = os.path.join(dirSIP,"mets.xml")
+            
+                with open(metsFname, "w") as text_file:
+                    text_file.write(metsAsString)
                    
         # IP-level consistency checks
 
