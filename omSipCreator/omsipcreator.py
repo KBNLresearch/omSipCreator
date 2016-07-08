@@ -322,7 +322,6 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 fileElt.attrib["CHECKSUMTYPE"] = "MD5"
                                 
                 # Create track divisor element for structmap
-                # TODO: might need to re-name for CD-ROMs and DVDs (just following LoC profile for *audio* CDs for now) 
                 divFile = etree.SubElement(divDisc, "{%s}div" %(mets_ns))
                 divFile.attrib["TYPE"] = carrierTypeMap[carrier.carrierType]
                 divFile.attrib["ORDER"] = str(fileCounter)
