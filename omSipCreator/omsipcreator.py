@@ -178,14 +178,25 @@ def generate_file_md5(fileIn):
     return m.hexdigest()
 
      
-def processImagePath(carrier, fileGrp, SIPPath, fileCounterStart):
+def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
     # Process contents of imagepath directory
     # TODO: * check file type / extension matches carrierType!
     # TODO: currently lots of file path manipulations which make things hard to read, 
     # could be better structured with more understandable naming conventions.
     
-    # Counter used to assign file IDs, must be unique fore each file within SIP
-    fileCounter = fileCounterStart
+    # Counters used to assign file ORDER and IDs, sipFileCounter must be unique for
+    # each file within SIP
+    fileCounter = 1
+    sipFileCounter = sipFileCounterStart
+    
+    # Mapping between carrierType and structmap TYPE field
+    
+    carrierTypeMap = {
+        "cd-rom" : "disk image",
+        "dvd-rom" : "disk image",
+        "dvd-video" : "disk image",
+        "cd-audio" : "audio track"
+        }
     
     # Default state of flag that is set to "True" if checksums are missing 
     skipChecksumVerification = False
@@ -248,7 +259,8 @@ def processImagePath(carrier, fileGrp, SIPPath, fileCounterStart):
         # Create METS div entry (will remain empty if createSIPs != True)
         divDiscName = etree.QName(mets_ns, "div")
         divDisc = etree.Element(divDiscName, nsmap = NSMAP)
-        divDisc.attrib["TYPE"] = "cd:disc"
+        divDisc.attrib["TYPE"] = carrier.carrierType    
+        divDisc.attrib["ORDER"] = carrier.volumeNumber
                         
         if createSIPs == True:
        
@@ -269,7 +281,7 @@ def processImagePath(carrier, fileGrp, SIPPath, fileCounterStart):
                 fileName = entry[1]
                 fileSize = entry[2]
                 # Generate unique file ID
-                fileID = "FILE_" + str(fileCounter).zfill(3) 
+                fileID = "FILE_" + str(sipFileCounter).zfill(3) 
                 # Construct path relative to volume directory
                 fSIP = os.path.join(dirVolume,fileName)
                 try:
@@ -290,7 +302,8 @@ def processImagePath(carrier, fileGrp, SIPPath, fileCounterStart):
                 fileElt = etree.SubElement(fileGrp, "{%s}file" %(mets_ns))
                 fileElt.attrib["ID"] = fileID 
                 fileElt.attrib["SIZE"] = fileSize
-                fileCounter += 1
+                # TODO: add SEQ and CREATED, DMDID attributes as well
+                
                 fLocat = etree.SubElement(fileElt, "{%s}FLocat" %(mets_ns))
                 fLocat.attrib["LOCTYPE"] = "URL"
                 # File locations relative to SIP root (= location of METS file)
@@ -310,13 +323,17 @@ def processImagePath(carrier, fileGrp, SIPPath, fileCounterStart):
                                 
                 # Create track divisor element for structmap
                 # TODO: might need to re-name for CD-ROMs and DVDs (just following LoC profile for *audio* CDs for now) 
-                divTrack = etree.SubElement(divDisc, "{%s}div" %(mets_ns))
-                divTrack.attrib["TYPE"] = "cd:track"
-                fptr = etree.SubElement(divTrack, "{%s}fptr" %(mets_ns))
+                divFile = etree.SubElement(divDisc, "{%s}div" %(mets_ns))
+                divFile.attrib["TYPE"] = carrierTypeMap[carrier.carrierType]
+                divFile.attrib["ORDER"] = str(fileCounter)
+                fptr = etree.SubElement(divFile, "{%s}fptr" %(mets_ns))
                 fptr.attrib["FILEID"] = fileID
+                
+                fileCounter += 1
+                sipFileCounter += 1
               
                                    
-        return(fileGrp, divDisc, fileCounter)             
+        return(fileGrp, divDisc, sipFileCounter)             
                 
                          
     
@@ -513,10 +530,7 @@ def main():
             fileSec = etree.SubElement(mets, "{%s}fileSec" %(mets_ns))
             fileGrp = etree.SubElement(fileSec, "{%s}fileGrp" %(mets_ns))
             structMap = etree.SubElement(mets, "{%s}structMap" %(mets_ns))
-            divCDObject = etree.SubElement(structMap, "{%s}div" %(mets_ns))
-            # TODO: following LoC METS profile for audio CDs here, needs to be adapted for CD-ROMs, DVDs.  
-            divCDObject.attrib["TYPE"] = "cd:compactDiscObject"
-            structMap.append(divCDObject)
+
             # Initialise counter that is used to assign file IDs
             fileCounterStart = 1 
             
@@ -568,7 +582,7 @@ def main():
                         
             # Create Carrier class instance for this carrier
             thisCarrier = Carrier(IPIdentifier, IPIdentifierParent, imagePathFull, volumeNumber, carrierType)
-            fileGrp, divDisc, fileCounter = processImagePath(thisCarrier, fileGrp, dirSIP, fileCounterStart)
+            fileGrp, divDisc, fileCounter = processCarrier(thisCarrier, fileGrp, dirSIP, fileCounterStart)
             
             # Update fileCounterStart
             fileCounterStart = fileCounter
@@ -589,7 +603,7 @@ def main():
             
             # Update METS metadata and write to file
             if createSIPs == True:
-                divCDObject.append(divDisc)
+                structMap.append(divDisc)
             
                 # Write METS file to SIP directory                                
                 metsAsString = etree.tostring(mets, pretty_print=True, encoding="UTF-8")
