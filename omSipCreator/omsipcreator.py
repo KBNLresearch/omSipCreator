@@ -5,6 +5,7 @@ import os
 import shutil
 import ntpath
 import glob
+import imp
 import argparse
 import codecs
 import csv
@@ -12,6 +13,8 @@ import hashlib
 from operator import itemgetter
 from itertools import groupby
 from lxml import etree
+from kb.nl.api import sru
+from kb.nl.helpers import alto_to_text
 
 # Bind raw_input (Python 3) to input (Python 2)
 # Source: http://stackoverflow.com/a/21731110/1209004
@@ -407,6 +410,10 @@ def main():
     elif sys.version.startswith("3"):
         out = codecs.getwriter("UTF-8")(sys.stdout.buffer)
         err = codecs.getwriter("UTF-8")(sys.stderr.buffer)
+    
+    # Dublin Core to METS stylesheet
+    fxsltDC2Mods = os.path.join(get_main_dir(), "stylesheets/DC_MODS3-5_XSLT2-0.xsl")
+    xsltDC2Mods = etree.parse(fxsltDC2Mods)
        
     # Get input from command line
     args = parseCommandLine()
@@ -611,6 +618,22 @@ def main():
                 with open(metsFname, "w") as text_file:
                     text_file.write(metsAsString)
                    
+        # Get metadata of IPIdentifierParent from GGC
+        sruSearchString = 'dcx:recordIdentifier any "PPN=' + IPIdentifierParent
+        sruSearchString = '"PPN=' + IPIdentifierParent 
+        response = sru.search(sruSearchString,"GGC")
+        for record in response.records:
+            for identifier in record.identifiers:
+                print("Identifier: %s" % identifier)
+            for title in record.titles:
+                print("Title: %s" % title)
+            for annotation in record.annotations:
+                print("Annotation: %s" % annotation)  
+         
+        # Code: http://stackoverflow.com/a/16699042/1209004
+        # Stylesheets: http://www.loc.gov/standards/mods/mods-conversions.html
+        
+        
         # IP-level consistency checks
 
         # Parent IP identifiers must all be equal 
