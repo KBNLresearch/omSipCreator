@@ -13,7 +13,7 @@ import hashlib
 from operator import itemgetter
 from itertools import groupby
 from lxml import etree
-import sru
+from kbapi import sru
 # from kb.nl.api import sru
 # from kb.nl.helpers import alto_to_text
 
@@ -413,8 +413,8 @@ def main():
         err = codecs.getwriter("UTF-8")(sys.stderr.buffer)
     
     # Dublin Core to METS stylesheet
-    fxsltDC2Mods = os.path.join(get_main_dir(), "stylesheets/DC_MODS3-5_XSLT2-0.xsl")
-    xsltDC2Mods = etree.parse(fxsltDC2Mods)
+    # fxsltDC2Mods = os.path.join(get_main_dir(), "stylesheets/DC_MODS3-5_XSLT2-0.xsl")
+    # xsltDC2Mods = etree.parse(fxsltDC2Mods)
        
     # Get input from command line
     args = parseCommandLine()
@@ -621,7 +621,8 @@ def main():
                    
         # Get metadata of IPIdentifierParent from GGC
         sruSearchString = 'dcx:recordIdentifier any "PPN=' + IPIdentifierParent
-        sruSearchString = '"PPN=' + IPIdentifierParent 
+        sruSearchString = '"PPN=' + IPIdentifierParent
+        print(type(sru))
         response = sru.search(sruSearchString,"GGC")
         for record in response.records:
             for identifier in record.identifiers:
