@@ -631,6 +631,10 @@ def main():
                 print("Title: %s" % title)
             for annotation in record.annotations:
                 print("Annotation: %s" % annotation)  
+            for creator in record.creators:
+                print("Creator: %s" % creator) 
+            for contributor in record.contributors:
+                print("Contributor: %s" % contributor)  
          
         # Code: http://stackoverflow.com/a/16699042/1209004
         # Stylesheets: http://www.loc.gov/standards/mods/mods-conversions.html
