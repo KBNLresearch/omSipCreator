@@ -622,11 +622,12 @@ def main():
         # Get metadata of IPIdentifierParent from GGC
         sruSearchString = 'dcx:recordIdentifier any "PPN=' + IPIdentifierParent
         sruSearchString = '"PPN=' + IPIdentifierParent
-        print(type(sru))
         response = sru.search(sruSearchString,"GGC")
         for record in response.records:
             for identifier in record.identifiers:
                 print("Identifier: %s" % identifier)
+            for uri in record.uris:
+                print("URI: %s" % uri)
             for title in record.titles:
                 print("Title: %s" % title)
             for annotation in record.annotations:

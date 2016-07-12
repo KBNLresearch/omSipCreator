@@ -42,21 +42,27 @@ SETS = {'ANP': {'collection': 'ANP',
                 'setname': 'ggc',
                 'time_period': [1937, 2016]}} # No idea what to use here?
 
+# Name spaces in GGC records 
+
+srw_ns = 'http://www.loc.gov/zing/srw/'
+tel_ns = 'http://krait.kb.nl/coop/tel/handbook/telterms.html'
+xsi_ns = 'http://www.w3.org/2001/XMLSchema-instance'
+dc_ns = 'http://purl.org/dc/elements/1.1/'
+dcterms_ns = 'http://purl.org/dc/terms/'
+dcx_ns = 'http://krait.kb.nl/coop/tel/handbook/telterms.html'
+    
+NSMAPGGC =  {"srw" : srw_ns,
+         "tel" : tel_ns,
+         "xsi" : xsi_ns,
+         "dc" :  dc_ns,
+         "dcterms" : dcterms_ns,
+         "dcx" : dcx_ns}
 
 class response():
     def __init__(self, record_data, sru):
         self.record_data = record_data
         self.sru = sru
     
-    """
-    @property
-    def identifiers(self):
-        id = [i.text.split('=')[1] for i in self.record_data.iter() if
-              i.tag.endswith('identifier') and
-              i.text.find(':') > -1]
-        return id
-   """
-
     @property
     def records(self):
         if self.sru.nr_of_records == 0:
@@ -72,7 +78,22 @@ class response():
     def identifiers(self):
         return [r.text for r in self.record_data.iter() if
                 r.tag.endswith('identifier')]
-
+    """
+    @property
+    def uris(self):
+        return [r.text for r in self.record_data.iter() if
+                r.tag.endswith('identifier')]
+    """
+    @property
+    def uris(self):
+        print(type(self.record_data))
+        for r in self.record_data.iter():
+            if r.tag.endswith('identifier'):
+                print(r.attrib)
+                print(r.text)
+                return(r.text)
+   
+    
     @property
     def types(self):
         return [r.text for r in self.record_data.iter() if
@@ -205,5 +226,6 @@ class sru():
             raise Exception('Error while getting data from %s' % url)
 
         record_data = etree.fromstring(r.content)
+
 
         return record_data
