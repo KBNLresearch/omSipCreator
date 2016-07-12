@@ -13,8 +13,9 @@ import hashlib
 from operator import itemgetter
 from itertools import groupby
 from lxml import etree
-from kb.nl.api import sru
-from kb.nl.helpers import alto_to_text
+import sru
+# from kb.nl.api import sru
+# from kb.nl.helpers import alto_to_text
 
 # Bind raw_input (Python 3) to input (Python 2)
 # Source: http://stackoverflow.com/a/21731110/1209004
