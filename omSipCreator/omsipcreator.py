@@ -338,8 +338,47 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                                    
         return(fileGrp, divDisc, sipFileCounter)             
                 
-                         
+   
+def createMODS(PPN):
+    # Create MODS metadata based on records in GGC
+    # General structure: bibliographic md is wrapped in relatedItem / type = host element
     
+    modsName = etree.QName(mods_ns, "mods")
+    mods = etree.Element(modsName, nsmap = NSMAP)
+
+    modsTitleInfo = etree.SubElement(mods, "{%s}titleInfo" %(mods_ns))
+   
+    # fileElt.attrib["ID"] = fileID                           
+    # SRU search string
+    sruSearchString = '"PPN=' + PPN
+    response = sru.search(sruSearchString,"GGC")
+    
+    """
+    for record in response.records:
+        for typeDCMI in record.typesDCMI:
+            print("TypeDCMI: %s" % typeDCMI)
+        for date in record.dates:
+            print("Date: %s" % date)
+        for uri in record.identifiersURI:
+            print("URI: %s" % uri)
+        for title in record.titles:
+            print("Title: %s" % title)
+        for annotation in record.annotations:
+            print("Annotation: %s" % annotation)  
+        for creator in record.creators:
+            print("Creator: %s" % creator) 
+        for contributor in record.contributors:
+            print("Contributor: %s" % contributor)
+        for identifierOCLC in record.identifiersOCLC:
+            print("OCLC identifier: %s" % identifierOCLC) 
+        for languageDutch in record.languagesDutch:
+            print("Language (Dutch): %s" % languageDutch)
+        for languageISO639 in record.languagesISO639:
+            print("Language (ISO639-2): %s" % languageISO639)  
+     """
+
+    return(mods)
+       
 def parseCommandLine():
     # Add arguments
 
@@ -383,14 +422,18 @@ def main():
                                 
     # Define name spaces for METS output
     global mets_ns
+    global mods_ns
     global xlink_ns
     global NSMAP
     mets_ns = 'http://www.loc.gov/METS/'
+    mods_ns = 'http://www.loc.gov/mods/v3'
     xlink_ns = 'http://www.w3.org/1999/xlink'
     xsi_ns = 'http://www.w3.org/2001/XMLSchema-instance'
     metsSchema = 'http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd'
+    modsSchema = 'http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-0.xsd'
     
     NSMAP =  {"mets" : mets_ns,
+         "mods" : mods_ns,
          "xlink" : xlink_ns,
          "xsi": xsi_ns}
        
@@ -528,12 +571,18 @@ def main():
             metsName = etree.QName(mets_ns, "mets")
             mets = etree.Element(metsName, nsmap = NSMAP)
             # Add schema reference
-            mets.attrib[etree.QName(xsi_ns, "schemaLocation")] = metsSchema       
+            mets.attrib[etree.QName(xsi_ns, "schemaLocation")] = "".join([metsSchema," ",modsSchema]) 
             # Subelements for dmdSec, fileSec and structMap
             dmdSec = etree.SubElement(mets, "{%s}dmdSec" %(mets_ns))
             # Add identifier
             # TODO: do we need any more than this? probably not ..
             dmdSec.attrib["ID"] = "dmdID"
+            # Create mdWrap and xmlData child elements 
+            mdWrap = etree.SubElement(dmdSec, "{%s}mdWrap" %(mets_ns))
+            mdWrap.attrib["MDTYPE"] = "MODS"
+            mdWrap.attrib["MDTYPEVERSION"] = "3.4"
+            xmlData =  etree.SubElement(mdWrap, "{%s}xmlData" %(mets_ns))
+            # Create fileSec and structMap elements
             fileSec = etree.SubElement(mets, "{%s}fileSec" %(mets_ns))
             fileGrp = etree.SubElement(fileSec, "{%s}fileGrp" %(mets_ns))
             structMap = etree.SubElement(mets, "{%s}structMap" %(mets_ns))
@@ -607,11 +656,14 @@ def main():
                 errors.append("IP " + IPIdentifier + ": '" + carrierType + \
                 "' is illegal value for 'carrierType'")
             carrierTypes.append(carrierType)
-            
+
+            # Get metadata of IPIdentifierParent from GGC and convert to MODS format
+            mdMODS = createMODS(IPIdentifierParent)
+                
             # Update METS metadata and write to file
             if createSIPs == True:
                 structMap.append(divDisc)
-            
+                xmlData.append(mdMODS)            
                 # Write METS file to SIP directory                                
                 metsAsString = etree.tostring(mets, pretty_print=True, encoding="UTF-8")
                 metsFname = os.path.join(dirSIP,"mets.xml")
@@ -619,40 +671,7 @@ def main():
                 with open(metsFname, "w") as text_file:
                     text_file.write(metsAsString)
                    
-        # Get metadata of IPIdentifierParent from GGC
-        sruSearchString = 'dcx:recordIdentifier any "PPN=' + IPIdentifierParent
-        sruSearchString = '"PPN=' + IPIdentifierParent
-        response = sru.search(sruSearchString,"GGC")
-        for record in response.records:
-            for typeDCMI in record.typesDCMI:
-                print("TypeDCMI: %s" % typeDCMI)
-            for date in record.dates:
-                print("Date: %s" % date)
-            for uri in record.identifiersURI:
-                print("URI: %s" % uri)
-            for title in record.titles:
-                print("Title: %s" % title)
-            for annotation in record.annotations:
-                print("Annotation: %s" % annotation)  
-            for creator in record.creators:
-                print("Creator: %s" % creator) 
-            for contributor in record.contributors:
-                print("Contributor: %s" % contributor)
-            for identifierOCLC in record.identifiersOCLC:
-                print("OCLC identifier: %s" % identifierOCLC) 
-            for languageDutch in record.languagesDutch:
-                print("Language (Dutch): %s" % languageDutch)
-            for languageISO639 in record.languagesISO639:
-                print("Language (ISO639-2): %s" % languageISO639)  
-                
-            
-            
-                
-         
-        # Code: http://stackoverflow.com/a/16699042/1209004
-        # Stylesheets: http://www.loc.gov/standards/mods/mods-conversions.html
-        
-        
+
         # IP-level consistency checks
 
         # Parent IP identifiers must all be equal 

@@ -231,7 +231,6 @@ class response():
             '', 
             ''))
 
-
 class record():
     def __init__(self, record_data, sru):
         self.record_data = record_data
