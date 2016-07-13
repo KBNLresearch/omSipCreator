@@ -626,6 +626,8 @@ def main():
         for record in response.records:
             for typeDCMI in record.typesDCMI:
                 print("TypeDCMI: %s" % typeDCMI)
+            for date in record.dates:
+                print("Date: %s" % date)
             for uri in record.identifiersURI:
                 print("URI: %s" % uri)
             for title in record.titles:

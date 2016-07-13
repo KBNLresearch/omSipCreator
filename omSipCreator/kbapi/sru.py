@@ -63,17 +63,21 @@ class response():
         self.record_data = record_data
         self.sru = sru
     
-    def elementTextByAtrributeValue(self, tagName, attributeName, attributeValue):
-        # Returns text content of all elements for which tag matches tagName
-        # and attribute value equals attributeValue
+    def getElementText(self, tagName, attributeName, attributeValue):
+        # Returns text content of all elements for which tag matches tagName,
+        # and attribute value equals attributeValue. Set attributeName to empty
+        # string to get all tagName matches. 
         textFields = []
         for r in self.record_data.iter():
             if r.tag == tagName:
-                try:
-                    if r.attrib[attributeName] == attributeValue:
-                        textFields.append(r.text)
-                except KeyError:
-                    pass
+                if attributeName != '':
+                    try:
+                        if r.attrib[attributeName] == attributeValue:
+                            textFields.append(r.text)
+                    except KeyError:
+                        pass
+                else:
+                    textFields.append(r.text)
         return(textFields)
         
     @property
@@ -92,129 +96,140 @@ class response():
 
     @property
     def typesDutch(self):
-        return(self.elementTextByAtrributeValue('{http://purl.org/dc/elements/1.1/}type',
+        return(self.getElementText('{http://purl.org/dc/elements/1.1/}type',
             '{http://www.w3.org/XML/1998/namespace}lang', 
             'nl')) 
     @property
     def typesDCMI(self):
-        return(self.elementTextByAtrributeValue('{http://purl.org/dc/elements/1.1/}type',
+        return(self.getElementText('{http://purl.org/dc/elements/1.1/}type',
             '{http://www.w3.org/2001/XMLSchema-instance}type', 
             'DCMIType'))
 
     @property
     def identifiersISBN(self):
-        return(self.elementTextByAtrributeValue('{http://purl.org/dc/elements/1.1/}identifier',
+        return(self.getElementText('{http://purl.org/dc/elements/1.1/}identifier',
             '{http://www.w3.org/2001/XMLSchema-instance}type', 
             'dcterms:ISBN'))
             
     @property
     def identifiersBrinkman(self):
-        return(self.elementTextByAtrributeValue('{http://purl.org/dc/elements/1.1/}identifier',
+        return(self.getElementText('{http://purl.org/dc/elements/1.1/}identifier',
             '{http://www.w3.org/2001/XMLSchema-instance}type', 
             'dcx:Brinkman'))
 
     @property
     def identifiersURI(self):
-        return(self.elementTextByAtrributeValue('{http://purl.org/dc/elements/1.1/}identifier',
+        return(self.getElementText('{http://purl.org/dc/elements/1.1/}identifier',
             '{http://www.w3.org/2001/XMLSchema-instance}type', 
             'dcterms:URI'))
  
     @property
     def identifiersOCLC(self):
-        return(self.elementTextByAtrributeValue('{http://purl.org/dc/elements/1.1/}identifier',
+        return(self.getElementText('{http://purl.org/dc/elements/1.1/}identifier',
             '{http://www.w3.org/2001/XMLSchema-instance}type', 
             'OCLC'))           
    
     @property
     def languagesDutch(self):
-        return(self.elementTextByAtrributeValue('{http://purl.org/dc/elements/1.1/}language',
+        return(self.getElementText('{http://purl.org/dc/elements/1.1/}language',
             '{http://www.w3.org/XML/1998/namespace}lang', 
             'nl'))       
     
     @property
     def languagesEnglish(self):
-        return(self.elementTextByAtrributeValue('{http://purl.org/dc/elements/1.1/}language',
+        return(self.getElementText('{http://purl.org/dc/elements/1.1/}language',
             '{http://www.w3.org/XML/1998/namespace}lang', 
             'en'))
             
     @property
     def languagesFrench(self):
-        return(self.elementTextByAtrributeValue('{http://purl.org/dc/elements/1.1/}language',
+        return(self.getElementText('{http://purl.org/dc/elements/1.1/}language',
             '{http://www.w3.org/XML/1998/namespace}lang', 
             'fr'))
 
     @property
     def languagesISO639(self):
-        return(self.elementTextByAtrributeValue('{http://purl.org/dc/elements/1.1/}language',
+        return(self.getElementText('{http://purl.org/dc/elements/1.1/}language',
             '{http://www.w3.org/2001/XMLSchema-instance}type', 
             'dcterms:ISO639-2'))            
                 
-    #########
-     
-    @property
-    def identifiers(self):
-        return [r.text for r in self.record_data.iter() if
-                r.tag.endswith('identifier')]
-
-
-   
-    @property
-    def types(self):
-        return [r.text for r in self.record_data.iter() if
-                r.tag.endswith('type')]
-    
-    @property
-    def languages(self):
-        return [r.text for r in self.record_data.iter() if
-                r.tag.endswith('language')]
-   
     @property
     def dates(self):
-        return [r.text for r in self.record_data.iter() if
-                r.tag.endswith('date')]
+        return(self.getElementText('{http://purl.org/dc/elements/1.1/}date',
+            '', 
+            ''))
 
     @property
     def extents(self):
-        return [r.text for r in self.record_data.iter() if
-                r.tag.endswith('extent')]
+        return(self.getElementText('{http://purl.org/dc/terms/}extent',
+            '', 
+            ''))
 
     @property
     def creators(self):
-        return [r.text for r in self.record_data.iter() if
-                r.tag.endswith('creator')]
-
+        return(self.getElementText('{http://purl.org/dc/elements/1.1/}creator',
+            '', 
+            ''))
     @property
     def contributors(self):
-        return [r.text for r in self.record_data.iter() if
-                r.tag.endswith('contributor')]
-
-    # TODO: distinguish by xsi:type and xml:lang
-    @property
-    def subjects(self):
-        return [r.text for r in self.record_data.iter() if
-                r.tag.endswith('subject')]
-
-    @property
-    def abstracts(self):
-        return [r.text for r in self.record_data.iter() if
-                r.tag.endswith('abstract')]
+        return(self.getElementText('{http://purl.org/dc/elements/1.1/}contributor',
+            '', 
+            ''))
 
     @property
     def titles(self):
-        return [r.text for r in self.record_data.iter() if
-                r.tag.endswith('title')]
+        return(self.getElementText('{http://purl.org/dc/elements/1.1/}title',
+            '', 
+            ''))
 
     @property
     def publishers(self):
-        return [r.text for r in self.record_data.iter() if
-                r.tag.endswith('publisher')]
+        return(self.getElementText('{http://purl.org/dc/elements/1.1/}publisher',
+            '', 
+            ''))
 
-    # Following properties occur in GGC
+    @property
+    def countries(self):
+        return(self.getElementText('{http://purl.org/dc/elements/1.1/}country',
+            '', 
+            ''))
+
+    @property
+    def subjectsBrinkman(self):
+        return(self.getElementText('{http://purl.org/dc/elements/1.1/}subject',
+            '{http://www.w3.org/2001/XMLSchema-instance}type', 
+            'dcx:Brinkman'))
+
+    @property
+    def subjectsISO9707(self):
+        return(self.getElementText('{http://purl.org/dc/elements/1.1/}subject',
+            '{http://www.w3.org/2001/XMLSchema-instance}type', 
+            'ISO_9707_[Brinkman]'))
+
+    @property
+    def subjectsUNESCO(self):
+        return(self.getElementText('{http://purl.org/dc/elements/1.1/}subject',
+            '{http://www.w3.org/2001/XMLSchema-instance}type', 
+            'UNESCO'))
+
+    @property
+    def collectionIdentifiers(self):
+        return(self.getElementText('{http://purl.org/dc/terms/}isPartOf',
+            '{http://www.w3.org/2001/XMLSchema-instance}type', 
+            'dcx:collectionIdentifier'))
+            
+    @property
+    def recordIdentifiersURI(self):
+        return(self.getElementText('{http://krait.kb.nl/coop/tel/handbook/telterms.html}recordIdentifier',
+            '{http://www.w3.org/2001/XMLSchema-instance}type', 
+            'dcterms:URI'))
 
     @property
     def annotations(self):
-        return [r.text for r in self.record_data.iter() if
-                r.tag.endswith('annotation')]
+        # Note that annotations sometimes contain language or itenID attibutes; ignored for now (collect everything).
+        return(self.getElementText('{http://krait.kb.nl/coop/tel/handbook/telterms.html}annotation',
+            '', 
+            ''))
 
 
 class record():
