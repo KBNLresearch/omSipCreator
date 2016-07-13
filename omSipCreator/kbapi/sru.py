@@ -86,14 +86,17 @@ class response():
     """
     @property
     def uris(self):
-        print(type(self.record_data))
+        myURIS = []
         for r in self.record_data.iter():
             if r.tag.endswith('identifier'):
-                print(r.attrib)
-                print(r.text)
-                return(r.text)
+                attributes = r.attrib
+                try:
+                    if attributes['{http://www.w3.org/2001/XMLSchema-instance}tupe'] == 'dcterms:URI':
+                        myURIS.append(r.text)
+                except KeyError:
+                    pass
+        return(myURIS)
    
-    
     @property
     def types(self):
         return [r.text for r in self.record_data.iter() if
