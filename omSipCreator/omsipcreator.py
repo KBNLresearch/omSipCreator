@@ -624,9 +624,9 @@ def main():
         sruSearchString = '"PPN=' + IPIdentifierParent
         response = sru.search(sruSearchString,"GGC")
         for record in response.records:
-            for identifier in record.identifiers:
-                print("Identifier: %s" % identifier)
-            for uri in record.uris:
+            for typeDCMI in record.typesDCMI:
+                print("TypeDCMI: %s" % typeDCMI)
+            for uri in record.identifiersURI:
                 print("URI: %s" % uri)
             for title in record.titles:
                 print("Title: %s" % title)
@@ -635,7 +635,17 @@ def main():
             for creator in record.creators:
                 print("Creator: %s" % creator) 
             for contributor in record.contributors:
-                print("Contributor: %s" % contributor)  
+                print("Contributor: %s" % contributor)
+            for identifierOCLC in record.identifiersOCLC:
+                print("OCLC identifier: %s" % identifierOCLC) 
+            for languageDutch in record.languagesDutch:
+                print("Language (Dutch): %s" % languageDutch)
+            for languageISO639 in record.languagesISO639:
+                print("Language (ISO639-2): %s" % languageISO639)  
+                
+            
+            
+                
          
         # Code: http://stackoverflow.com/a/16699042/1209004
         # Stylesheets: http://www.loc.gov/standards/mods/mods-conversions.html
