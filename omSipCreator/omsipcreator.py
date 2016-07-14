@@ -110,7 +110,7 @@ __version__ = "0.1.0"
 parser = argparse.ArgumentParser(
     description="SIP creation tool for optical media images")
 
-# Class for Carrier entry
+# Classes for Carrier and IP entries
 class Carrier:
 
     def __init__(self, IPIdentifier, IPIdentifierParent, imagePathFull, volumeNumber, carrierType):
@@ -120,9 +120,22 @@ class Carrier:
         self.volumeNumber = volumeNumber
         self.carrierType = carrierType
 
-    def testreturnIPIdentifier(self):
-        return self.IPIdentifier
+class IP:
 
+    def __init__(self):
+        self.carriers = []
+        self.IPIdentifier = ""
+        self.IPIdentifierParent = ""
+        self.carrierType = ""
+
+    def append(self,carrier):
+        # Result of this is that below IP-level properties are inherited from last
+        # appended carrier (values should be identical for all carriers within IP,
+        # but important to do proper QA on this as results may be unexpected otherwise)
+        self.carriers.append(carrier)
+        self.IPIdentifier = carrier.IPIdentifier
+        self.IPIdentifierParent = carrier.IPIdentifierParent
+        self.carrierType = carrier.carrierType
 
 def main_is_frozen():
     return (hasattr(sys, "frozen") or  # new py2exe
@@ -339,22 +352,50 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
         return(fileGrp, divDisc, sipFileCounter)             
                 
    
-def createMODS(PPN):
+def createMODS(IP):
     # Create MODS metadata based on records in GGC
+    # Dublin Core to MODS mapping follows http://www.loc.gov/standards/mods/dcsimple-mods.html
     # General structure: bibliographic md is wrapped in relatedItem / type = host element
     
+    IPIdentifier = IP.IPIdentifier
+    PPNParent = IP.IPIdentifierParent
+    carrierType = IP.carrierType
+    
+    # Create MODS element
     modsName = etree.QName(mods_ns, "mods")
     mods = etree.Element(modsName, nsmap = NSMAP)
-
-    modsTitleInfo = etree.SubElement(mods, "{%s}titleInfo" %(mods_ns))
-   
-    # fileElt.attrib["ID"] = fileID                           
+                            
     # SRU search string
-    sruSearchString = '"PPN=' + PPN
+    sruSearchString = '"PPN=' + PPNParent + '"'
     response = sru.search(sruSearchString,"GGC")
-    
-    """
+        
     for record in response.records:
+        # TODO: is it possible to have multiple Title fields in GGC?
+        title = record.titles[0]
+        modsTitleInfo = etree.SubElement(mods, "{%s}titleInfo" %(mods_ns))
+        modsTitle = etree.SubElement(modsTitleInfo, "{%s}title" %(mods_ns))
+        modsTitle.text = title
+              
+        for creator in record.creators:
+            modsName = etree.SubElement(mods, "{%s}name" %(mods_ns))
+            modsNamePart = etree.SubElement(modsName, "{%s}namePart" %(mods_ns))
+            modsNamePart.text = creator
+            modsRole =  etree.SubElement(modsName, "{%s}role" %(mods_ns))
+            modsRoleTerm =  etree.SubElement(modsRole, "{%s}roleTerm" %(mods_ns))
+            modsRoleTerm.attrib["type"] = "text"
+            modsRoleTerm.text = "creator"
+            
+        for contributor in record.contributors:
+            modsName = etree.SubElement(mods, "{%s}name" %(mods_ns))
+            modsNamePart = etree.SubElement(modsName, "{%s}namePart" %(mods_ns))
+            modsNamePart.text = contributor
+            modsRole =  etree.SubElement(modsName, "{%s}role" %(mods_ns))
+            modsRoleTerm =  etree.SubElement(modsRole, "{%s}roleTerm" %(mods_ns))
+            modsRoleTerm.attrib["type"] = "text"
+            modsRoleTerm.text = "contributor"        
+        
+        
+    """
         for typeDCMI in record.typesDCMI:
             print("TypeDCMI: %s" % typeDCMI)
         for date in record.dates:
@@ -375,7 +416,9 @@ def createMODS(PPN):
             print("Language (Dutch): %s" % languageDutch)
         for languageISO639 in record.languagesISO639:
             print("Language (ISO639-2): %s" % languageISO639)  
-     """
+    """
+
+ 
 
     return(mods)
        
@@ -566,6 +609,9 @@ def main():
         # IP is IPIdentifier (by which we grouped data)
         # carriers is another iterator that contains individual carrier records
         
+        # Create IP class instance for this IP
+        thisIP = IP()
+        
         if createSIPs == True:
             # Create METS element for this SIP
             metsName = etree.QName(mets_ns, "mets")
@@ -640,6 +686,9 @@ def main():
             thisCarrier = Carrier(IPIdentifier, IPIdentifierParent, imagePathFull, volumeNumber, carrierType)
             fileGrp, divDisc, fileCounter = processCarrier(thisCarrier, fileGrp, dirSIP, fileCounterStart)
             
+            # Add to IP class instance
+            thisIP.append(thisCarrier)
+            
             # Update fileCounterStart
             fileCounterStart = fileCounter
                                                           
@@ -657,20 +706,23 @@ def main():
                 "' is illegal value for 'carrierType'")
             carrierTypes.append(carrierType)
 
-            # Get metadata of IPIdentifierParent from GGC and convert to MODS format
-            mdMODS = createMODS(IPIdentifierParent)
-                
-            # Update METS metadata and write to file
+            # Update structmap in METS
             if createSIPs == True:
                 structMap.append(divDisc)
-                xmlData.append(mdMODS)            
-                # Write METS file to SIP directory                                
-                metsAsString = etree.tostring(mets, pretty_print=True, encoding="UTF-8")
-                metsFname = os.path.join(dirSIP,"mets.xml")
+                       
+        if createSIPs == True:
+            # Get metadata of IPIdentifierParent from GGC and convert to MODS format
+            mdMODS = createMODS(thisIP)
+         
+            # Append metadata to METS
+            xmlData.append(mdMODS) 
+         
+            # Write METS file to SIP directory                                
+            metsAsString = etree.tostring(mets, pretty_print=True, encoding="UTF-8")
+            metsFname = os.path.join(dirSIP,"mets.xml")
             
-                with open(metsFname, "w") as text_file:
-                    text_file.write(metsAsString)
-                   
+            with open(metsFname, "w") as text_file:
+                text_file.write(metsAsString)
 
         # IP-level consistency checks
 
