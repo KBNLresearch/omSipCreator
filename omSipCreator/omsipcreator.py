@@ -357,6 +357,14 @@ def createMODS(IP):
     # Dublin Core to MODS mapping follows http://www.loc.gov/standards/mods/dcsimple-mods.html
     # General structure: bibliographic md is wrapped in relatedItem / type = host element
     
+    # Dictionary maps carrier types  to MODS resource types 
+    resourceTypeMap = {
+        "cd-rom" : "software, multimedia",
+        "dvd-rom" : "software, multimedia",
+        "dvd-video" : "moving image",
+        "cd-audio" : "sound recording"
+        }
+
     IPIdentifier = IP.IPIdentifier
     PPNParent = IP.IPIdentifierParent
     carrierType = IP.carrierType
@@ -368,7 +376,8 @@ def createMODS(IP):
     # SRU search string
     sruSearchString = '"PPN=' + PPNParent + '"'
     response = sru.search(sruSearchString,"GGC")
-        
+    
+    # TODO what in case of multiple records? Is this even possible?
     for record in response.records:
         # TODO: is it possible to have multiple Title fields in GGC?
         title = record.titles[0]
@@ -392,8 +401,28 @@ def createMODS(IP):
             modsRole =  etree.SubElement(modsName, "{%s}role" %(mods_ns))
             modsRoleTerm =  etree.SubElement(modsRole, "{%s}roleTerm" %(mods_ns))
             modsRoleTerm.attrib["type"] = "text"
-            modsRoleTerm.text = "contributor"        
+            modsRoleTerm.text = "contributor"
         
+        for publisher in record.publishers:
+            modsOriginInfo = etree.SubElement(mods, "{%s}originInfo" %(mods_ns))
+            modsOriginInfo.attrib["displayLabel"] = "publisher"
+            modsPublisher = etree.SubElement(modsOriginInfo, "{%s}publisher" %(mods_ns))
+            modsPublisher.text = publisher
+                     
+        for date in record.dates:
+            # Note that DC date isn't necessarily issue date, and LoC DC to MODS mapping
+            # suggests that dateOther be used as default. However KB Metadata model
+            # only recognises dateIssued, so we'll use that. 
+            modsOriginInfo = etree.SubElement(mods, "{%s}originInfo" %(mods_ns))
+            modsDateIssued = etree.SubElement(modsOriginInfo, "{%s}dateIssued" %(mods_ns))
+            modsDateIssued.text = date
+    
+        for annotation in record.annotations:
+            modsNote = etree.SubElement(mods, "{%s}note" %(mods_ns))
+            modsNote.text = annotation
+    
+    modsTypeOfResource = etree.SubElement(mods, "{%s}typeOfResource" %(mods_ns))
+    modsTypeOfResource.text = resourceTypeMap[carrierType]
         
     """
         for typeDCMI in record.typesDCMI:
@@ -473,7 +502,7 @@ def main():
     xlink_ns = 'http://www.w3.org/1999/xlink'
     xsi_ns = 'http://www.w3.org/2001/XMLSchema-instance'
     metsSchema = 'http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd'
-    modsSchema = 'http://www.loc.gov/mods/v3 http://www.loc.gov/standards/mods/v3/mods-3-0.xsd'
+    modsSchema = 'http://www.loc.gov/mods/v3 https://www.loc.gov/standards/mods/v3/mods-3-4.xsd'
     
     NSMAP =  {"mets" : mets_ns,
          "mods" : mods_ns,
