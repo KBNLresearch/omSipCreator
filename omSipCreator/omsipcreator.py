@@ -376,79 +376,85 @@ def createMODS(IP):
     # SRU search string
     sruSearchString = '"PPN=' + PPNParent + '"'
     response = sru.search(sruSearchString,"GGC")
+ 
+    # Extract metadata from GGC record
     
     # TODO what in case of multiple records? Is this even possible?
     for record in response.records:
-        # TODO: is it possible to have multiple Title fields in GGC?
-        title = record.titles[0]
+        titles = record.titles
+        creators = record.creators
+        contributors = record.contributors
+        publishers = record.publishers
+        dates = record.dates
+        annotations = record.annotations
+        identifiersURI = record.identifiersURI
+        identifiersISBN = record.identifiersISBN
+    
+    # Create MODS fields
+    
+    for title in titles:
         modsTitleInfo = etree.SubElement(mods, "{%s}titleInfo" %(mods_ns))
         modsTitle = etree.SubElement(modsTitleInfo, "{%s}title" %(mods_ns))
         modsTitle.text = title
-              
-        for creator in record.creators:
-            modsName = etree.SubElement(mods, "{%s}name" %(mods_ns))
-            modsNamePart = etree.SubElement(modsName, "{%s}namePart" %(mods_ns))
-            modsNamePart.text = creator
-            modsRole =  etree.SubElement(modsName, "{%s}role" %(mods_ns))
-            modsRoleTerm =  etree.SubElement(modsRole, "{%s}roleTerm" %(mods_ns))
-            modsRoleTerm.attrib["type"] = "text"
-            modsRoleTerm.text = "creator"
-            
-        for contributor in record.contributors:
-            modsName = etree.SubElement(mods, "{%s}name" %(mods_ns))
-            modsNamePart = etree.SubElement(modsName, "{%s}namePart" %(mods_ns))
-            modsNamePart.text = contributor
-            modsRole =  etree.SubElement(modsName, "{%s}role" %(mods_ns))
-            modsRoleTerm =  etree.SubElement(modsRole, "{%s}roleTerm" %(mods_ns))
-            modsRoleTerm.attrib["type"] = "text"
-            modsRoleTerm.text = "contributor"
+          
+    for creator in creators:
+        modsName = etree.SubElement(mods, "{%s}name" %(mods_ns))
+        modsNamePart = etree.SubElement(modsName, "{%s}namePart" %(mods_ns))
+        modsNamePart.text = creator
+        modsRole =  etree.SubElement(modsName, "{%s}role" %(mods_ns))
+        modsRoleTerm =  etree.SubElement(modsRole, "{%s}roleTerm" %(mods_ns))
+        modsRoleTerm.attrib["type"] = "text"
+        modsRoleTerm.text = "creator"
         
-        for publisher in record.publishers:
-            modsOriginInfo = etree.SubElement(mods, "{%s}originInfo" %(mods_ns))
-            modsOriginInfo.attrib["displayLabel"] = "publisher"
-            modsPublisher = etree.SubElement(modsOriginInfo, "{%s}publisher" %(mods_ns))
-            modsPublisher.text = publisher
-                     
-        for date in record.dates:
-            # Note that DC date isn't necessarily issue date, and LoC DC to MODS mapping
-            # suggests that dateOther be used as default. However KB Metadata model
-            # only recognises dateIssued, so we'll use that. 
-            modsOriginInfo = etree.SubElement(mods, "{%s}originInfo" %(mods_ns))
-            modsDateIssued = etree.SubElement(modsOriginInfo, "{%s}dateIssued" %(mods_ns))
-            modsDateIssued.text = date
+    for contributor in contributors:
+        modsName = etree.SubElement(mods, "{%s}name" %(mods_ns))
+        modsNamePart = etree.SubElement(modsName, "{%s}namePart" %(mods_ns))
+        modsNamePart.text = contributor
+        modsRole =  etree.SubElement(modsName, "{%s}role" %(mods_ns))
+        modsRoleTerm =  etree.SubElement(modsRole, "{%s}roleTerm" %(mods_ns))
+        modsRoleTerm.attrib["type"] = "text"
+        modsRoleTerm.text = "contributor"
     
-        for annotation in record.annotations:
-            modsNote = etree.SubElement(mods, "{%s}note" %(mods_ns))
-            modsNote.text = annotation
-    
+    for publisher in publishers:
+        modsOriginInfo = etree.SubElement(mods, "{%s}originInfo" %(mods_ns))
+        modsOriginInfo.attrib["displayLabel"] = "publisher"
+        modsPublisher = etree.SubElement(modsOriginInfo, "{%s}publisher" %(mods_ns))
+        modsPublisher.text = publisher
+                 
+    for date in dates:
+        # Note that DC date isn't necessarily issue date, and LoC DC to MODS mapping
+        # suggests that dateOther be used as default. However KB Metadata model
+        # only recognises dateIssued, so we'll use that. 
+        modsOriginInfo = etree.SubElement(mods, "{%s}originInfo" %(mods_ns))
+        modsDateIssued = etree.SubElement(modsOriginInfo, "{%s}dateIssued" %(mods_ns))
+        modsDateIssued.text = date
+
     modsTypeOfResource = etree.SubElement(mods, "{%s}typeOfResource" %(mods_ns))
     modsTypeOfResource.text = resourceTypeMap[carrierType]
-        
-    """
-        for typeDCMI in record.typesDCMI:
-            print("TypeDCMI: %s" % typeDCMI)
-        for date in record.dates:
-            print("Date: %s" % date)
-        for uri in record.identifiersURI:
-            print("URI: %s" % uri)
-        for title in record.titles:
-            print("Title: %s" % title)
-        for annotation in record.annotations:
-            print("Annotation: %s" % annotation)  
-        for creator in record.creators:
-            print("Creator: %s" % creator) 
-        for contributor in record.contributors:
-            print("Contributor: %s" % contributor)
-        for identifierOCLC in record.identifiersOCLC:
-            print("OCLC identifier: %s" % identifierOCLC) 
-        for languageDutch in record.languagesDutch:
-            print("Language (Dutch): %s" % languageDutch)
-        for languageISO639 in record.languagesISO639:
-            print("Language (ISO639-2): %s" % languageISO639)  
-    """
 
- 
-
+    for annotation in annotations:
+        modsNote = etree.SubElement(mods, "{%s}note" %(mods_ns))
+        modsNote.text = annotation
+    
+    # This record establishes the link with the parent publication as it is described
+    # in the GGC
+    modsRelatedItem = etree.SubElement(mods, "{%s}relatedItem" %(mods_ns))
+    modsRelatedItem.attrib["type"] = "host"
+    
+    for identifierURI in identifiersURI:
+        modsIdentifierURI = etree.SubElement(modsRelatedItem, "{%s}identifier" %(mods_ns))
+        modsIdentifierURI.attrib["type"] = "uri"
+        modsIdentifierURI.text = identifierURI
+    
+    # Note: GGC recors also contains a *recordIdentifier* with a different URI - check which one
+    # takes precedence / is authorative!!
+    
+    for identifierISBN in identifiersISBN:
+        modsIdentifierISBN = etree.SubElement(modsRelatedItem, "{%s}identifier" %(mods_ns))
+        modsIdentifierISBN.attrib["type"] = "isbn"
+        modsIdentifierISBN.text = identifierISBN
+    
+      
     return(mods)
        
 def parseCommandLine():
