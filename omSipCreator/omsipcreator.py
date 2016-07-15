@@ -14,8 +14,6 @@ from operator import itemgetter
 from itertools import groupby
 from lxml import etree
 from kbapi import sru
-# from kb.nl.api import sru
-# from kb.nl.helpers import alto_to_text
 
 # Bind raw_input (Python 3) to input (Python 2)
 # Source: http://stackoverflow.com/a/21731110/1209004
@@ -25,6 +23,9 @@ except NameError:
    pass
 
 """
+
+SIP Creator for Offline Media images.
+
 NOTES
 -----
 
@@ -35,18 +36,6 @@ Archival Information Collection (AIC). This may be a better solution, which woul
 single-volume SIPs. See also:
 
 http://qanda.digipres.org/1121/creation-practices-optical-carriers-that-multiple-volumes
-
-## Metadata
-
-LoC has a METS profile for audio CDs:
-
-<http://www.loc.gov/standards/mets/profiles/00000007.html>
-
-## Checksumming
-
-Check out this:  
-
-<http://stackoverflow.com/questions/3431825/generating-an-md5-checksum-of-a-file>
 
 ## Batch validation
 
@@ -72,28 +61,11 @@ This validation could either be done within this SIP creator, or as a separate s
 * Create SIP directory structure X
 * Copy files to  SIP X
 * Post-copy checksum verification X
-* Generate structural metadata in METS format: 
-  for an example see: https://github.com/artefactual/automation-tools/pull/15/files
+* Generate structural metadata in METS format X
 * Include automated format identification w. Apache Tika
 * ISO characterisation (executables, environments) using Freiburg code
 * Extract metadata from ISO Primary Volume Descriptors
-* Import bibliographical metadata from KB catalogue
-
-## Code reuse
-
-* Metamorfoze Batch converter (CSV, validation, progress and error logging)
-* KB-python-API (importing of bibliographical metadata from GGC)
-* For metadata generation in e.g. METS format some libs probably exist already 
-* Extract + re-use metadata from ISO images, e.g. using:
-     https://github.com/KBNLresearch/verifyISOSize
-     
-
-## TODO
-
-Script needs some MAJOR refactoring, as it's a bit of an unstructured
-mess right now.
-
-Probably best approach would be to create Classes for batches, SIPs, etc. 
+* Import bibliographical metadata from KB catalogue X
 
  """
 
