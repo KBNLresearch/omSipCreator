@@ -355,7 +355,7 @@ def createMODS(IP):
             str(noGGCRecords) + " catalogue records (expected 1)")
     
     # Select first record
-    # TODO: Decide on behaviour in case of zero records. 
+    # TODO: Decide on behaviour in case of zero records. GOES WRONG!!11 
     record = next(response.records)
 
     # Extract metadata from GGC record
