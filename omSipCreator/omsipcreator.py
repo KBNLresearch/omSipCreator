@@ -488,21 +488,28 @@ def createMODS(IP):
        
 def parseCommandLine():
     # Add arguments
+    
+    # Sub-parsers for check and write commands
 
-    parser.add_argument('batchIn',
+    subparsers = parser.add_subparsers(help='sub-command help',
+                        dest='subcommand')
+    parser_verify = subparsers.add_parser('verify',
+                        help='only verify input batch without writing SIPs')
+    parser_verify.add_argument('batchIn',
                         action="store",
                         type=str,
                         help="input batch")
-    parser.add_argument('dirOut',
+    parser_write = subparsers.add_parser('write',
+                        help="verify input batch and write SIPs. Before using 'write' first \
+                        run the 'verify' command and fix any reported errors.")
+    parser_write.add_argument('batchIn',
                         action="store",
                         type=str,
-                        help="output directory")
-    parser.add_argument('--writesips',
-                        action="store_true",
-                        dest="createSIPs",
-                        default=False,
-                        help="Write SIPs (default: don't write, test only")
-
+                        help="input batch")
+    parser_write.add_argument('dirOut',
+                        action="store",
+                        type=str,
+                        help="output directory where SIPs are written")
     # Parse arguments
     args = parser.parse_args()
 
@@ -563,14 +570,18 @@ def main():
         out = codecs.getwriter("UTF-8")(sys.stdout.buffer)
         err = codecs.getwriter("UTF-8")(sys.stderr.buffer)
     
-    # Make createSIPs global
+    # Global flag that indicates if SIPs will be written
     global createSIPs
-       
+    createSIPs = False
+    
     # Get input from command line
     args = parseCommandLine()
+    action = args.subcommand
     batchIn = os.path.normpath(args.batchIn)
-    dirOut = os.path.normpath(args.dirOut)
-    createSIPs = args.createSIPs
+   
+    if action == "write":
+        dirOut = os.path.normpath(args.dirOut)
+        createSIPs = True
     
     # Check if batch dir exists
     if os.path.isdir(batchIn) == False:
