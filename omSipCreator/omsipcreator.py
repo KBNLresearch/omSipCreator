@@ -347,7 +347,6 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 
                 fileCounter += 1
                 sipFileCounter += 1
-              
                                    
         return(fileGrp, divDisc, sipFileCounter)             
                 
@@ -373,26 +372,35 @@ def createMODS(IP):
     modsName = etree.QName(mods_ns, "mods")
     mods = etree.Element(modsName, nsmap = NSMAP)
                             
-    # SRU search string
+    # SRU search string (searches on dc:identifier field)
     sruSearchString = '"PPN=' + PPNParent + '"'
     response = sru.search(sruSearchString,"GGC")
- 
+    
+    # This should return exactly one record. Return error if this is not the case
+    noGGCRecords = response.sru.nr_of_records
+    if noGGCRecords != 1:
+        errors.append("IP " + IPIdentifier + ": search for PPN=" + PPNParent + " returned " + \
+            str(noGGCRecords) + " catalogue records (expected 1)")
+    
+    # Select first record
+    # TODO: Decide on behaviour in case of zero records. 
+    record = next(response.records)
+
     # Extract metadata from GGC record
-    
-    # TODO what in case of multiple records? Is this even possible?
-    for record in response.records:
-        titles = record.titles
-        creators = record.creators
-        contributors = record.contributors
-        publishers = record.publishers
-        dates = record.dates
-        annotations = record.annotations
-        identifiersURI = record.identifiersURI
-        identifiersISBN = record.identifiersISBN
-        recordIdentifiersURI = record.recordIdentifiersURI
-        collectionIdentifiers = record.collectionIdentifiers
-    
-    # Create MODS fields
+    # TODO might need some additional checking on whether fields exist, etc.
+
+    titles = record.titles
+    creators = record.creators
+    contributors = record.contributors
+    publishers = record.publishers
+    dates = record.dates
+    annotations = record.annotations
+    identifiersURI = record.identifiersURI
+    identifiersISBN = record.identifiersISBN
+    recordIdentifiersURI = record.recordIdentifiersURI
+    collectionIdentifiers = record.collectionIdentifiers
+  
+    # Create MODS entries
     
     for title in titles:
         modsTitleInfo = etree.SubElement(mods, "{%s}titleInfo" %(mods_ns))
@@ -489,6 +497,11 @@ def parseCommandLine():
                         action="store",
                         type=str,
                         help="output directory")
+    parser.add_argument('--writesips',
+                        action="store_true",
+                        dest="createSIPs",
+                        default=False,
+                        help="Write SIPs (default: don't write, test only")
 
     # Parse arguments
     args = parser.parse_args()
@@ -498,11 +511,7 @@ def parseCommandLine():
 def main():
 
     # Constants (put in config file later)
-    
-    # Flag that indicates (batch) validation-only mode or SIP-creation mode
-    global createSIPs
-    createSIPs = True
-    
+        
     # Carrier metadata file - basic capture-level metadata about carriers
     fileMetaCarriers = "metacarriers.csv"
 
@@ -554,15 +563,15 @@ def main():
         out = codecs.getwriter("UTF-8")(sys.stdout.buffer)
         err = codecs.getwriter("UTF-8")(sys.stderr.buffer)
     
-    # Dublin Core to METS stylesheet
-    # fxsltDC2Mods = os.path.join(get_main_dir(), "stylesheets/DC_MODS3-5_XSLT2-0.xsl")
-    # xsltDC2Mods = etree.parse(fxsltDC2Mods)
+    # Make createSIPs global
+    global createSIPs
        
     # Get input from command line
     args = parseCommandLine()
     batchIn = os.path.normpath(args.batchIn)
     dirOut = os.path.normpath(args.dirOut)
-
+    createSIPs = args.createSIPs
+    
     # Check if batch dir exists
     if os.path.isdir(batchIn) == False:
         errors.append("input batch directory does not exist")
@@ -668,30 +677,33 @@ def main():
         # Create IP class instance for this IP
         thisIP = IP()
         
-        if createSIPs == True:
-            # Create METS element for this SIP
-            metsName = etree.QName(mets_ns, "mets")
-            mets = etree.Element(metsName, nsmap = NSMAP)
-            # Add schema reference
-            mets.attrib[etree.QName(xsi_ns, "schemaLocation")] = "".join([metsSchema," ",modsSchema]) 
-            # Subelements for dmdSec, fileSec and structMap
-            dmdSec = etree.SubElement(mets, "{%s}dmdSec" %(mets_ns))
-            # Add identifier
-            # TODO: do we need any more than this? probably not ..
-            dmdSec.attrib["ID"] = "dmdID"
-            # Create mdWrap and xmlData child elements 
-            mdWrap = etree.SubElement(dmdSec, "{%s}mdWrap" %(mets_ns))
-            mdWrap.attrib["MDTYPE"] = "MODS"
-            mdWrap.attrib["MDTYPEVERSION"] = "3.4"
-            xmlData =  etree.SubElement(mdWrap, "{%s}xmlData" %(mets_ns))
-            # Create fileSec and structMap elements
-            fileSec = etree.SubElement(mets, "{%s}fileSec" %(mets_ns))
-            fileGrp = etree.SubElement(fileSec, "{%s}fileGrp" %(mets_ns))
-            structMap = etree.SubElement(mets, "{%s}structMap" %(mets_ns))
+        # Create METS element for this SIP
+        metsName = etree.QName(mets_ns, "mets")
+        mets = etree.Element(metsName, nsmap = NSMAP)
+        # Add schema reference
+        mets.attrib[etree.QName(xsi_ns, "schemaLocation")] = "".join([metsSchema," ",modsSchema]) 
+        # Subelements for dmdSec, fileSec and structMap
+        dmdSec = etree.SubElement(mets, "{%s}dmdSec" %(mets_ns))
+        # Add identifier
+        # TODO: do we need any more than this? probably not ..
+        dmdSec.attrib["ID"] = "dmdID"
+        # Create mdWrap and xmlData child elements 
+        mdWrap = etree.SubElement(dmdSec, "{%s}mdWrap" %(mets_ns))
+        mdWrap.attrib["MDTYPE"] = "MODS"
+        mdWrap.attrib["MDTYPEVERSION"] = "3.4"
+        xmlData =  etree.SubElement(mdWrap, "{%s}xmlData" %(mets_ns))
+        # Create fileSec and structMap elements
+        fileSec = etree.SubElement(mets, "{%s}fileSec" %(mets_ns))
+        fileGrp = etree.SubElement(fileSec, "{%s}fileGrp" %(mets_ns))
+        structMap = etree.SubElement(mets, "{%s}structMap" %(mets_ns))
 
-            # Initialise counter that is used to assign file IDs
-            fileCounterStart = 1 
-            
+        # Initialise counter that is used to assign file IDs
+        fileCounterStart = 1
+        
+        # Dummy value for dirSIP (needed if createSIPs = False)
+        dirSIP = "rubbish" 
+         
+        if createSIPs == True:
             # Create SIP directory
             dirSIP = os.path.join(dirOut,IPIdentifier)
             try:
@@ -763,16 +775,15 @@ def main():
             carrierTypes.append(carrierType)
 
             # Update structmap in METS
-            if createSIPs == True:
-                structMap.append(divDisc)
+            structMap.append(divDisc)
                        
+        # Get metadata of IPIdentifierParent from GGC and convert to MODS format
+        mdMODS = createMODS(thisIP)
+     
+        # Append metadata to METS
+        xmlData.append(mdMODS) 
+         
         if createSIPs == True:
-            # Get metadata of IPIdentifierParent from GGC and convert to MODS format
-            mdMODS = createMODS(thisIP)
-         
-            # Append metadata to METS
-            xmlData.append(mdMODS) 
-         
             # Write METS file to SIP directory                                
             metsAsString = etree.tostring(mets, pretty_print=True, encoding="UTF-8")
             metsFname = os.path.join(dirSIP,"mets.xml")
