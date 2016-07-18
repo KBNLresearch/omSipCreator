@@ -363,6 +363,7 @@ def createMODS(IP):
         contributors = record.contributors
         publishers = record.publishers
         dates = record.dates
+        subjectsBrinkman = record.subjectsBrinkman
         annotations = record.annotations
         identifiersURI = record.identifiersURI
         identifiersISBN = record.identifiersISBN
@@ -375,6 +376,7 @@ def createMODS(IP):
         contributors = []
         publishers = []
         dates = []
+        subjectsBrinkman = []
         annotations = []
         identifiersURI = []
         identifiersISBN = []
@@ -419,6 +421,14 @@ def createMODS(IP):
         modsOriginInfo = etree.SubElement(mods, "{%s}originInfo" %(mods_ns))
         modsDateIssued = etree.SubElement(modsOriginInfo, "{%s}dateIssued" %(mods_ns))
         modsDateIssued.text = date
+    
+    # TODO: perhaps add authority and language attributes
+    modsSubject = etree.SubElement(mods, "{%s}subject" %(mods_ns))    
+    for subjectBrinkman in subjectsBrinkman:
+        modsTopic = etree.SubElement(modsSubject, "{%s}topic" %(mods_ns))
+        modsTopic.text = subjectBrinkman
+        
+        
 
     modsTypeOfResource = etree.SubElement(mods, "{%s}typeOfResource" %(mods_ns))
     modsTypeOfResource.text = resourceTypeMap[carrierType]
