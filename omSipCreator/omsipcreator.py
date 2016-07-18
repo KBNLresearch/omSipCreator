@@ -355,23 +355,32 @@ def createMODS(IP):
             str(noGGCRecords) + " catalogue records (expected 1)")
     
     # Select first record
-    # TODO: Decide on behaviour in case of zero records. GOES WRONG!!11 
-    record = next(response.records)
-
-    # Extract metadata from GGC record
-    # TODO might need some additional checking on whether fields exist, etc.
-
-    titles = record.titles
-    creators = record.creators
-    contributors = record.contributors
-    publishers = record.publishers
-    dates = record.dates
-    annotations = record.annotations
-    identifiersURI = record.identifiersURI
-    identifiersISBN = record.identifiersISBN
-    recordIdentifiersURI = record.recordIdentifiersURI
-    collectionIdentifiers = record.collectionIdentifiers
-  
+    try:
+        record = next(response.records)
+        # Extract metadata
+        titles = record.titles
+        creators = record.creators
+        contributors = record.contributors
+        publishers = record.publishers
+        dates = record.dates
+        annotations = record.annotations
+        identifiersURI = record.identifiersURI
+        identifiersISBN = record.identifiersISBN
+        recordIdentifiersURI = record.recordIdentifiersURI
+        collectionIdentifiers = record.collectionIdentifiers
+    except StopIteration:
+        # Create empty lists fot all metadata fields in case noGGCRecords = 0
+        titles = []
+        creators = []
+        contributors = []
+        publishers = []
+        dates = []
+        annotations = []
+        identifiersURI = []
+        identifiersISBN = []
+        recordIdentifiersURI = []
+        collectionIdentifiers = []
+          
     # Create MODS entries
     
     for title in titles:
