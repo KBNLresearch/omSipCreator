@@ -126,6 +126,12 @@ And here's an example of a SIP that contains 1 audio CD, with separate tracks re
 
 ### dmdSec
 
+- Contains top-level *mdWrap* element with the following attributes:
+    - *MDTYPE* - indicates type of metadata that this element wraps. Value is *MODS*
+    - *MDTYPEVERSION* - MODS version, is *3.4* (as per KB Metatadata policies)
+- The *mdWrap* element contains one *xmlData* element
+- The *xmlData* element contains one *mods* element.
+
 ### fileSec
 
 - Contains one top-level *fileGrp* element (if a SIP spans multiple carriers, they are all wrapped inside the same *fileGrp* element).
@@ -148,7 +154,8 @@ And here's an example of a SIP that contains 1 audio CD, with separate tracks re
 - Each of the above *div* elements contains one or more further *div* elements that describe the components (files) that make up a carrier. They have the following attributes:
     - *TYPE* - describes the nature of the carrier component. Possible values are *disk image* and *audio track*.
     - *ORDER* - describes the order of each component (e.g. for an audio CD that is represented as multiple audio files, it describes thew playing order).
-- Finally each of the the above (file-level) *div* elements contains one *fptr*. It contains one *FILEID* attribute, whose value corresponds to the corresponding *ID* attribute in the *file* element (see *FileSec* description above). 
+- Finally each of the the above (file-level) *div* elements contains one *fptr*. It contains one *FILEID* attribute, whose value corresponds to the corresponding *ID* attribute in the *file* element (see *FileSec* description above).
+ 
     
 ## Quality checks
 
