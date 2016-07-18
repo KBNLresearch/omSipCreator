@@ -11,7 +11,7 @@ You'll need [lxml](http://lxml.de/) to run this software.
 
 ## Usage
 
-You can tell OmSIPCreator what to do using either the *verify*  or *write* subcommands. 
+You can tell OmSipCreator what to do using either the *verify*  or *write* subcommands. 
 
 ### Verify a batch without writing any SIPs
 
@@ -28,6 +28,10 @@ Here *dirOut* is the directory where the SIPs will be created. If *dirOut* is an
     This will overwrite existing directory 'sipsOut' and remove its contents!
     Do you really want to proceed (Y/N)? > 
 
+### Important: always *verify* before *write*
+
+Always first run omSipCreator in *verify* mode. If this results in any reported errors, fix them first, since errors in the input batch are likely to result in output that is either unexpected or just plain wrong! Once no errors are reported, re-run the tool in *write* mode.
+
 ## Structure of input batch
 
 The input batch is simply a directory that contains a number of subdirectories, each of which represents exactly one data carrier. Furthermore it contains a comma-delimited text file with basic metadata about each carrier. The diagram below shows an example of a batch that contains 3 carriers.
@@ -42,11 +46,11 @@ The input batch is simply a directory that contains a number of subdirectories, 
     │   ├── track13.cdda.wav
     │   └── tracks.md5
     ├── s01d02
-    │   ├── alles_over_bestandsformaten.iso
-    │   └── alles_over_bestandsformaten.iso.md5
+    │   ├── image1.iso
+    │   └── image1.iso.md5
     └── s01d03
-        ├── birds_of_tropical_asia_2.iso
-        └── birds_of_tropical_asia_2.iso.md5
+        ├── image2.iso
+        └── image2.iso.md5
 
 
 ### Carrier directory structure
@@ -92,10 +96,64 @@ Below is a simple example of carrier metadata file:
 
 In the above example the second and fourth carriers are both part of a 2-volume item. Consequently the *IPIdentifier* values of both carriers are identical.
 
+## SIP structure
 
-## Structure of SIP
+Each SIP is represented as a directory. Each carrier that is part of the SIP is represented as a subdirectory within that directory. The SIP's root directory contains a [METS](https://www.loc.gov/mets/) file with technical, structural and bibliographic metadata. Bibliographic metadata is stored in [MODS](https://www.loc.gov/standards/mods/) format (3.4) which is embedded in a METS *mdWrap* element. Here's a simple example of a SIP that is made up of 2 carriers (which are represented as ISO 9660 images):
+  
 
+    ├── 1
+    │   └── image1.iso
+    ├── 2
+    │   └── image2.iso
+    └── mets.xml
+
+And here's an example of a SIP that contains 1 audio CD, with separate tracks represented as WAV files:
+
+    ├── 1
+    │   ├── track01.cdda.wav
+    │   ├── track02.cdda.wav
+    │   ├── ...
+    │   ├── ...
+    │   ├── track12.cdda.wav
+    │   └── track13.cdda.wav
+    └── mets.xml
+    
 ## Quality checks
+
+When run in either *verify* or *write* mode, omSipCreator performs a number checks on the input batch. Each of he following checks will result in an *error* in case of failure:
+
+- Does batch directory exist?
+- Does carrier metadata file exist?
+- Can carrier metadata file be opened and is it parsable?
+- Does carrier metadata file contain exactly 1 instance of each mandatory column?
+- Does each *imagePath* entry point to an existing directory?
+- Is each *volumeNumber* entry an integer value?
+- Is each *carrierType* entry a permitted value (check against controlled vocabulary)?
+- Are all values of *IPIdentifierParent* within one intellectual entity identical?
+- Are all values of *imagePath* within the carrier metadata file unique (no duplicate values)?
+- Are all instances of *volumeNumber* within an intellectual entity unique?
+- Are all instances of *carrierType*  within an intellectual entity identical?
+- Are all directories within the batch referenced in the carrier metadata file (by way of *imagePath*)?
+- Does each carrier directory (i.e. *imagePath*) contain exactly 1 MD5 checksum file (identified by *.md5* file extension)?
+- For each entry in the checksum file, is the MD5 checksum identical to the re-calculated checksum for that file?
+- Does a carrier directory contain any files that are not referenced in the checksum file?
+- Does a search for *IPIdentifierParent* in the GGC catalogue result in exactly 1 matching record? 
+
+In *write* mode omSipCreator performs the following additional checks:
+
+- Is the output directory a writable location?
+- Could a SIP directory be created for the current IP?
+- Could a carrier directory be created for the current SIP?  
+- Could the image file(s) for the current carrier be copied to its SIP carrier directory?
+- Does the MD5 checksum of each copied image file match the original checksum (post-copy checksum verification)?
+
+Finally, omSipcreator will report a *warning* in the following situations:
+
+- Lower value of *volumeNumber* within an intellectual entity is not equal to 1.
+- Values of *volumeNumber* within an intellectual entity are not consecutive numbers.
+
+Both situations may indicate a data entry error, but they may also reflect that the physical carriers are simply missing.
+
 
 ## Contributors
 
