@@ -122,9 +122,33 @@ And here's an example of a SIP that contains 1 audio CD, with separate tracks re
     │   └── track13.cdda.wav
     └── mets.xml
 
-### METS metadata
+## METS metadata
 
-To be written.
+### dmdSec
+
+### fileSec
+
+- Contains one top-level *fileGrp* element (if a SIP spans multiple carriers, they are all wrapped inside the same *fileGrp* element).
+- The *fileGrp* elements contains 1 or more *file* elements. Each *file* element has the following attributes:
+    - *ID* - file identifier (e.g. *FILE_001*, *FILE_002*, etc.)
+    - *SIZE* - file size in bytes
+    - *MIMETYPE* - Mime type (e.g. *application/x-iso9660*)
+    - *CHECKSUM*
+    - *CHECKSUMTYPE* (for now only *MD5*)
+- Each *file* element contains an *FLocat* element with the following attributes:
+    - *LOCTYPE* - Locator type. Value is *URL*
+    - *xlink:href* - URL of file. Format: filepath, relative to root of SIP directory. Example:
+        `xlink:href="file://./4/alles_over_bestandsformaten.iso"`
+
+### structMap
+
+- Each carrier is wrapped into a *div* element that descibes the carrier using the following attributes:
+    - *TYPE* - describes the carrier type. Possible values: *cd-rom*, *cd-audio*, *dvd-rom*, *dvd-video*
+    - *ORDER* - in case of multiple carriers this describes the order of each volume
+- Each of the above *div* elements contains one or more further *div* elements that describe the components (files) that make up a carrier. They have the following attributes:
+    - *TYPE* - describes the nature of the carrier component. Possible values are *disk image* and *audio track*.
+    - *ORDER* - describes the order of each component (e.g. for an audio CD that is represented as multiple audio files, it describes thew playing order).
+- Finally each of the the above (file-level) *div* elements contains one *fptr*. It contains one *FILEID* attribute, whose value corresponds to the corresponding *ID* attribute in the *file* element (see *FileSec* description above). 
     
 ## Quality checks
 
