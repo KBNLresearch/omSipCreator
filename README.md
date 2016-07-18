@@ -117,6 +117,10 @@ And here's an example of a SIP that contains 1 audio CD, with separate tracks re
     │   ├── track12.cdda.wav
     │   └── track13.cdda.wav
     └── mets.xml
+
+### METS metadata
+
+To be written.
     
 ## Quality checks
 
