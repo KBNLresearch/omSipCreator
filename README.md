@@ -7,7 +7,7 @@ OmSipCreator is a tool for converting batches of disk images (e.g. ISO 9660 CD-R
 
 At the moment this software is still a somewhat experimental proof-of-concept that hasn't had much testing at this stage. Neither the current batch input format nor the SIP output format (including METS metadata) have  been finalised yet, and may be subject to further changes. 
  
-Also, the metadata component in particular is specific to the situation and infrastructure at the KB (although it could easily be adapted to other infrastructures). 
+Also, the (bibliographic) metadata component is specific to the situation and infrastructure at the KB, although it could easily be adapted to other infrastructures. To do this you would need to customize the *createMODS* function.
 
 ## Dependencies
 
