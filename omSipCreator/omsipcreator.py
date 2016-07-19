@@ -428,8 +428,6 @@ def createMODS(IP):
         modsTopic = etree.SubElement(modsSubject, "{%s}topic" %(mods_ns))
         modsTopic.text = subjectBrinkman
         
-        
-
     modsTypeOfResource = etree.SubElement(mods, "{%s}typeOfResource" %(mods_ns))
     modsTypeOfResource.text = resourceTypeMap[carrierType]
 
@@ -458,11 +456,12 @@ def createMODS(IP):
         modsIdentifierURI = etree.SubElement(modsRelatedItem, "{%s}identifier" %(mods_ns))
         modsIdentifierURI.attrib["type"] = "uri"
         modsIdentifierURI.text = identifierURI
-    
+    """
     for recordIdentifierURI in recordIdentifiersURI:
         modsIdentifierURI = etree.SubElement(modsRelatedItem, "{%s}identifier" %(mods_ns))
         modsIdentifierURI.attrib["type"] = "uri"
         modsIdentifierURI.text = recordIdentifierURI
+    """
     
     for identifierISBN in identifiersISBN:
         modsIdentifierISBN = etree.SubElement(modsRelatedItem, "{%s}identifier" %(mods_ns))

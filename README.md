@@ -11,7 +11,7 @@ Also, the metadata component in particular is specific to the situation and infr
 
 ## Dependencies
 
-You'll need [lxml](http://lxml.de/) to run this software.
+You'll need [lxml](http://lxml.de/) to run this software. Currently the software only works under Python 2.7.x; future versions are expected to be fully compatible with Python 3.x. 
 
 ## Usage
 
@@ -57,7 +57,7 @@ The input batch is simply a directory that contains a number of subdirectories, 
         └── image2.iso.md5
 
 
-### Carrier directory structure
+## Carrier directory structure
 
 Each carrier directory contains:
 
@@ -72,7 +72,7 @@ Each carrier directory contains:
         27f898419a912d5327188ccf2ad7ccce  track02.cdda.wav
         4185467fc835b931af18a15c7cc5ffcc  track03.cdda.wav
 
-### Carrier metadata file format
+## Carrier metadata file format
 
 The carrier metadata file is a comma-delimited text file with the name *metacarriers.csv*. The first line is a header line: 
 
@@ -132,6 +132,29 @@ And here's an example of a SIP that contains 1 audio CD, with separate tracks re
 - The *mdWrap* element contains one *xmlData* element
 - The *xmlData* element contains one *mods* element.
 
+The *mods* element contains the actual metadata elements. Most of these are imported from the KB catalogue record. Since the catalogue use Dublin Core (with some custom extensions), the DC elements are mapped to equivalent MODS elements. The mapping largely follows the [*Dublin Core Metadata Element Set Mapping to MODS Version 3*](http://www.loc.gov/standards/mods/dcsimple-mods.html) by Library of Congress. The table below shows each MODS element with its corresponding data source:
+
+|MODS|Source|
+|:--|:--|
+|`titleInfo/title`|`dc:title` (catalogue)|
+|`name/namePart`; `name/role/roleTerm/@type="creator"`|`dc:creator` (catalogue)|
+|`name/namePart`; `name/role/roleTerm/@type="contributor"`|`dc:contributor` (catalogue)|
+|`originInfo@displayLabel="publisher"/publisher`|`dc:publisher` (catalogue)| 
+|`originInfo/dateIssued`|`dc:date` (catalogue)|
+|`subject/topic`|`dc:subject` (catalogue)|
+|`typeOfResource`|mapping with *carrierType* (carrier metadata file)|
+|`note`|`dcx:annotation` (catalogue)|
+|`relatedItem/@type="host"/identifier/@type="ppn"`|*PPNParent* (carrier metadata file)|
+|`relatedItem/@type="host"/identifier/@type="uri"`|`dc:identifier/@xsi:type="dcterms:URI"`(catalogue)|
+|`relatedItem/@type="host"/identifier/@type="isbn"`|`dc:identifier/@xsi:type="dcterms:ISBN"` (catalogue)|
+
+<!-- |`relatedItem/@type="host"/identifier/@type="uri"`|`dcx:recordIdentifier/@xsi:type="dcterms:URI"` (catalogue)| -->
+
+Some additional notes to the above:
+
+- Some of these elements (e.g. *creator* and *contributor*) may be repeatable.
+- The *relatedItem* element (with attribute *type* set to *host*) describes the relation of the intellectual entity with its (physical) parent item. It does this by referring to its identifiers in the KB catalogue. 
+
 ### fileSec
 
 - Contains one top-level *fileGrp* element (if a SIP spans multiple carriers, they are all wrapped inside the same *fileGrp* element).
@@ -155,8 +178,7 @@ And here's an example of a SIP that contains 1 audio CD, with separate tracks re
     - *TYPE* - describes the nature of the carrier component. Possible values are *disk image* and *audio track*.
     - *ORDER* - describes the order of each component (e.g. for an audio CD that is represented as multiple audio files, it describes thew playing order).
 - Finally each of the the above (file-level) *div* elements contains one *fptr*. It contains one *FILEID* attribute, whose value corresponds to the corresponding *ID* attribute in the *file* element (see *FileSec* description above).
- 
-    
+     
 ## Quality checks
 
 When run in either *verify* or *write* mode, omSipCreator performs a number checks on the input batch. Each of he following checks will result in an *error* in case of failure:
