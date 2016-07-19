@@ -37,35 +37,12 @@ single-volume SIPs. See also:
 
 http://qanda.digipres.org/1121/creation-practices-optical-carriers-that-multiple-volumes
 
-## Batch validation
-
-Before doing ANYTHING, we'll also need to do some basic validation at 
-the batch level, e.g.:
-
-* Check for duplicate identifier - volumeNumber combinations (not permitted) X
-* Check for presence of different carrierTypes within one identifier (not permitted) X
-* Check for missing checksums X
-* Checksum verification for all items in batch X
-* Check if all imagePath fields in CSV correspond to actual dir in batch X
-* Check if all dirs in batch are represented as an imagePath field X
-
-This validation could either be done within this SIP creator, or as a separate script.
-
 ## Quality checks on image files
+
+Could be added as further refinement:
 
 * ISO 'validation' (see also paper Woods & others)
 * WAV validation (JHOVE?)
-
-## SIP creation
-
-* Create SIP directory structure X
-* Copy files to  SIP X
-* Post-copy checksum verification X
-* Generate structural metadata in METS format X
-* Include automated format identification w. Apache Tika
-* ISO characterisation (executables, environments) using Freiburg code
-* Extract metadata from ISO Primary Volume Descriptors
-* Import bibliographical metadata from KB catalogue X
 
  """
 
@@ -309,6 +286,8 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 fileElt.attrib["MIMETYPE"] = mimeType
                 fileElt.attrib["CHECKSUM"] = md5Sum
                 fileElt.attrib["CHECKSUMTYPE"] = "MD5"
+                
+                # TODO: check if mimeType values matches carrierType (e.g. no audio/x-wav if cd-rom, etc.)
                                 
                 # Create track divisor element for structmap
                 divFile = etree.SubElement(divDisc, "{%s}div" %(mets_ns))
