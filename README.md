@@ -171,6 +171,9 @@ Some additional notes to the above:
 
 ### structMap
 
+- *structMap* contains a top-level *div* element with the following attributes:
+    - *TYPE* - value *physical*
+    - *LABEL* - value *volumes*
 - Each carrier is wrapped into a *div* element that descibes the carrier using the following attributes:
     - *TYPE* - describes the carrier type. Possible values: *cd-rom*, *cd-audio*, *dvd-rom*, *dvd-video*
     - *ORDER* - in case of multiple carriers this describes the order of each volume

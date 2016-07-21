@@ -676,7 +676,11 @@ def main():
         fileSec = etree.SubElement(mets, "{%s}fileSec" %(mets_ns))
         fileGrp = etree.SubElement(fileSec, "{%s}fileGrp" %(mets_ns))
         structMap = etree.SubElement(mets, "{%s}structMap" %(mets_ns))
-
+        # Add top-level divisor element to structMap
+        structDivTop = etree.SubElement(structMap, "{%s}div" %(mets_ns))
+        structDivTop.attrib["TYPE"] = "physical"
+        structDivTop.attrib["LABEL"] = "volumes"
+        
         # Initialise counter that is used to assign file IDs
         fileCounterStart = 1
         
@@ -755,7 +759,7 @@ def main():
             carrierTypes.append(carrierType)
 
             # Update structmap in METS
-            structMap.append(divDisc)
+            structDivTop.append(divDisc)
                        
         # Get metadata of IPIdentifierParent from GGC and convert to MODS format
         mdMODS = createMODS(thisIP)
