@@ -485,7 +485,6 @@ def parseCommandLine():
     return(args)
     
 def processCarrierRecord(carrier, IPIdentifier, colsBatchManifest, IPIdentifiersParent, imagePaths, batchIn, dirsInMetaCarriers, fileGrp, dirSIP, fileCounterStart, thisIP, volumeNumbers, carrierTypeAllowedValues, carrierTypes, structDivTop):
-        # Iterate over carrier records that are part of this IP
         IPIdentifierParent = carrier[colsBatchManifest["PPN"]]
         imagePath = carrier[colsBatchManifest["dirDisc"]]
         volumeNumber = carrier[colsBatchManifest["volumeNo"]]
@@ -520,7 +519,7 @@ def processCarrierRecord(carrier, IPIdentifier, colsBatchManifest, IPIdentifiers
         # Add to IP class instance
         thisIP.append(thisCarrier)
         
-        # Update fileCounterStart
+        # Update fileCounterStart # TODO will go wrong b/c not updated now that it lives in this function!!!
         fileCounterStart = fileCounter
                                                       
         # convert volumeNumber to integer (so we can do more checking below)
@@ -587,7 +586,6 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
             errors.append("cannot create '" + dirSIP + "'" )
             errorExit(errors,err)
      
-
     # TODO: perhaps we can validate PPN, based on conventions/restrictions?
 
     # Set up lists for all record fields in this IP (needed for verifification only)
@@ -595,10 +593,10 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
     imagePaths = []
     volumeNumbers = []
     carrierTypes = []
-    
+
+    # Iterate over carrier records that are part of this IP
     for carrier in carriers:
         processCarrierRecord(carrier, IPIdentifier, colsBatchManifest, IPIdentifiersParent, imagePaths, batchIn, dirsInMetaCarriers, fileGrp, dirSIP, fileCounterStart, thisIP, volumeNumbers, carrierTypeAllowedValues, carrierTypes, structDivTop)
-
                    
     # Get metadata of IPIdentifierParent from GGC and convert to MODS format
     mdMODS = createMODS(thisIP)
