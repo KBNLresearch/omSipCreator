@@ -488,14 +488,14 @@ def main():
 
     # Constants (put in config file later)
         
-    # Carrier metadata file - basic capture-level metadata about carriers
-    fileMetaCarriers = "metacarriers.csv"
+    # Batch manifest file - basic capture-level metadata about carriers
+    fileBatchManifest = "manifest.csv"
 
-    # Header values of mandatory columns in carrier metadata file
-    requiredColsMetaCarriers = ['IPIdentifier',
-                                'IPIdentifierParent',
-                                'imagePath',
-                                'volumeNumber',
+    # Header values of mandatory columns in batch manifest
+    requiredColsBatchManifest = ['jobID',
+                                'PPN',
+                                'dirDisc',
+                                'volumeNo',
                                 'carrierType']
     
     # Controlled vocabulary for 'carrierType' field
@@ -565,34 +565,34 @@ def main():
     # Note: all entries as full, absolute file paths!
     dirsInMetaCarriers = [] 
     
-    # Check if batch-level carrier metadata file exists
-    metaCarriers = os.path.normpath(batchIn + "/" + fileMetaCarriers)
-    if os.path.isfile(metaCarriers) == False:
-        errors.append("file " + metaCarriers + " does not exist")
+    # Check if batch manifest exists
+    batchManifest = os.path.normpath(batchIn + "/" + fileBatchManifest)
+    if os.path.isfile(batchManifest) == False:
+        errors.append("file " + batchManifest + " does not exist")
         errorExit(errors,err)
 
-    # Read carrier-level metadata file as CSV and import header and
+    # Read batch manifest as CSV and import header and
     # row data to 2 separate lists
     # TODO: make this work in Python 3, see also:
     # http://stackoverflow.com/a/5181085/1209004
     try:
-        fMetaCarriers = open(metaCarriers,"rb")
-        metaCarriersCSV = csv.reader(fMetaCarriers)
-        headerMetaCarriers = next(metaCarriersCSV)
-        rowsMetaCarriers = [row for row in metaCarriersCSV]
-        fMetaCarriers.close()
+        fBatchManifest = open(batchManifest,"rb")
+        batchManifestCSV = csv.reader(fBatchManifest)
+        headerBatchManifest = next(batchManifestCSV)
+        rowsBatchManifest = [row for row in batchManifestCSV]
+        fBatchManifest.close()
     except IOError:
-        errors.append("cannot read " + metaCarriers)
+        errors.append("cannot read " + batchManifest)
         errorExit(errors,err)
     except csv.Error:
-        errors.append("error parsing " + metaCarriers)
+        errors.append("error parsing " + batchManifest)
         errorExit(errors,err)
 
     # Remove any empty list elements (e.g. due to EOL chars)
     # to avoid trouble with itemgetter
-    for item in rowsMetaCarriers:
+    for item in rowsBatchManifest:
         if item == []:
-            rowsMetaCarriers.remove(item)
+            rowsBatchManifest.remove(item)
 
     # Create output directory if in SIP creation mode
     if createSIPs == True:
@@ -619,32 +619,32 @@ def main():
             errorExit(errors,err)
 
     # ********
-    # ** Process carrier-level metadata file **
+    # ** Process batch manifest **
     # ******** 
 
     # Check that there is exactly one occurrence of each mandatory column
  
-    for requiredCol in requiredColsMetaCarriers:
-        occurs = headerMetaCarriers.count(requiredCol)
+    for requiredCol in requiredColsBatchManifest:
+        occurs = headerBatchManifest.count(requiredCol)
         if occurs != 1:
             errors.append("found " + str(occurs) + " occurrences of column '" + requiredCol + "' in " + \
-            fileMetaCarriers + " (expected 1)")
+            batchManifest + " (expected 1)")
             # No point in continuing if we end up here ...
             errorExit(errors,err)
 
     # Set up dictionary to store header fields and corresponding column numbers
-    colsMetaCarriers = {}
+    colsBatchManifest = {}
 
     col = 0
-    for header in headerMetaCarriers:
-        colsMetaCarriers[header] = col
+    for header in headerBatchManifest:
+        colsBatchManifest[header] = col
         col += 1
 
     # Sort rows by IPIdentifier field
-    rowsMetaCarriers.sort(key=itemgetter(0))
+    rowsBatchManifest.sort(key=itemgetter(0))
 
     # Group by IPIdentifier field - creates a grouper object for each IP 
-    metaCarriersByIP = groupby(rowsMetaCarriers, itemgetter(0))
+    metaCarriersByIP = groupby(rowsBatchManifest, itemgetter(0))
     
     # ********
     # ** Iterate over IPs**
@@ -707,10 +707,10 @@ def main():
         
         for carrier in carriers:
             # Iterate over carrier records that are part of this IP
-            IPIdentifierParent = carrier[colsMetaCarriers["IPIdentifierParent"]]
-            imagePath = carrier[colsMetaCarriers["imagePath"]]
-            volumeNumber = carrier[colsMetaCarriers["volumeNumber"]]
-            carrierType = carrier[colsMetaCarriers["carrierType"]]
+            IPIdentifierParent = carrier[colsBatchManifest["PPN"]]
+            imagePath = carrier[colsBatchManifest["dirDisc"]]
+            volumeNumber = carrier[colsBatchManifest["volumeNo"]]
+            carrierType = carrier[colsBatchManifest["carrierType"]]
 
             # TODO: * validate parent PPN (see above) and/or check existence of corresponding catalog record
             #       * check for relation between IPIdentifier and IPIdentifierParent (if possible / meaningful)
