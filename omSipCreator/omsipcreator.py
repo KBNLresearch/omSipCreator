@@ -640,11 +640,23 @@ def main():
         colsBatchManifest[header] = col
         col += 1
 
-    # Sort rows by IPIdentifier field
-    rowsBatchManifest.sort(key=itemgetter(0))
-
-    # Group by IPIdentifier field - creates a grouper object for each IP 
-    metaCarriersByIP = groupby(rowsBatchManifest, itemgetter(0))
+    # Sort rows by PPN field
+    rowsBatchManifest.sort(key=itemgetter(1))
+    
+    """ # TEST
+    # Sort rows by PPN field
+    rowsBatchManifest.sort(key=itemgetter(1))
+    
+    # Group by PPN field - creates a grouper object for each PPN 
+    metaCarriersByPPN = groupby(rowsBatchManifest, itemgetter(1))
+    
+    for PPN, carriers in metaCarriersByPPN:
+        print(PPN, carriers)
+    sys.exit()
+    """ #TEST
+    
+    # Group by PPN field - creates a grouper object for each PPN 
+    metaCarriersByIP = groupby(rowsBatchManifest, itemgetter(1))
     
     # ********
     # ** Iterate over IPs**
