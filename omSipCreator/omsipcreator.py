@@ -593,7 +593,14 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
     imagePaths = []
     volumeNumbers = []
     carrierTypes = []
-
+    
+    """
+    carriersByType = groupby(carriers, itemgetter(4))
+    
+    for carrierType, carrierTypeGroup in carriersByType:
+        for carrier in carrierTypeGroup:
+            print(carrier)
+    """
     # Iterate over carrier records that are part of this IP
     for carrier in carriers:
         IPIdentifierParent = carrier[colsBatchManifest["PPN"]]
@@ -859,11 +866,11 @@ def main():
         colsBatchManifest[header] = col
         col += 1
 
-    # Sort rows by IPIdentifier field (TODO: change to PPN)
-    rowsBatchManifest.sort(key=itemgetter(0))
+    # Sort rows by IPIdentifier (PPN)
+    rowsBatchManifest.sort(key=itemgetter(1))
     
-    # Group by IPIdentifier field - creates a grouper object for each IPIdentifier field (TODO: change to PPN)
-    metaCarriersByIP = groupby(rowsBatchManifest, itemgetter(0))
+    # Group by IPIdentifier field (PPN)
+    metaCarriersByIP = groupby(rowsBatchManifest, itemgetter(1))
     
     # ********
     # ** Iterate over IPs**
