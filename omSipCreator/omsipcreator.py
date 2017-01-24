@@ -149,7 +149,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
     # TODO: * check file type / extension matches carrierType!
     # TODO: currently lots of file path manipulations which make things hard to read, 
     # could be better structured with more understandable naming conventions.
-    
+       
     # Counters used to assign file ORDER and IDs, sipFileCounter must be unique for
     # each file within SIP
     fileCounter = 1
@@ -169,7 +169,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
     
     # All files in directory
     allFiles = glob.glob(carrier.imagePathFull + "/*")
-    
+               
     # Find MD5 files (by extension)
     MD5Files = [i for i in allFiles if i.endswith('.md5')]
       
@@ -186,7 +186,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
     # Any other files (ISOs, audio files)
     otherFiles = [i for i in allFiles if not i.endswith('.md5')]
     noOtherFiles = len(otherFiles)
-    
+        
     if skipChecksumVerification == False:
         # Read contents of checksum file to list
         MD5FromFile = readMD5(MD5Files[0])
@@ -217,6 +217,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
             
         # Check if any files in directory are missing from MD5 file
         for f in otherFiles:
+            print(f)
             if f not in allFilesinMD5:
                 errors.append("IP " + carrier.IPIdentifier + ": file '" + f + \
                 "' not referenced in '" + \
@@ -298,8 +299,10 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 
                 fileCounter += 1
                 sipFileCounter += 1
-                                   
-        return(fileGrp, divDisc, sipFileCounter)             
+    else:
+        # Dummy value, not used
+        divDisc = etree.Element('rubbish')
+    return(fileGrp, divDisc, sipFileCounter)             
                 
    
 def createMODS(IP):
@@ -634,6 +637,7 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
         thisCarrier = Carrier(IPIdentifier, IPIdentifierParent, imagePathFull, volumeNumber, carrierType)
         ## TEST
         print(imagePathFull)
+        print("diving into processCarrier function")
         ## TEST
         fileGrp, divDisc, fileCounter = processCarrier(thisCarrier, fileGrp, dirSIP, fileCounterStart)
         
