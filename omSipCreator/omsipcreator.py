@@ -186,7 +186,11 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
     # Any other files (ISOs, audio files)
     otherFiles = [i for i in allFiles if not i.endswith('.md5')]
     noOtherFiles = len(otherFiles)
-        
+    
+    if noOtherFiles == 0:
+        errors.append("IP " + carrier.IPIdentifier + ": found no files in directory '" \
+        + carrier.imagePathFull) 
+
     if skipChecksumVerification == False:
         # Read contents of checksum file to list
         MD5FromFile = readMD5(MD5Files[0])
