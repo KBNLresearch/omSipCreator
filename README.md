@@ -195,7 +195,7 @@ When run in either *verify* or *write* mode, omSipCreator performs a number chec
 - Is each *carrierType* entry a permitted value (check against controlled vocabulary)?
 - Are all values of *IPIdentifierParent* within one Information Package identical?
 - Are all values of *imagePath* within the carrier metadata file unique (no duplicate values)?
-- Are all instances of *volumeNumber* within an Information Package unique?
+- Are all instances of *volumeNumber* within each *carrierType* group unique?
 - Are all directories within the batch referenced in the carrier metadata file (by way of *imagePath*)?
 - Does each carrier directory (i.e. *imagePath*) contain exactly 1 MD5 checksum file (identified by *.md5* file extension)?
 - Does each carrier directory (i.e. *imagePath*) contain any files?
@@ -213,8 +213,8 @@ In *write* mode omSipCreator performs the following additional checks:
 
 Finally, omSipcreator will report a *warning* in the following situations:
 
-- Lower value of *volumeNumber* within an Information Package is not equal to 1.
-- Values of *volumeNumber* within an Information Package are not consecutive numbers.
+- Lower value of *volumeNumber* within a *carrierType* group is not equal to 1.
+- Values of *volumeNumber* within a *carrierType* group are not consecutive numbers.
 
 Both situations may indicate a data entry error, but they may also reflect that the physical carriers are simply missing.
 

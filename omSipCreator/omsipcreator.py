@@ -552,7 +552,8 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
     carriersByType = groupby(carriers, itemgetter(4))
     
     for carrierType, carrierTypeGroup in carriersByType:
-        #for carrier in carriers:
+        # Set up list to store all Volume Numbers within this type group
+        volumeNumbersTypeGroup = []
         for carrier in carrierTypeGroup:
         
             IPIdentifierParent = carrier[colsBatchManifest["PPN"]]
@@ -598,7 +599,8 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
                                                           
             # convert volumeNumber to integer (so we can do more checking below)
             try:
-                volumeNumbers.append(int(volumeNumber))
+                volumeNumbersTypeGroup.append(int(volumeNumber))
+                volumeNumbers.append(volumeNumbersTypeGroup)
             except ValueError:
                 # Raises error if volumeNumber string doesn't represent integer
                 errors.append("IP " + IPIdentifier + ": '" + volumeNumber + \
@@ -638,22 +640,25 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
     if len(uniqueImagePaths) != len(imagePaths):
         errors.append("IP " + IPIdentifier + ": duplicate values found for 'imagePath'") 
 
-    # Volume numbers must all be unique
-    uniqueVolumeNumbers = set(volumeNumbers)
-    if len(uniqueVolumeNumbers) != len(volumeNumbers):
-        errors.append("IP " + IPIdentifier + ": duplicate values found for 'volumeNumber'")
-
-    # Report warning if lower value of volumeNumber not equal to '1'
-    volumeNumbers.sort()
-    if volumeNumbers[0] != 1:
-        warnings.append("IP " + IPIdentifier + ": expected '1' as lower value for 'volumeNumber', found '" + \
-        str(volumeNumbers[0]) + "'")
+    # Consistency checks on volumeNumber values within each carrierType group
         
-    # Report warning if volumeNumber does not contain consecutive numbers (indicates either missing 
-    # volumes or data entry error)
+    for volumeNumbersTypeGroup in volumeNumbers:
+        # Volume numbers within each carrierType group must be unique
+        uniqueVolumeNumbers = set(volumeNumbersTypeGroup)
+        if len(uniqueVolumeNumbers) != len(volumeNumbersTypeGroup):
+            errors.append("IP " + IPIdentifier + " (" + carrierType + "): duplicate values found for 'volumeNumber'")
+
+        # Report warning if lower value of volumeNumber not equal to '1'
+        volumeNumbersTypeGroup.sort()
+        if volumeNumbersTypeGroup[0] != 1:
+            warnings.append("IP " + IPIdentifier + " (" + carrierType + "): expected '1' as lower value for 'volumeNumber', found '" + \
+            str(volumeNumbersTypeGroup[0]) + "'")
+        
+        # Report warning if volumeNumber does not contain consecutive numbers (indicates either missing 
+        # volumes or data entry error)
     
-    if sorted(volumeNumbers) != range(min(volumeNumbers), max(volumeNumbers) + 1):
-        warnings.append("IP " + IPIdentifier + ": values for 'volumeNumber' are not consecutive")
+        if sorted(volumeNumbersTypeGroup) != range(min(volumeNumbersTypeGroup), max(volumeNumbersTypeGroup) + 1):
+            warnings.append("IP " + IPIdentifier + " (" + carrierType + "): values for 'volumeNumber' are not consecutive")
     
 def main():
 
