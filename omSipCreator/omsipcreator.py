@@ -53,7 +53,7 @@ scriptPath, scriptName = os.path.split(sys.argv[0])
 if len(scriptName) == 0:
     scriptName = 'omsipcreator'
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 # Create parser
 parser = argparse.ArgumentParser(
@@ -135,6 +135,21 @@ def generate_file_md5(fileIn):
 
     blocksize = 2**20
     m = hashlib.md5()
+    with open(fileIn, "rb") as f:
+        while True:
+            buf = f.read(blocksize)
+            if not buf:
+                break
+            m.update(buf)
+    return m.hexdigest()
+
+def generate_file_sha512(fileIn):
+    # Generate sha512 hash of file
+    # fileIn is read in chunks to ensure it will work with (very) large files as well
+    # Adapted from: http://stackoverflow.com/a/1131255/1209004
+
+    blocksize = 2**20
+    m = hashlib.sha512()
     with open(fileIn, "rb") as f:
         while True:
             buf = f.read(blocksize)
@@ -268,6 +283,9 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 if md5SumCalculated != md5Sum:
                     errors.append("IP " + carrier.IPIdentifier + ": checksum mismatch for file '" + \
                     fSIP + "'")
+                    
+                # Calculate Sha512 checksum
+                sha512Sum = generate_file_sha512(fSIP)
                
                 # Create METS file and FLocat elements
                 fileElt = etree.SubElement(fileGrp, "{%s}file" %(mets_ns))
@@ -290,8 +308,10 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 else:
                     mimeType = "application/octet-stream"   
                 fileElt.attrib["MIMETYPE"] = mimeType
-                fileElt.attrib["CHECKSUM"] = md5Sum
-                fileElt.attrib["CHECKSUMTYPE"] = "MD5"
+                #fileElt.attrib["CHECKSUM"] = md5Sum
+                #fileElt.attrib["CHECKSUMTYPE"] = "MD5"
+                fileElt.attrib["CHECKSUM"] = sha512Sum
+                fileElt.attrib["CHECKSUMTYPE"] = "SHA-512"
                 
                 # TODO: check if mimeType values matches carrierType (e.g. no audio/x-wav if cd-rom, etc.)
                                 
@@ -584,10 +604,6 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
                         
             # Create Carrier class instance for this carrier
             thisCarrier = Carrier(IPIdentifier, IPIdentifierParent, imagePathFull, volumeNumber, carrierType)
-            ## TEST
-            print(imagePathFull)
-            print("diving into processCarrier function")
-            ## TEST
             fileGrp, divDisc, fileCounter = processCarrier(thisCarrier, fileGrp, dirSIP, fileCounterStart)
             
             # Add to IP class instance
