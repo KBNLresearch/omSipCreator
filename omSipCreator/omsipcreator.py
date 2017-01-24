@@ -236,7 +236,8 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
         if createSIPs == True:
        
             # Create Volume directory
-            dirVolume = os.path.join(SIPPath, carrier.volumeNumber)
+            dirVolume = os.path.join(SIPPath, carrier.carrierType, carrier.volumeNumber)
+            print(dirVolume)
             try:
                 os.makedirs(dirVolume)
             except OSError:
@@ -547,72 +548,70 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
     volumeNumbers = []
     carrierTypes = []
     
-    """
+
     carriersByType = groupby(carriers, itemgetter(4))
     
     for carrierType, carrierTypeGroup in carriersByType:
+        #for carrier in carriers:
         for carrier in carrierTypeGroup:
-            print(carrier)
-    """
-    # Iterate over carrier records that are part of this IP
-    for carrier in carriers:
-        IPIdentifierParent = carrier[colsBatchManifest["PPN"]]
-        imagePath = carrier[colsBatchManifest["dirDisc"]]
-        volumeNumber = carrier[colsBatchManifest["volumeNo"]]
-        carrierType = carrier[colsBatchManifest["carrierType"]]
+        
+            IPIdentifierParent = carrier[colsBatchManifest["PPN"]]
+            imagePath = carrier[colsBatchManifest["dirDisc"]]
+            volumeNumber = carrier[colsBatchManifest["volumeNo"]]
+            carrierType = carrier[colsBatchManifest["carrierType"]]
 
-        # TODO: * validate parent PPN (see above) and/or check existence of corresponding catalog record
-        #       * check for relation between IPIdentifier and IPIdentifierParent (if possible / meaningful)
-        #       * check IPIdentifierParent against *all other* IPIdentifierParent  values in batch
+            # TODO: * validate parent PPN (see above) and/or check existence of corresponding catalog record
+            #       * check for relation between IPIdentifier and IPIdentifierParent (if possible / meaningful)
+            #       * check IPIdentifierParent against *all other* IPIdentifierParent  values in batch
 
-        # Update lists and check for some obvious errors
-                  
-        IPIdentifiersParent.append(IPIdentifierParent)
-        imagePaths.append(imagePath)
-        
-        # Check if imagePath is existing directory
-        
-        # Full path, relative to batchIn TODO: check behaviour on Window$
-        imagePathFull = os.path.normpath(os.path.join(batchIn, imagePath)) 
-        imagePathAbs = os.path.abspath(imagePathFull)
-        
-        # Append absolute path to list (used later for completeness check)
-        dirsInMetaCarriers.append(imagePathAbs)
-        
-        if os.path.isdir(imagePathFull) == False:
-            errors.append("IP " + IPIdentifier + ": '" + imagePath + \
-            "' is not a directory")
-                    
-        # Create Carrier class instance for this carrier
-        thisCarrier = Carrier(IPIdentifier, IPIdentifierParent, imagePathFull, volumeNumber, carrierType)
-        ## TEST
-        print(imagePathFull)
-        print("diving into processCarrier function")
-        ## TEST
-        fileGrp, divDisc, fileCounter = processCarrier(thisCarrier, fileGrp, dirSIP, fileCounterStart)
-        
-        # Add to IP class instance
-        thisIP.append(thisCarrier)
-        
-        # Update fileCounterStart # TODO will go wrong b/c not updated now that it lives in this function!!!
-        fileCounterStart = fileCounter
-                                                      
-        # convert volumeNumber to integer (so we can do more checking below)
-        try:
-            volumeNumbers.append(int(volumeNumber))
-        except ValueError:
-            # Raises error if volumeNumber string doesn't represent integer
-            errors.append("IP " + IPIdentifier + ": '" + volumeNumber + \
-            "' is illegal value for 'volumeNumber' (must be integer)") 
+            # Update lists and check for some obvious errors
+                      
+            IPIdentifiersParent.append(IPIdentifierParent)
+            imagePaths.append(imagePath)
+            
+            # Check if imagePath is existing directory
+            
+            # Full path, relative to batchIn TODO: check behaviour on Window$
+            imagePathFull = os.path.normpath(os.path.join(batchIn, imagePath)) 
+            imagePathAbs = os.path.abspath(imagePathFull)
+            
+            # Append absolute path to list (used later for completeness check)
+            dirsInMetaCarriers.append(imagePathAbs)
+            
+            if os.path.isdir(imagePathFull) == False:
+                errors.append("IP " + IPIdentifier + ": '" + imagePath + \
+                "' is not a directory")
+                        
+            # Create Carrier class instance for this carrier
+            thisCarrier = Carrier(IPIdentifier, IPIdentifierParent, imagePathFull, volumeNumber, carrierType)
+            ## TEST
+            print(imagePathFull)
+            print("diving into processCarrier function")
+            ## TEST
+            fileGrp, divDisc, fileCounter = processCarrier(thisCarrier, fileGrp, dirSIP, fileCounterStart)
+            
+            # Add to IP class instance
+            thisIP.append(thisCarrier)
+            
+            # Update fileCounterStart # TODO will go wrong b/c not updated now that it lives in this function!!!
+            fileCounterStart = fileCounter
+                                                          
+            # convert volumeNumber to integer (so we can do more checking below)
+            try:
+                volumeNumbers.append(int(volumeNumber))
+            except ValueError:
+                # Raises error if volumeNumber string doesn't represent integer
+                errors.append("IP " + IPIdentifier + ": '" + volumeNumber + \
+                "' is illegal value for 'volumeNumber' (must be integer)") 
 
-        # Check carrierType value against controlled vocabulary 
-        if carrierType not in carrierTypeAllowedValues:
-            errors.append("IP " + IPIdentifier + ": '" + carrierType + \
-            "' is illegal value for 'carrierType'")
-        carrierTypes.append(carrierType)
+            # Check carrierType value against controlled vocabulary 
+            if carrierType not in carrierTypeAllowedValues:
+                errors.append("IP " + IPIdentifier + ": '" + carrierType + \
+                "' is illegal value for 'carrierType'")
+            carrierTypes.append(carrierType)
 
-        # Update structmap in METS
-        structDivTop.append(divDisc)
+            # Update structmap in METS
+            structDivTop.append(divDisc)
                    
     # Get metadata of IPIdentifierParent from GGC and convert to MODS format
     mdMODS = createMODS(thisIP)
