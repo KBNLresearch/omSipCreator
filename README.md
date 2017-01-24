@@ -174,11 +174,11 @@ Some additional notes to the above:
     - *SIZE* - file size in bytes
     - *MIMETYPE* - Mime type (e.g. *application/x-iso9660*)
     - *CHECKSUM*
-    - *CHECKSUMTYPE* (for now only *MD5*)
+    - *CHECKSUMTYPE* (*SHA-512*)
 - Each *file* element contains an *FLocat* element with the following attributes:
     - *LOCTYPE* - Locator type. Value is *URL*
     - *xlink:href* - URL of file. Format: filepath, relative to root of SIP directory. Example:
-        `xlink:href="file://./4/alles_over_bestandsformaten.iso"`
+        `xlink:href="file://./cd-rom/4/alles_over_bestandsformaten.iso"`
 
 ### structMap
 

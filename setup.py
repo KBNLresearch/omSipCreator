@@ -19,9 +19,9 @@ def find_version(*file_paths):
         return version_match.group(1)
     raise RuntimeError("Unable to find version string.")
 
-setup(name='omsipcreator',
+setup(name='omSipCreator',
       packages=find_packages(),
-      version=find_version('omsipcreator', 'omsipcreator.py'),
+      version=find_version('omSipCreator', 'omSipCreator.py'),
       license='Apache License 2.0',
       platforms=['POSIX', 'Windows'],
       description='Create ingest-ready SIPs from batches of optical media images',
@@ -31,10 +31,10 @@ setup(name='omsipcreator',
       maintainer='Johan van der Knijff',
       maintainer_email = 'johan.vanderknijff@kb.nl',
       url = 'https://github.com/KBNLresearch/omSipCreator',
-      download_url='https://github.com/KBNLresearch/omSipCreator/archive/' + find_version('omsipcreator', 'omsipcreator.py') + '.tar.gz',
-      package_data={'omsipcreator': ['*.*']},
+      download_url='https://github.com/KBNLresearch/omSipCreator/archive/' + find_version('omSipCreator', 'omSipCreator.py') + '.tar.gz',
+      package_data={'omSipCreator': ['*.*']},
       entry_points={'console_scripts': [
-        'omsipcreator = omsipcreator.omsipcreator:main',
+        'omSipCreator = omSipCreator.omSipCreator:main',
       ]},
       classifiers=[
         'Environment :: Console',
