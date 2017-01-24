@@ -278,7 +278,8 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 fLocat = etree.SubElement(fileElt, "{%s}FLocat" %(mets_ns))
                 fLocat.attrib["LOCTYPE"] = "URL"
                 # File locations relative to SIP root (= location of METS file)
-                fLocat.attrib[etree.QName(xlink_ns, "href")] = "file://./" + os.path.join(carrier.carrierType, carrier.volumeNumber ,fileName)
+                #fLocat.attrib[etree.QName(xlink_ns, "href")] = "file://./" + os.path.join(carrier.carrierType, carrier.volumeNumber ,fileName)                
+                fLocat.attrib[etree.QName(xlink_ns, "href")] = "file://./" + carrier.carrierType + "/" + carrier.volumeNumber + "/" + fileName
                 
                 # Add MIME type and checksum to file element
                 # TODO replace by proper signature-based identification (e.g. Fido) 
