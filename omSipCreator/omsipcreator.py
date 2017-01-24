@@ -239,8 +239,8 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
             dirVolume = os.path.join(SIPPath, carrier.carrierType, carrier.volumeNumber)
             try:
                 os.makedirs(dirVolume)
-            except OSError:
-                errors.append("IP " + carrier.IPIdentifier + ": cannot create '" + carrier.dirVolume + "'" )
+            except OSError or IOError:
+                errors.append("IP " + carrier.IPIdentifier + ": cannot create '" + dirVolume + "'" )
                 errorExit(errors,err)
             
             # Copy files to SIP Volume directory
