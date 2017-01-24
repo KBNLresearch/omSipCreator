@@ -632,6 +632,9 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
                     
         # Create Carrier class instance for this carrier
         thisCarrier = Carrier(IPIdentifier, IPIdentifierParent, imagePathFull, volumeNumber, carrierType)
+        ## TEST
+        print(imagePathFull)
+        ## TEST
         fileGrp, divDisc, fileCounter = processCarrier(thisCarrier, fileGrp, dirSIP, fileCounterStart)
         
         # Add to IP class instance
@@ -891,7 +894,7 @@ def main():
     
     for directory in diffDirs:
         errors.append("IP " + IPIdentifier + ": directory '" + directory + "' not referenced in '"\
-        + metaCarriers + "'")
+        + batchManifest + "'")
  
     # Output errors and warnings
     err.write("Batch validation yielded " + str(len(errors)) + " errors and " + str(len(warnings)) + " warnings \n" )
