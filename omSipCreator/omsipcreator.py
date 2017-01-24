@@ -237,7 +237,6 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
        
             # Create Volume directory
             dirVolume = os.path.join(SIPPath, carrier.carrierType, carrier.volumeNumber)
-            print(dirVolume)
             try:
                 os.makedirs(dirVolume)
             except OSError:
@@ -279,7 +278,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 fLocat = etree.SubElement(fileElt, "{%s}FLocat" %(mets_ns))
                 fLocat.attrib["LOCTYPE"] = "URL"
                 # File locations relative to SIP root (= location of METS file)
-                fLocat.attrib[etree.QName(xlink_ns, "href")] = "file://./" + os.path.join(carrier.volumeNumber ,fileName)
+                fLocat.attrib[etree.QName(xlink_ns, "href")] = "file://./" + os.path.join(carrier.carrierType, carrier.volumeNumber ,fileName)
                 
                 # Add MIME type and checksum to file element
                 # TODO replace by proper signature-based identification (e.g. Fido) 
