@@ -548,7 +548,6 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
     volumeNumbers = []
     carrierTypes = []
     
-
     carriersByType = groupby(carriers, itemgetter(4))
     
     for carrierType, carrierTypeGroup in carriersByType:
@@ -600,7 +599,6 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
             # convert volumeNumber to integer (so we can do more checking below)
             try:
                 volumeNumbersTypeGroup.append(int(volumeNumber))
-                volumeNumbers.append(volumeNumbersTypeGroup)
             except ValueError:
                 # Raises error if volumeNumber string doesn't represent integer
                 errors.append("IP " + IPIdentifier + ": '" + volumeNumber + \
@@ -614,7 +612,10 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
 
             # Update structmap in METS
             structDivTop.append(divDisc)
-                   
+  
+        # Add volumeNumbersTypeGroup to volumeNumbers list
+        volumeNumbers.append(volumeNumbersTypeGroup)           
+    
     # Get metadata of IPIdentifierParent from GGC and convert to MODS format
     mdMODS = createMODS(thisIP)
  
@@ -641,7 +642,7 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
         errors.append("IP " + IPIdentifier + ": duplicate values found for 'imagePath'") 
 
     # Consistency checks on volumeNumber values within each carrierType group
-        
+            
     for volumeNumbersTypeGroup in volumeNumbers:
         # Volume numbers within each carrierType group must be unique
         uniqueVolumeNumbers = set(volumeNumbersTypeGroup)
