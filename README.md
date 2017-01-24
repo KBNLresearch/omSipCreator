@@ -196,7 +196,6 @@ When run in either *verify* or *write* mode, omSipCreator performs a number chec
 - Are all values of *IPIdentifierParent* within one Information Package identical?
 - Are all values of *imagePath* within the carrier metadata file unique (no duplicate values)?
 - Are all instances of *volumeNumber* within an Information Package unique?
-- Are all instances of *carrierType*  within an Information Package identical?
 - Are all directories within the batch referenced in the carrier metadata file (by way of *imagePath*)?
 - Does each carrier directory (i.e. *imagePath*) contain exactly 1 MD5 checksum file (identified by *.md5* file extension)?
 - Does each carrier directory (i.e. *imagePath*) contain any files?

@@ -643,10 +643,6 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
     if len(uniqueVolumeNumbers) != len(volumeNumbers):
         errors.append("IP " + IPIdentifier + ": duplicate values found for 'volumeNumber'")
 
-    # Carrier types must all be equal 
-    if carrierTypes.count(carrierTypes[0]) != len(carrierTypes):
-        errors.append("IP " + IPIdentifier + ": multiple values found for 'carrierType'")
-
     # Report warning if lower value of volumeNumber not equal to '1'
     volumeNumbers.sort()
     if volumeNumbers[0] != 1:
