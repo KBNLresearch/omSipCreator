@@ -19,13 +19,13 @@ You can tell OmSipCreator what to do using either the *verify*  or *write* subco
 
 ### Verify a batch without writing any SIPs
 
-    python omsipcreator.py verify batchIn
+    python omSipCreator.py verify batchIn
 
 Here *batchIn* is the batch directory.
 
 ### Verify a batch and write SIPs
  
-    python omsipcreator.py write batchIn dirOut
+    python omSipCreator.py write batchIn dirOut
 
 Here *dirOut* is the directory where the SIPs will be created. If *dirOut* is an existing directory, *all* of its contents will be overwritten! OmSipCreator will prompt you for confirmation if this happens:
 
