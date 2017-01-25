@@ -101,11 +101,18 @@ def errorExit(errors,terminal):
         terminal.write("Error - " + error + "\n")
     sys.exit()
     
-def get_immediate_subdirectories(a_dir):
+def get_immediate_subdirectories(a_dir, ignoreDirs):
+    # Returns list of immediate subdirectories
+    # Directories that end with suffixes defined by ignoreDirs are ignored
     subDirs = []
     for root, dirs, files in os.walk(a_dir):
         for dir in dirs:
-            subDirs.append(os.path.abspath(os.path.join(root, dir)))
+            ignore = False
+            for ignoreDir in ignoreDirs:
+                if dir.endswith(ignoreDir):
+                    ignore = True
+            if ignore == False:
+                subDirs.append(os.path.abspath(os.path.join(root, dir)))
 
     return(subDirs)
 
@@ -759,7 +766,16 @@ def main():
         
     # Get listing of all directories (not files) in batch dir (used later for completeness check)
     # Note: all entries as full, absolute file paths!
-    dirsInBatch = get_immediate_subdirectories(batchIn)
+    
+    # Define dirs to ignore (jobs and jobsFailed)
+    ignoreDirs = ["jobs", "jobsFailed"]
+    
+    dirsInBatch = get_immediate_subdirectories(batchIn, ignoreDirs)
+    
+    # Exclude 'jobs' and 'jobsFailed' directories
+    print(dirsInBatch)
+    #dirsInBatch.remove("jobs")
+    #dirsInBatch.remove("jobsFailed")
     
     # List for storing directories as extracted from carrier metadata file (see below)
     # Note: all entries as full, absolute file paths!
