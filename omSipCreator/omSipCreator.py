@@ -243,7 +243,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
             
         # Check if any files in directory are missing from MD5 file
         for f in otherFiles:
-            print(f)
+            #print(f)
             if f not in allFilesinMD5:
                 errors.append("IP " + carrier.IPIdentifier + ": file '" + f + \
                 "' not referenced in '" + \
@@ -773,7 +773,7 @@ def main():
     dirsInBatch = get_immediate_subdirectories(batchIn, ignoreDirs)
     
     # Exclude 'jobs' and 'jobsFailed' directories
-    print(dirsInBatch)
+    #print(dirsInBatch)
     #dirsInBatch.remove("jobs")
     #dirsInBatch.remove("jobsFailed")
     
