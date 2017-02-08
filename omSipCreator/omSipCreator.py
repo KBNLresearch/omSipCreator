@@ -362,6 +362,12 @@ def createMODS(IP):
     sruSearchString = '"PPN=' + PPNParent + '"'
     response = sru.search(sruSearchString,"GGC")
     
+    if response == False:
+        # Sru.search returns False if no match was found
+        noGGCRecords = 0
+    else:
+        noGGCRecords = response.sru.nr_of_records
+    
     # This should return exactly one record. Return error if this is not the case
     noGGCRecords = response.sru.nr_of_records
     if noGGCRecords != 1:
