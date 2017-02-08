@@ -124,9 +124,9 @@ def readMD5(fileIn):
         data = []
         f = open(fileIn,"r")
         for row in f:
-            rowSplit = row.split()
+            rowSplit = row.split(' ', 1)
             # Second col contains file name. Strip away any path components if they are present
-            fileName = rowSplit[1] # Raises IndexError if entry only 1 col (malformed MD5 file)!
+            fileName = rowSplit[1].strip() # Raises IndexError if entry only 1 col (malformed MD5 file)!
             rowSplit[1] = ntpath.basename(fileName) 
             data.append(rowSplit)    
         f.close()
