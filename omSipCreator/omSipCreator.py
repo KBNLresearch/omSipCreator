@@ -792,7 +792,12 @@ def main():
     # TODO: make this work in Python 3, see also:
     # http://stackoverflow.com/a/5181085/1209004
     try:
-        fBatchManifest = open(batchManifest,"rb")
+        if sys.version.startswith('3'):
+            # Py3: csv.reader expects file opened in text mode
+            fBatchManifest = open(batchManifest,"r")
+        elif sys.version.startswith('2'):
+            # Py2: csv.reader expects file opened in binary mode
+            fBatchManifest = open(batchManifest,"rb")
         batchManifestCSV = csv.reader(fBatchManifest)
         headerBatchManifest = next(batchManifestCSV)
         rowsBatchManifest = [row for row in batchManifestCSV]
