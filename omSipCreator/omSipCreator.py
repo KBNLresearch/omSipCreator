@@ -692,8 +692,8 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
         
         # Report warning if volumeNumber does not contain consecutive numbers (indicates either missing 
         # volumes or data entry error)
-    
-        if sorted(volumeNumbersTypeGroup) != range(min(volumeNumbersTypeGroup), max(volumeNumbersTypeGroup) + 1):
+            
+        if sorted(volumeNumbersTypeGroup) != list(range(min(volumeNumbersTypeGroup), max(volumeNumbersTypeGroup) + 1)):
             warnings.append("IP " + IPIdentifier + " (" + carrierType + "): values for 'volumeNumber' are not consecutive")
     
 def main():
