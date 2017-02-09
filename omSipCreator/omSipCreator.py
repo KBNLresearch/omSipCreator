@@ -652,8 +652,14 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
     xmlData.append(mdMODS) 
      
     if createSIPs == True:
-        # Write METS file to SIP directory                                
-        metsAsString = etree.tostring(mets, pretty_print=True, encoding="UTF-8")
+        # Write METS file to SIP directory
+        #metsAsString = etree.tostring(mets, pretty_print=True, encoding="UTF-8")
+        
+        if sys.version.startswith('3'):
+            metsAsString = etree.tostring(mets, pretty_print=True, encoding="unicode")
+        elif sys.version.startswith('2'):
+            metsAsString = etree.tostring(mets, pretty_print=True, encoding="UTF-8")
+
         metsFname = os.path.join(dirSIP,"mets.xml")
         
         with open(metsFname, "w") as text_file:
