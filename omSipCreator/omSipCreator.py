@@ -10,6 +10,7 @@ import argparse
 import codecs
 import csv
 import hashlib
+import logging
 from operator import itemgetter
 from itertools import groupby
 from lxml import etree
@@ -132,8 +133,8 @@ def readMD5(fileIn):
         f.close()
         return(data)
     except IOError:
-        errors.append("cannot read '" + fileIn + "'")
-        errorExit(errors,err)
+        logging.fatal("cannot read '" + fileIn + "'")
+        sys.exit()
 
 def generate_file_md5(fileIn):
     # Generate MD5 hash of file
@@ -199,7 +200,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
     noMD5Files = len(MD5Files)
     
     if noMD5Files != 1:
-        errors.append("IP " + carrier.IPIdentifier + ": found " + str(noMD5Files) + " '.md5' files in directory '" \
+        logging.error("IP " + carrier.IPIdentifier + ": found " + str(noMD5Files) + " '.md5' files in directory '" \
         + carrier.imagePathFull + "', expected 1")
         # If we end up here, checksum file either does not exist, or it is ambiguous 
         # which file should be used. No point in doing the checksum verification in that case.  
@@ -210,7 +211,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
     noOtherFiles = len(otherFiles)
     
     if noOtherFiles == 0:
-        errors.append("IP " + carrier.IPIdentifier + ": found no files in directory '" \
+        logging.error("IP " + carrier.IPIdentifier + ": found no files in directory '" \
         + carrier.imagePathFull) 
 
     if skipChecksumVerification == False:
@@ -232,7 +233,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
             md5SumCalculated = generate_file_md5(fileNameWithPath)
                                    
             if md5SumCalculated != md5Sum:
-                errors.append("IP " + carrier.IPIdentifier + ": checksum mismatch for file '" + \
+                logging.error("IP " + carrier.IPIdentifier + ": checksum mismatch for file '" + \
                 fileNameWithPath + "'")
                 
             # Get file size and append to MD5FromFile list (needed later for METS file entry)
@@ -245,7 +246,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
         for f in otherFiles:
             #print(f)
             if f not in allFilesinMD5:
-                errors.append("IP " + carrier.IPIdentifier + ": file '" + f + \
+                logging.error("IP " + carrier.IPIdentifier + ": file '" + f + \
                 "' not referenced in '" + \
                 MD5Files[0] + "'")
         
@@ -262,8 +263,8 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
             try:
                 os.makedirs(dirVolume)
             except OSError or IOError:
-                errors.append("IP " + carrier.IPIdentifier + ": cannot create '" + dirVolume + "'" )
-                errorExit(errors,err)
+                logging.fatal("IP " + carrier.IPIdentifier + ": cannot create '" + dirVolume + "'" )
+                sys.exit()
             
             # Copy files to SIP Volume directory
             
@@ -281,14 +282,14 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                     # Copy to volume dir
                     shutil.copy2(os.path.join(carrier.imagePathFull,fileName),fSIP)
                 except OSError:
-                    errors.append("IP " + carrier.IPIdentifier + ": cannot copy '"\
+                    logging.fatal("IP " + carrier.IPIdentifier + ": cannot copy '"\
                     + fileName + "' to '" + fSIP + "'")
-                    errorExit(errors,err)
+                    sys.exit()
             
                 # Calculate MD5 hash of copied file, and verify against known value
                 md5SumCalculated = generate_file_md5(fSIP)                               
                 if md5SumCalculated != md5Sum:
-                    errors.append("IP " + carrier.IPIdentifier + ": checksum mismatch for file '" + \
+                    logging.error("IP " + carrier.IPIdentifier + ": checksum mismatch for file '" + \
                     fSIP + "'")
                     
                 # Calculate Sha512 checksum
@@ -371,7 +372,7 @@ def createMODS(IP):
     # This should return exactly one record. Return error if this is not the case
     noGGCRecords = response.sru.nr_of_records
     if noGGCRecords != 1:
-        errors.append("IP " + IPIdentifier + ": search for PPN=" + PPNParent + " returned " + \
+        logging.error("IP " + IPIdentifier + ": search for PPN=" + PPNParent + " returned " + \
             str(noGGCRecords) + " catalogue records (expected 1)")
     
     # Select first record
@@ -570,8 +571,8 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
         try:
             os.makedirs(dirSIP)
         except OSError:
-            errors.append("cannot create '" + dirSIP + "'" )
-            errorExit(errors,err)
+            logging.fatal("cannot create '" + dirSIP + "'" )
+            sys.exit()
      
     # TODO: perhaps we can validate PPN, based on conventions/restrictions?
 
@@ -612,7 +613,7 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
             dirsInMetaCarriers.append(imagePathAbs)
             
             if os.path.isdir(imagePathFull) == False:
-                errors.append("IP " + IPIdentifier + ": '" + imagePath + \
+                logging.error("IP " + IPIdentifier + ": '" + imagePath + \
                 "' is not a directory")
                         
             # Create Carrier class instance for this carrier
@@ -630,12 +631,12 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
                 volumeNumbersTypeGroup.append(int(volumeNumber))
             except ValueError:
                 # Raises error if volumeNumber string doesn't represent integer
-                errors.append("IP " + IPIdentifier + ": '" + volumeNumber + \
+                logging.error("IP " + IPIdentifier + ": '" + volumeNumber + \
                 "' is illegal value for 'volumeNumber' (must be integer)") 
 
             # Check carrierType value against controlled vocabulary 
             if carrierType not in carrierTypeAllowedValues:
-                errors.append("IP " + IPIdentifier + ": '" + carrierType + \
+                logging.error("IP " + IPIdentifier + ": '" + carrierType + \
                 "' is illegal value for 'carrierType'")
             carrierTypes.append(carrierType)
 
@@ -669,12 +670,12 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
 
     # Parent IP identifiers must all be equal 
     if IPIdentifiersParent.count(IPIdentifiersParent[0]) != len(IPIdentifiersParent):
-        errors.append("IP " + IPIdentifier + ": multiple values found for 'IPIdentifierParent'")
+        logging.error("IP " + IPIdentifier + ": multiple values found for 'IPIdentifierParent'")
 
     # imagePath values must all be unique (no duplicates!)
     uniqueImagePaths = set(imagePaths)
     if len(uniqueImagePaths) != len(imagePaths):
-        errors.append("IP " + IPIdentifier + ": duplicate values found for 'imagePath'") 
+        logging.error("IP " + IPIdentifier + ": duplicate values found for 'imagePath'") 
 
     # Consistency checks on volumeNumber values within each carrierType group
             
@@ -682,23 +683,29 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
         # Volume numbers within each carrierType group must be unique
         uniqueVolumeNumbers = set(volumeNumbersTypeGroup)
         if len(uniqueVolumeNumbers) != len(volumeNumbersTypeGroup):
-            errors.append("IP " + IPIdentifier + " (" + carrierType + "): duplicate values found for 'volumeNumber'")
+            logging.error("IP " + IPIdentifier + " (" + carrierType + "): duplicate values found for 'volumeNumber'")
 
         # Report warning if lower value of volumeNumber not equal to '1'
         volumeNumbersTypeGroup.sort()
         if volumeNumbersTypeGroup[0] != 1:
-            warnings.append("IP " + IPIdentifier + " (" + carrierType + "): expected '1' as lower value for 'volumeNumber', found '" + \
+            logging.warning("IP " + IPIdentifier + " (" + carrierType + "): expected '1' as lower value for 'volumeNumber', found '" + \
             str(volumeNumbersTypeGroup[0]) + "'")
         
         # Report warning if volumeNumber does not contain consecutive numbers (indicates either missing 
         # volumes or data entry error)
             
         if sorted(volumeNumbersTypeGroup) != list(range(min(volumeNumbersTypeGroup), max(volumeNumbersTypeGroup) + 1)):
-            warnings.append("IP " + IPIdentifier + " (" + carrierType + "): values for 'volumeNumber' are not consecutive")
+            logging.warning("IP " + IPIdentifier + " (" + carrierType + "): values for 'volumeNumber' are not consecutive")
     
 def main():
-
-    # Constants (put in config file later)
+    
+    # Set up logger
+    logFile = "omsipcreator.log"
+    logFormatter = logging.Formatter('%(levelname)s - %(message)s')
+    logger = logging.getLogger()
+    consoleHandler = logging.StreamHandler()
+    consoleHandler.setFormatter(logFormatter)
+    logger.addHandler(consoleHandler)
         
     # Batch manifest file - basic capture-level metadata about carriers
     fileBatchManifest = "manifest.csv"
@@ -753,7 +760,7 @@ def main():
     elif sys.version.startswith("3"):
         out = codecs.getwriter("UTF-8")(sys.stdout.buffer)
         err = codecs.getwriter("UTF-8")(sys.stderr.buffer)
-    
+        
     # Global flag that indicates if SIPs will be written
     global createSIPs
     createSIPs = False
@@ -773,8 +780,8 @@ def main():
         
     # Check if batch dir exists
     if os.path.isdir(batchIn) == False:
-        errors.append("input batch directory does not exist")
-        errorExit(errors,err)
+        logging.fatal("input batch directory does not exist")
+        sys.exit()
         
     # Get listing of all directories (not files) in batch dir (used later for completeness check)
     # Note: all entries as full, absolute file paths!
@@ -796,8 +803,8 @@ def main():
     # Check if batch manifest exists
     batchManifest = os.path.normpath(batchIn + "/" + fileBatchManifest)
     if os.path.isfile(batchManifest) == False:
-        errors.append("file " + batchManifest + " does not exist")
-        errorExit(errors,err)
+        logging.fatal("file " + batchManifest + " does not exist")
+        sys.exit()
 
     # Read batch manifest as CSV and import header and
     # row data to 2 separate lists
@@ -815,11 +822,11 @@ def main():
         rowsBatchManifest = [row for row in batchManifestCSV]
         fBatchManifest.close()
     except IOError:
-        errors.append("cannot read " + batchManifest)
-        errorExit(errors,err)
+        logging.fatal("cannot read " + batchManifest)
+        sys.exit()
     except csv.Error:
-        errors.append("error parsing " + batchManifest)
-        errorExit(errors,err)
+        logging.fatal("error parsing " + batchManifest)
+        sys.exit()
 
     # Remove any empty list elements (e.g. due to EOL chars)
     # to avoid trouble with itemgetter
@@ -841,15 +848,15 @@ def main():
                 try:
                     shutil.rmtree(dirOut)
                 except OSError:
-                    errors.append("cannot remove '" + dirOut + "'" )
-                    errorExit(errors,err)
+                    logging.fatal("cannot remove '" + dirOut + "'" )
+                    sys.exit()
                 
         # Create new dir
         try:
             os.makedirs(dirOut)
         except OSError:
-            errors.append("cannot create '" + dirOut + "'" )
-            errorExit(errors,err)
+            logging.fatal("cannot create '" + dirOut + "'" )
+            sys.exit()
 
     # ********
     # ** Process batch manifest **
@@ -860,10 +867,10 @@ def main():
     for requiredCol in requiredColsBatchManifest:
         occurs = headerBatchManifest.count(requiredCol)
         if occurs != 1:
-            errors.append("found " + str(occurs) + " occurrences of column '" + requiredCol + "' in " + \
+            logging.fatal("found " + str(occurs) + " occurrences of column '" + requiredCol + "' in " + \
             batchManifest + " (expected 1)")
             # No point in continuing if we end up here ...
-            errorExit(errors,err)
+            sys.exit()
 
     # Set up dictionary to store header fields and corresponding column numbers
     colsBatchManifest = {}
@@ -897,9 +904,10 @@ def main():
     # Report each item in list as an error
     
     for directory in diffDirs:
-        errors.append("IP " + IPIdentifier + ": directory '" + directory + "' not referenced in '"\
+        logging.error("IP " + IPIdentifier + ": directory '" + directory + "' not referenced in '"\
         + batchManifest + "'")
  
+    """
     # Output errors and warnings
     err.write("Batch validation yielded " + str(len(errors)) + " errors and " + str(len(warnings)) + " warnings \n" )
     err.write("**** Errors ****\n")
@@ -908,7 +916,7 @@ def main():
     err.write("**** Warnings ****\n")    
     for warning in warnings:
         err.write("Warning - " + warning + "\n") 
- 
+    """
 
 if __name__ == "__main__":
     main()
