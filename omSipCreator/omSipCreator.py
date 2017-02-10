@@ -200,7 +200,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
     noMD5Files = len(MD5Files)
     
     if noMD5Files != 1:
-        logging.error("IP " + carrier.IPIdentifier + ": found " + str(noMD5Files) + " '.md5' files in directory '" \
+        logging.error("PPN " + carrier.IPIdentifier + ": found " + str(noMD5Files) + " '.md5' files in directory '" \
         + carrier.imagePathFull + "', expected 1")
         # If we end up here, checksum file either does not exist, or it is ambiguous 
         # which file should be used. No point in doing the checksum verification in that case.  
@@ -211,7 +211,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
     noOtherFiles = len(otherFiles)
     
     if noOtherFiles == 0:
-        logging.error("IP " + carrier.IPIdentifier + ": found no files in directory '" \
+        logging.error("PPN " + carrier.IPIdentifier + ": found no files in directory '" \
         + carrier.imagePathFull) 
 
     if skipChecksumVerification == False:
@@ -233,7 +233,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
             md5SumCalculated = generate_file_md5(fileNameWithPath)
                                    
             if md5SumCalculated != md5Sum:
-                logging.error("IP " + carrier.IPIdentifier + ": checksum mismatch for file '" + \
+                logging.error("PPN " + carrier.IPIdentifier + ": checksum mismatch for file '" + \
                 fileNameWithPath + "'")
                 
             # Get file size and append to MD5FromFile list (needed later for METS file entry)
@@ -246,7 +246,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
         for f in otherFiles:
             #print(f)
             if f not in allFilesinMD5:
-                logging.error("IP " + carrier.IPIdentifier + ": file '" + f + \
+                logging.error("PPN " + carrier.IPIdentifier + ": file '" + f + \
                 "' not referenced in '" + \
                 MD5Files[0] + "'")
         
@@ -263,7 +263,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
             try:
                 os.makedirs(dirVolume)
             except OSError or IOError:
-                logging.fatal("IP " + carrier.IPIdentifier + ": cannot create '" + dirVolume + "'" )
+                logging.fatal("PPN " + carrier.IPIdentifier + ": cannot create '" + dirVolume + "'" )
                 sys.exit()
             
             # Copy files to SIP Volume directory
@@ -282,14 +282,14 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                     # Copy to volume dir
                     shutil.copy2(os.path.join(carrier.imagePathFull,fileName),fSIP)
                 except OSError:
-                    logging.fatal("IP " + carrier.IPIdentifier + ": cannot copy '"\
+                    logging.fatal("PPN " + carrier.IPIdentifier + ": cannot copy '"\
                     + fileName + "' to '" + fSIP + "'")
                     sys.exit()
             
                 # Calculate MD5 hash of copied file, and verify against known value
                 md5SumCalculated = generate_file_md5(fSIP)                               
                 if md5SumCalculated != md5Sum:
-                    logging.error("IP " + carrier.IPIdentifier + ": checksum mismatch for file '" + \
+                    logging.error("PPN " + carrier.IPIdentifier + ": checksum mismatch for file '" + \
                     fSIP + "'")
                     
                 # Calculate Sha512 checksum
@@ -372,7 +372,7 @@ def createMODS(IP):
     # This should return exactly one record. Return error if this is not the case
     noGGCRecords = response.sru.nr_of_records
     if noGGCRecords != 1:
-        logging.error("IP " + IPIdentifier + ": search for PPN=" + PPNParent + " returned " + \
+        logging.error("PPN " + IPIdentifier + ": search for PPN=" + PPNParent + " returned " + \
             str(noGGCRecords) + " catalogue records (expected 1)")
     
     # Select first record
@@ -613,7 +613,7 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
             dirsInMetaCarriers.append(imagePathAbs)
             
             if os.path.isdir(imagePathFull) == False:
-                logging.error("IP " + IPIdentifier + ": '" + imagePath + \
+                logging.error("PPN " + IPIdentifier + ": '" + imagePath + \
                 "' is not a directory")
                         
             # Create Carrier class instance for this carrier
@@ -631,12 +631,12 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
                 volumeNumbersTypeGroup.append(int(volumeNumber))
             except ValueError:
                 # Raises error if volumeNumber string doesn't represent integer
-                logging.error("IP " + IPIdentifier + ": '" + volumeNumber + \
+                logging.error("PPN " + IPIdentifier + ": '" + volumeNumber + \
                 "' is illegal value for 'volumeNumber' (must be integer)") 
 
             # Check carrierType value against controlled vocabulary 
             if carrierType not in carrierTypeAllowedValues:
-                logging.error("IP " + IPIdentifier + ": '" + carrierType + \
+                logging.error("PPN " + IPIdentifier + ": '" + carrierType + \
                 "' is illegal value for 'carrierType'")
             carrierTypes.append(carrierType)
 
@@ -670,12 +670,12 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
 
     # Parent IP identifiers must all be equal 
     if IPIdentifiersParent.count(IPIdentifiersParent[0]) != len(IPIdentifiersParent):
-        logging.error("IP " + IPIdentifier + ": multiple values found for 'IPIdentifierParent'")
+        logging.error("PPN " + IPIdentifier + ": multiple values found for 'IPIdentifierParent'")
 
     # imagePath values must all be unique (no duplicates!)
     uniqueImagePaths = set(imagePaths)
     if len(uniqueImagePaths) != len(imagePaths):
-        logging.error("IP " + IPIdentifier + ": duplicate values found for 'imagePath'") 
+        logging.error("PPN " + IPIdentifier + ": duplicate values found for 'imagePath'") 
 
     # Consistency checks on volumeNumber values within each carrierType group
             
@@ -683,19 +683,19 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
         # Volume numbers within each carrierType group must be unique
         uniqueVolumeNumbers = set(volumeNumbersTypeGroup)
         if len(uniqueVolumeNumbers) != len(volumeNumbersTypeGroup):
-            logging.error("IP " + IPIdentifier + " (" + carrierType + "): duplicate values found for 'volumeNumber'")
+            logging.error("PPN " + IPIdentifier + " (" + carrierType + "): duplicate values found for 'volumeNumber'")
 
         # Report warning if lower value of volumeNumber not equal to '1'
         volumeNumbersTypeGroup.sort()
         if volumeNumbersTypeGroup[0] != 1:
-            logging.warning("IP " + IPIdentifier + " (" + carrierType + "): expected '1' as lower value for 'volumeNumber', found '" + \
+            logging.warning("PPN " + IPIdentifier + " (" + carrierType + "): expected '1' as lower value for 'volumeNumber', found '" + \
             str(volumeNumbersTypeGroup[0]) + "'")
         
         # Report warning if volumeNumber does not contain consecutive numbers (indicates either missing 
         # volumes or data entry error)
             
         if sorted(volumeNumbersTypeGroup) != list(range(min(volumeNumbersTypeGroup), max(volumeNumbersTypeGroup) + 1)):
-            logging.warning("IP " + IPIdentifier + " (" + carrierType + "): values for 'volumeNumber' are not consecutive")
+            logging.warning("PPN " + IPIdentifier + " (" + carrierType + "): values for 'volumeNumber' are not consecutive")
     
 def main():
     
@@ -904,7 +904,7 @@ def main():
     # Report each item in list as an error
     
     for directory in diffDirs:
-        logging.error("IP " + IPIdentifier + ": directory '" + directory + "' not referenced in '"\
+        logging.error("PPN " + IPIdentifier + ": directory '" + directory + "' not referenced in '"\
         + batchManifest + "'")
  
     """
