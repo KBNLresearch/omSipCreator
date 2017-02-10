@@ -768,6 +768,14 @@ def main():
     global warnings
     errors = 0
     warnings = 0
+    
+    # Set encoding of the terminal to UTF-8
+    if sys.version.startswith("2"):
+        out = codecs.getwriter("UTF-8")(sys.stdout)
+        err = codecs.getwriter("UTF-8")(sys.stderr)
+    elif sys.version.startswith("3"):
+        out = codecs.getwriter("UTF-8")(sys.stdout.buffer)
+        err = codecs.getwriter("UTF-8")(sys.stderr.buffer)
         
     # Global flag that indicates if SIPs will be written
     global createSIPs
