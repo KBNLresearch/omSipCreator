@@ -27,24 +27,6 @@ except NameError:
 
 SIP Creator for Offline Media images.
 
-NOTES
------
-
-## SIP structure
-
-Current code based on multi-volume SIPS. But OAIS allows one to describe a composite object as an
-Archival Information Collection (AIC). This may be a better solution, which would imply 
-single-volume SIPs. See also:
-
-http://qanda.digipres.org/1121/creation-practices-optical-carriers-that-multiple-volumes
-
-## Quality checks on image files
-
-Could be added as further refinement:
-
-* ISO 'validation' (see also paper Woods & others)
-* WAV validation (JHOVE?)
-
  """
 
 # Script name
@@ -97,9 +79,8 @@ def get_main_dir():
         return os.path.dirname(sys.executable)
     return os.path.dirname(sys.argv[0])
  
-def errorExit(errors,terminal):
-    for error in errors:
-        terminal.write("Error - " + error + "\n")
+def errorExit(errors, warnings):
+    logging.info("Batch verification yielded " + str(errors) + " errors and " + str(warnings) + " warnings")
     sys.exit()
     
 def get_immediate_subdirectories(a_dir, ignoreDirs):
@@ -134,7 +115,8 @@ def readMD5(fileIn):
         return(data)
     except IOError:
         logging.fatal("cannot read '" + fileIn + "'")
-        sys.exit()
+        errors += 1
+        errorExit(errors, warnings)
 
 def generate_file_md5(fileIn):
     # Generate MD5 hash of file
@@ -272,7 +254,8 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 os.makedirs(dirVolume)
             except OSError or IOError:
                 logging.fatal("PPN " + carrier.IPIdentifier + ": cannot create '" + dirVolume + "'" )
-                sys.exit()
+                errors += 1
+                errorExit(errors, warnings)
             
             # Copy files to SIP Volume directory
             
@@ -292,7 +275,8 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 except OSError:
                     logging.fatal("PPN " + carrier.IPIdentifier + ": cannot copy '"\
                     + fileName + "' to '" + fSIP + "'")
-                    sys.exit()
+                    errors += 1
+                    errorExit(errors, warnings)
             
                 # Calculate MD5 hash of copied file, and verify against known value
                 md5SumCalculated = generate_file_md5(fSIP)                               
@@ -588,7 +572,8 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
             os.makedirs(dirSIP)
         except OSError:
             logging.fatal("cannot create '" + dirSIP + "'" )
-            sys.exit()
+            errors += 1
+            errorExit(errors, warnings)
      
     # TODO: perhaps we can validate PPN, based on conventions/restrictions?
 
@@ -794,7 +779,8 @@ def main():
     # Check if batch dir exists
     if os.path.isdir(batchIn) == False:
         logging.fatal("input batch directory does not exist")
-        sys.exit()
+        errors += 1
+        errorExit(errors, warnings)
         
     # Get listing of all directories (not files) in batch dir (used later for completeness check)
     # Note: all entries as full, absolute file paths!
@@ -817,7 +803,8 @@ def main():
     batchManifest = os.path.normpath(batchIn + "/" + fileBatchManifest)
     if os.path.isfile(batchManifest) == False:
         logging.fatal("file " + batchManifest + " does not exist")
-        sys.exit()
+        errors += 1
+        errorExit(errors, warnings)
 
     # Read batch manifest as CSV and import header and
     # row data to 2 separate lists
@@ -836,10 +823,12 @@ def main():
         fBatchManifest.close()
     except IOError:
         logging.fatal("cannot read " + batchManifest)
-        sys.exit()
+        errors += 1
+        errorExit(errors, warnings)
     except csv.Error:
         logging.fatal("error parsing " + batchManifest)
-        sys.exit()
+        errors += 1
+        errorExit(errors, warnings)
 
     # Remove any empty list elements (e.g. due to EOL chars)
     # to avoid trouble with itemgetter
@@ -862,14 +851,16 @@ def main():
                     shutil.rmtree(dirOut)
                 except OSError:
                     logging.fatal("cannot remove '" + dirOut + "'" )
-                    sys.exit()
+                    errors += 1
+                    errorExit(errors, warnings)
                 
         # Create new dir
         try:
             os.makedirs(dirOut)
         except OSError:
             logging.fatal("cannot create '" + dirOut + "'" )
-            sys.exit()
+            errors += 1
+            errorExit(errors, warnings)
 
     # ********
     # ** Process batch manifest **
@@ -882,8 +873,9 @@ def main():
         if occurs != 1:
             logging.fatal("found " + str(occurs) + " occurrences of column '" + requiredCol + "' in " + \
             batchManifest + " (expected 1)")
+            errors += 1
             # No point in continuing if we end up here ...
-            sys.exit()
+            errorExit(errors, warnings)
 
     # Set up dictionary to store header fields and corresponding column numbers
     colsBatchManifest = {}
@@ -923,16 +915,5 @@ def main():
     # Summarise no. of warnings / errors
     logging.info("Batch verification yielded " + str(errors) + " errors and " + str(warnings) + " warnings")
     
-    """
-    # Output errors and warnings
-    err.write("Batch validation yielded " + str(len(errors)) + " errors and " + str(len(warnings)) + " warnings \n" )
-    err.write("**** Errors ****\n")
-    for error in errors:
-        err.write("Error - " + error + "\n")
-    err.write("**** Warnings ****\n")    
-    for warning in warnings:
-        err.write("Warning - " + warning + "\n") 
-    """
-
 if __name__ == "__main__":
     main()
