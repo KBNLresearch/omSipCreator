@@ -594,10 +594,9 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
             imagePath = carrier[colsBatchManifest["dirDisc"]]
             volumeNumber = carrier[colsBatchManifest["volumeNo"]]
             carrierType = carrier[colsBatchManifest["carrierType"]]
-
-            # TODO: * validate parent PPN (see above) and/or check existence of corresponding catalog record
-            #       * check for relation between IPIdentifier and IPIdentifierParent (if possible / meaningful)
-            #       * check IPIdentifierParent against *all other* IPIdentifierParent  values in batch
+            title = carrier[colsBatchManifest["title"]]
+            volumeID = carrier[colsBatchManifest["volumeID"]]
+            success = carrier[colsBatchManifest["success"]]
 
             # Update lists and check for some obvious errors
                       
@@ -614,7 +613,7 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
             dirsInMetaCarriers.append(imagePathAbs)
             
             if os.path.isdir(imagePathFull) == False:
-                logging.error("PPN " + IPIdentifier + ": '" + imagePath + \
+                logging.error("jobID " + jobID + ": '" + imagePath + \
                 "' is not a directory")
                 errors += 1
                         
@@ -633,16 +632,21 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
                 volumeNumbersTypeGroup.append(int(volumeNumber))
             except ValueError:
                 # Raises error if volumeNumber string doesn't represent integer
-                logging.error("PPN " + IPIdentifier + ": '" + volumeNumber + \
+                logging.error("jobID " + jobID + ": '" + volumeNumber + \
                 "' is illegal value for 'volumeNumber' (must be integer)")
                 errors += 1
 
             # Check carrierType value against controlled vocabulary 
             if carrierType not in carrierTypeAllowedValues:
-                logging.error("PPN " + IPIdentifier + ": '" + carrierType + \
+                logging.error("jobID " + jobID + ": '" + carrierType + \
                 "' is illegal value for 'carrierType'")
                 errors += 1
             carrierTypes.append(carrierType)
+            
+            # Check success value (status)
+            if success != "True":
+                logging.error("jobID " + jobID + ": value of 'success' not 'True'")
+                errors += 1          
 
             # Update structmap in METS
             structDivTop.append(divDisc)
@@ -672,9 +676,10 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
 
     # IP-level consistency checks
 
-    # Parent IP identifiers must all be equal 
+    # Parent IP identifiers must all be equal
+    # TODO is this error even possible, given that we're grouping by PPN??
     if IPIdentifiersParent.count(IPIdentifiersParent[0]) != len(IPIdentifiersParent):
-        logging.error("PPN " + IPIdentifier + ": multiple values found for 'IPIdentifierParent'")
+        logging.error("PPN " + IPIdentifier + ": multiple values found for 'PPN'")
         errors += 1
 
     # imagePath values must all be unique (no duplicates!)
@@ -725,7 +730,10 @@ def main():
                                 'PPN',
                                 'dirDisc',
                                 'volumeNo',
-                                'carrierType']
+                                'carrierType',
+                                'title',
+                                'volumeID',
+                                'success']
     
     # Controlled vocabulary for 'carrierType' field
     carrierTypeAllowedValues = ['cd-rom',
