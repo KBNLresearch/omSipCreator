@@ -789,12 +789,7 @@ def main():
     ignoreDirs = ["jobs", "jobsFailed"]
     
     dirsInBatch = get_immediate_subdirectories(batchIn, ignoreDirs)
-    
-    # Exclude 'jobs' and 'jobsFailed' directories
-    #print(dirsInBatch)
-    #dirsInBatch.remove("jobs")
-    #dirsInBatch.remove("jobsFailed")
-    
+        
     # List for storing directories as extracted from carrier metadata file (see below)
     # Note: all entries as full, absolute file paths!
     dirsInMetaCarriers = [] 
@@ -830,11 +825,23 @@ def main():
         errors += 1
         errorExit(errors, warnings)
 
+    # Iterate over rows and check that number of columns
+    # corresponds to number of header columns.
     # Remove any empty list elements (e.g. due to EOL chars)
     # to avoid trouble with itemgetter
-    for item in rowsBatchManifest:
-        if item == []:
-            rowsBatchManifest.remove(item)
+    
+    colsHeader = len(headerBatchManifest)
+    
+    rowCount = 1
+    for row in rowsBatchManifest:
+        rowCount += 1
+        colsRow = len(row)
+        if colsRow == 0:
+            rowsBatchManifest.remove(row)
+        elif colsRow != colsHeader:
+            logging.fatal("wrong number of columns in row " + str(rowCount) + " of '" + batchManifest + "'")
+            errors += 1
+            errorExit(errors, warnings)
 
     # Create output directory if in SIP creation mode
     if createSIPs == True:
