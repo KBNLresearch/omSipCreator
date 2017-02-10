@@ -175,6 +175,10 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
        
     # Counters used to assign file ORDER and IDs, sipFileCounter must be unique for
     # each file within SIP
+    
+    global errors
+    global warnings
+    
     fileCounter = 1
     sipFileCounter = sipFileCounterStart
     
@@ -202,6 +206,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
     if noMD5Files != 1:
         logging.error("PPN " + carrier.IPIdentifier + ": found " + str(noMD5Files) + " '.md5' files in directory '" \
         + carrier.imagePathFull + "', expected 1")
+        errors += 1
         # If we end up here, checksum file either does not exist, or it is ambiguous 
         # which file should be used. No point in doing the checksum verification in that case.  
         skipChecksumVerification = True
@@ -212,7 +217,8 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
     
     if noOtherFiles == 0:
         logging.error("PPN " + carrier.IPIdentifier + ": found no files in directory '" \
-        + carrier.imagePathFull) 
+        + carrier.imagePathFull)
+        errors += 1
 
     if skipChecksumVerification == False:
         # Read contents of checksum file to list
@@ -235,6 +241,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
             if md5SumCalculated != md5Sum:
                 logging.error("PPN " + carrier.IPIdentifier + ": checksum mismatch for file '" + \
                 fileNameWithPath + "'")
+                errors += 1
                 
             # Get file size and append to MD5FromFile list (needed later for METS file entry)
             entry.append(str(os.path.getsize(fileNameWithPath)))
@@ -249,6 +256,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 logging.error("PPN " + carrier.IPIdentifier + ": file '" + f + \
                 "' not referenced in '" + \
                 MD5Files[0] + "'")
+                errors += 1
         
         # Create METS div entry (will remain empty if createSIPs != True)
         divDiscName = etree.QName(mets_ns, "div")
@@ -291,6 +299,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 if md5SumCalculated != md5Sum:
                     logging.error("PPN " + carrier.IPIdentifier + ": checksum mismatch for file '" + \
                     fSIP + "'")
+                    errors += 1
                     
                 # Calculate Sha512 checksum
                 sha512Sum = generate_file_sha512(fSIP)
@@ -343,6 +352,9 @@ def createMODS(IP):
     # Dublin Core to MODS mapping follows http://www.loc.gov/standards/mods/dcsimple-mods.html
     # General structure: bibliographic md is wrapped in relatedItem / type = host element
     
+    global errors
+    global warnings
+    
     # Dictionary maps carrier types  to MODS resource types 
     resourceTypeMap = {
         "cd-rom" : "software, multimedia",
@@ -374,6 +386,7 @@ def createMODS(IP):
     if noGGCRecords != 1:
         logging.error("PPN " + IPIdentifier + ": search for PPN=" + PPNParent + " returned " + \
             str(noGGCRecords) + " catalogue records (expected 1)")
+        errors += 1
     
     # Select first record
     try:
@@ -532,6 +545,9 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
     # IP is IPIdentifier (by which we grouped data)
     # carriers is another iterator that contains individual carrier records
     
+    global errors
+    global warnings
+    
     # Create IP class instance for this IP
     thisIP = IP()
     
@@ -615,6 +631,7 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
             if os.path.isdir(imagePathFull) == False:
                 logging.error("PPN " + IPIdentifier + ": '" + imagePath + \
                 "' is not a directory")
+                errors += 1
                         
             # Create Carrier class instance for this carrier
             thisCarrier = Carrier(IPIdentifier, IPIdentifierParent, imagePathFull, volumeNumber, carrierType)
@@ -632,12 +649,14 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
             except ValueError:
                 # Raises error if volumeNumber string doesn't represent integer
                 logging.error("PPN " + IPIdentifier + ": '" + volumeNumber + \
-                "' is illegal value for 'volumeNumber' (must be integer)") 
+                "' is illegal value for 'volumeNumber' (must be integer)")
+                errors += 1
 
             # Check carrierType value against controlled vocabulary 
             if carrierType not in carrierTypeAllowedValues:
                 logging.error("PPN " + IPIdentifier + ": '" + carrierType + \
                 "' is illegal value for 'carrierType'")
+                errors += 1
             carrierTypes.append(carrierType)
 
             # Update structmap in METS
@@ -671,11 +690,13 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
     # Parent IP identifiers must all be equal 
     if IPIdentifiersParent.count(IPIdentifiersParent[0]) != len(IPIdentifiersParent):
         logging.error("PPN " + IPIdentifier + ": multiple values found for 'IPIdentifierParent'")
+        errors += 1
 
     # imagePath values must all be unique (no duplicates!)
     uniqueImagePaths = set(imagePaths)
     if len(uniqueImagePaths) != len(imagePaths):
-        logging.error("PPN " + IPIdentifier + ": duplicate values found for 'imagePath'") 
+        logging.error("PPN " + IPIdentifier + ": duplicate values found for 'imagePath'")
+        errors += 1
 
     # Consistency checks on volumeNumber values within each carrierType group
             
@@ -684,18 +705,21 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
         uniqueVolumeNumbers = set(volumeNumbersTypeGroup)
         if len(uniqueVolumeNumbers) != len(volumeNumbersTypeGroup):
             logging.error("PPN " + IPIdentifier + " (" + carrierType + "): duplicate values found for 'volumeNumber'")
+            errors += 1
 
         # Report warning if lower value of volumeNumber not equal to '1'
         volumeNumbersTypeGroup.sort()
         if volumeNumbersTypeGroup[0] != 1:
             logging.warning("PPN " + IPIdentifier + " (" + carrierType + "): expected '1' as lower value for 'volumeNumber', found '" + \
             str(volumeNumbersTypeGroup[0]) + "'")
+            warnings += 1
         
         # Report warning if volumeNumber does not contain consecutive numbers (indicates either missing 
         # volumes or data entry error)
             
         if sorted(volumeNumbersTypeGroup) != list(range(min(volumeNumbersTypeGroup), max(volumeNumbersTypeGroup) + 1)):
             logging.warning("PPN " + IPIdentifier + " (" + carrierType + "): values for 'volumeNumber' are not consecutive")
+            warnings += 1
     
 def main():
     
@@ -703,6 +727,7 @@ def main():
     logFile = "omsipcreator.log"
     logFormatter = logging.Formatter('%(levelname)s - %(message)s')
     logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
     consoleHandler = logging.StreamHandler()
     consoleHandler.setFormatter(logFormatter)
     logger.addHandler(consoleHandler)
@@ -743,23 +768,12 @@ def main():
          "xlink" : xlink_ns,
          "xsi": xsi_ns}
        
-    # Set up lists for storing errors and warnings
+    # Coiunters for number of errors and warnings
     # Defined as global so we can easily add to them within functions
     global errors
     global warnings
-    errors = []
-    warnings = []
-    
-    global out
-    global err
-       
-    # Set encoding of the terminal to UTF-8
-    if sys.version.startswith("2"):
-        out = codecs.getwriter("UTF-8")(sys.stdout)
-        err = codecs.getwriter("UTF-8")(sys.stderr)
-    elif sys.version.startswith("3"):
-        out = codecs.getwriter("UTF-8")(sys.stdout.buffer)
-        err = codecs.getwriter("UTF-8")(sys.stderr.buffer)
+    errors = 0
+    warnings = 0
         
     # Global flag that indicates if SIPs will be written
     global createSIPs
@@ -776,7 +790,6 @@ def main():
     else:
         # Dummy value
         dirOut = None
-        
         
     # Check if batch dir exists
     if os.path.isdir(batchIn) == False:
@@ -887,12 +900,11 @@ def main():
     metaCarriersByIP = groupby(rowsBatchManifest, itemgetter(1))
     
     # ********
-    # ** Iterate over IPs**
+    # ** Iterate over PPNs**
     # ******** 
-
-    #processIPs(metaCarriersByIP, dirOut, colsBatchManifest, batchIn, dirsInMetaCarriers, carrierTypeAllowedValues)
     
     for IPIdentifier, carriers in metaCarriersByIP:
+        logging.info("Processing PPN " + IPIdentifier)
         processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarriers, carrierTypeAllowedValues)
     
     # Check if directories that are part of batch are all represented in carrier metadata file
@@ -906,7 +918,11 @@ def main():
     for directory in diffDirs:
         logging.error("PPN " + IPIdentifier + ": directory '" + directory + "' not referenced in '"\
         + batchManifest + "'")
+        errors += 1
  
+    # Summarise no. of warnings / errors
+    logging.info("Batch verification yielded " + str(errors) + " errors and " + str(warnings) + " warnings")
+    
     """
     # Output errors and warnings
     err.write("Batch validation yielded " + str(len(errors)) + " errors and " + str(len(warnings)) + " warnings \n" )
