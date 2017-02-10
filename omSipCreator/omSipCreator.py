@@ -590,6 +590,7 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
         volumeNumbersTypeGroup = []
         for carrier in carrierTypeGroup:
         
+            jobID = carrier[colsBatchManifest["jobID"]]
             IPIdentifierParent = carrier[colsBatchManifest["PPN"]]
             imagePath = carrier[colsBatchManifest["dirDisc"]]
             volumeNumber = carrier[colsBatchManifest["volumeNo"]]
