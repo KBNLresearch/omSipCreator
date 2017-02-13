@@ -52,7 +52,7 @@ class Carrier:
         self.volumeNumber = volumeNumber
         self.carrierType = carrierType
 
-class IP:
+class PPNGroup:
 
     def __init__(self):
         self.carriers = []
@@ -532,8 +532,8 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     global errors
     global warnings
     
-    # Create IP class instance for this IP
-    thisIP = IP()
+    # Create class instance for this PPN
+    thisPPNGroup = PPNGroup()
     
     # Create METS element for this SIP
     metsName = etree.QName(mets_ns, "mets")
@@ -622,8 +622,12 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
             thisCarrier = Carrier(PPN, IPIdentifierParent, imagePathFull, volumeNumber, carrierType)
             fileGrp, divDisc, fileCounter = processCarrier(thisCarrier, fileGrp, dirSIP, fileCounterStart)
             
-            # Add to IP class instance
-            thisIP.append(thisCarrier)
+            ## TEST
+            print(PPN,IPIdentifierParent)
+            ## TEST
+            
+            # Add to PPN class instance
+            thisPPNGroup.append(thisCarrier)
             
             # Update fileCounterStart # TODO will go wrong b/c not updated now that it lives in this function!!!
             fileCounterStart = fileCounter
@@ -656,7 +660,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
         volumeNumbers.append(volumeNumbersTypeGroup)           
     
     # Get metadata of IPIdentifierParent from GGC and convert to MODS format
-    mdMODS = createMODS(thisIP)
+    mdMODS = createMODS(thisPPNGroup)
  
     # Append metadata to METS
     xmlData.append(mdMODS) 
