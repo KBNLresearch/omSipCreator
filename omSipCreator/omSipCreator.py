@@ -954,7 +954,7 @@ def main():
         failedPPNs.append(PPN)
  
     # Summarise no. of warnings / errors
-    logging.info("Batch verification yielded " + str(errors) + " errors and " + str(warnings) + " warnings")
+    logging.info("OmSipCreator encountered " + str(errors) + " errors and " + str(warnings) + " warnings")
       
     # Get all unique values in failedPPNs by converting to a set (and then back to a list)
     failedPPNs = (list(set(failedPPNs)))
