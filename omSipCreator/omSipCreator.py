@@ -524,7 +524,7 @@ def parseCommandLine():
     return(args)
     
 
-def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarriers, carrierTypeAllowedValues):
+def processPPN(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarriers, carrierTypeAllowedValues):
 
     # IP is IPIdentifier (by which we grouped data)
     # carriers is another iterator that contains individual carrier records
@@ -662,9 +662,7 @@ def processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsIn
     xmlData.append(mdMODS) 
      
     if createSIPs == True:
-        # Write METS file to SIP directory
-        #metsAsString = etree.tostring(mets, pretty_print=True, encoding="UTF-8")
-        
+       
         if sys.version.startswith('3'):
             metsAsString = etree.tostring(mets, pretty_print=True, encoding="unicode")
         elif sys.version.startswith('2'):
@@ -921,7 +919,7 @@ def main():
     
     for IPIdentifier, carriers in metaCarriersByIP:
         logging.info("Processing PPN " + IPIdentifier)
-        processIP(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarriers, carrierTypeAllowedValues)
+        processPPN(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarriers, carrierTypeAllowedValues)
     
     # Check if directories that are part of batch are all represented in carrier metadata file
     # (reverse already covered by checks above)
