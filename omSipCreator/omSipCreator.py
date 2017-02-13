@@ -45,7 +45,8 @@ parser = argparse.ArgumentParser(
 # Classes for Carrier and IP entries
 class Carrier:
 
-    def __init__(self, PPN, imagePathFull, volumeNumber, carrierType):
+    def __init__(self, jobID, PPN, imagePathFull, volumeNumber, carrierType):
+        self.jobID = jobID
         self.PPN = PPN
         self.imagePathFull = imagePathFull
         self.volumeNumber = volumeNumber
@@ -293,8 +294,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 
                 fLocat = etree.SubElement(fileElt, "{%s}FLocat" %(mets_ns))
                 fLocat.attrib["LOCTYPE"] = "URL"
-                # File locations relative to SIP root (= location of METS file)
-                #fLocat.attrib[etree.QName(xlink_ns, "href")] = "file://./" + os.path.join(carrier.carrierType, carrier.volumeNumber ,fileName)                
+                # File locations relative to SIP root (= location of METS file)             
                 fLocat.attrib[etree.QName(xlink_ns, "href")] = "file://./" + carrier.carrierType + "/" + carrier.volumeNumber + "/" + fileName
                 
                 # Add MIME type and checksum to file element
@@ -572,7 +572,6 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
             errorExit(errors, warnings)
             
     # Set up lists for all record fields in this PPN (needed for verifification only)
-    #IPIdentifiersParent = []
     imagePaths = []
     volumeNumbers = []
     carrierTypes = []
@@ -585,7 +584,6 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
         for carrier in carrierTypeGroup:
         
             jobID = carrier[colsBatchManifest["jobID"]]
-            #IPIdentifierParent = carrier[colsBatchManifest["PPN"]]
             imagePath = carrier[colsBatchManifest["dirDisc"]]
             volumeNumber = carrier[colsBatchManifest["volumeNo"]]
             carrierType = carrier[colsBatchManifest["carrierType"]]
@@ -593,10 +591,10 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
             volumeID = carrier[colsBatchManifest["volumeID"]]
             success = carrier[colsBatchManifest["success"]]
 
-            # Update lists and check for some obvious errors
-                      
-            #IPIdentifiersParent.append(IPIdentifierParent)
+            # Update imagePaths list                      
             imagePaths.append(imagePath)
+            
+            # Check for some obvious errors
             
             # Check if imagePath is existing directory
             
@@ -613,15 +611,10 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
                 errors += 1
                         
             # Create Carrier class instance for this carrier
-            #thisCarrier = Carrier(PPN, IPIdentifierParent, imagePathFull, volumeNumber, carrierType)
-            thisCarrier = Carrier(PPN, imagePathFull, volumeNumber, carrierType)
+            thisCarrier = Carrier(jobID, PPN, imagePathFull, volumeNumber, carrierType)
             fileGrp, divDisc, fileCounter = processCarrier(thisCarrier, fileGrp, dirSIP, fileCounterStart)
             
-            ## TEST
-            #print(PPN,IPIdentifierParent)
-            ## TEST
-            
-            # Add to PPN class instance
+            # Add to PPNGroup class instance
             thisPPNGroup.append(thisCarrier)
             
             # Update fileCounterStart # TODO will go wrong b/c not updated now that it lives in this function!!!
@@ -673,12 +666,6 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
             text_file.write(metsAsString)
 
     # IP-level consistency checks
-
-    # Parent IP identifiers must all be equal
-    # TODO is this error even possible, given that we're grouping by PPN??
-    #if IPIdentifiersParent.count(IPIdentifiersParent[0]) != len(IPIdentifiersParent):
-    #    logging.error("PPN " + PPN + ": multiple values found for 'PPN'")
-    #    errors += 1
 
     # imagePath values must all be unique (no duplicates!)
     uniqueImagePaths = set(imagePaths)
