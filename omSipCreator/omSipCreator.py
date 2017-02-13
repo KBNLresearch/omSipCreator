@@ -524,9 +524,9 @@ def parseCommandLine():
     return(args)
     
 
-def processPPN(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarriers, carrierTypeAllowedValues):
+def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarriers, carrierTypeAllowedValues):
 
-    # IP is IPIdentifier (by which we grouped data)
+    # PPN is PPN identifier (by which we grouped data)
     # carriers is another iterator that contains individual carrier records
     
     global errors
@@ -567,7 +567,7 @@ def processPPN(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsI
      
     if createSIPs == True:
         # Create SIP directory
-        dirSIP = os.path.join(dirOut,IPIdentifier)
+        dirSIP = os.path.join(dirOut,PPN)
         try:
             os.makedirs(dirSIP)
         except OSError:
@@ -619,7 +619,7 @@ def processPPN(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsI
                 errors += 1
                         
             # Create Carrier class instance for this carrier
-            thisCarrier = Carrier(IPIdentifier, IPIdentifierParent, imagePathFull, volumeNumber, carrierType)
+            thisCarrier = Carrier(PPN, IPIdentifierParent, imagePathFull, volumeNumber, carrierType)
             fileGrp, divDisc, fileCounter = processCarrier(thisCarrier, fileGrp, dirSIP, fileCounterStart)
             
             # Add to IP class instance
@@ -678,13 +678,13 @@ def processPPN(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsI
     # Parent IP identifiers must all be equal
     # TODO is this error even possible, given that we're grouping by PPN??
     if IPIdentifiersParent.count(IPIdentifiersParent[0]) != len(IPIdentifiersParent):
-        logging.error("PPN " + IPIdentifier + ": multiple values found for 'PPN'")
+        logging.error("PPN " + PPN + ": multiple values found for 'PPN'")
         errors += 1
 
     # imagePath values must all be unique (no duplicates!)
     uniqueImagePaths = set(imagePaths)
     if len(uniqueImagePaths) != len(imagePaths):
-        logging.error("PPN " + IPIdentifier + ": duplicate values found for 'imagePath'")
+        logging.error("PPN " + PPN + ": duplicate values found for 'imagePath'")
         errors += 1
 
     # Consistency checks on volumeNumber values within each carrierType group
@@ -693,13 +693,13 @@ def processPPN(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsI
         # Volume numbers within each carrierType group must be unique
         uniqueVolumeNumbers = set(volumeNumbersTypeGroup)
         if len(uniqueVolumeNumbers) != len(volumeNumbersTypeGroup):
-            logging.error("PPN " + IPIdentifier + " (" + carrierType + "): duplicate values found for 'volumeNumber'")
+            logging.error("PPN " + PPN + " (" + carrierType + "): duplicate values found for 'volumeNumber'")
             errors += 1
 
         # Report warning if lower value of volumeNumber not equal to '1'
         volumeNumbersTypeGroup.sort()
         if volumeNumbersTypeGroup[0] != 1:
-            logging.warning("PPN " + IPIdentifier + " (" + carrierType + "): expected '1' as lower value for 'volumeNumber', found '" + \
+            logging.warning("PPN " + PPN + " (" + carrierType + "): expected '1' as lower value for 'volumeNumber', found '" + \
             str(volumeNumbersTypeGroup[0]) + "'")
             warnings += 1
         
@@ -707,7 +707,7 @@ def processPPN(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsI
         # volumes or data entry error)
             
         if sorted(volumeNumbersTypeGroup) != list(range(min(volumeNumbersTypeGroup), max(volumeNumbersTypeGroup) + 1)):
-            logging.warning("PPN " + IPIdentifier + " (" + carrierType + "): values for 'volumeNumber' are not consecutive")
+            logging.warning("PPN " + PPN + " (" + carrierType + "): values for 'volumeNumber' are not consecutive")
             warnings += 1
     
 def main():
