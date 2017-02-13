@@ -45,9 +45,8 @@ parser = argparse.ArgumentParser(
 # Classes for Carrier and IP entries
 class Carrier:
 
-    def __init__(self, IPIdentifier, IPIdentifierParent, imagePathFull, volumeNumber, carrierType):
-        self.IPIdentifier = IPIdentifier
-        self.IPIdentifierParent = IPIdentifierParent
+    def __init__(self, PPN, imagePathFull, volumeNumber, carrierType):
+        self.IPIdentifier = PPN
         self.imagePathFull = imagePathFull
         self.volumeNumber = volumeNumber
         self.carrierType = carrierType
@@ -57,7 +56,7 @@ class PPNGroup:
     def __init__(self):
         self.carriers = []
         self.IPIdentifier = ""
-        self.IPIdentifierParent = ""
+        #self.IPIdentifierParent = ""
         self.carrierType = ""
 
     def append(self,carrier):
@@ -66,7 +65,7 @@ class PPNGroup:
         # but important to do proper QA on this as results may be unexpected otherwise)
         self.carriers.append(carrier)
         self.IPIdentifier = carrier.IPIdentifier
-        self.IPIdentifierParent = carrier.IPIdentifierParent
+        #self.IPIdentifierParent = carrier.IPIdentifierParent
         self.carrierType = carrier.carrierType
 
 def main_is_frozen():
@@ -348,7 +347,8 @@ def createMODS(IP):
         }
 
     IPIdentifier = IP.IPIdentifier
-    PPNParent = IP.IPIdentifierParent
+    #PPNParent = IP.IPIdentifierParent
+    PPNParent = IPIdentifier
     carrierType = IP.carrierType
     
     # Create MODS element
@@ -523,7 +523,6 @@ def parseCommandLine():
 
     return(args)
     
-
 def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarriers, carrierTypeAllowedValues):
 
     # PPN is PPN identifier (by which we grouped data)
@@ -574,11 +573,9 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
             logging.fatal("cannot create '" + dirSIP + "'" )
             errors += 1
             errorExit(errors, warnings)
-     
-    # TODO: perhaps we can validate PPN, based on conventions/restrictions?
-
-    # Set up lists for all record fields in this IP (needed for verifification only)
-    IPIdentifiersParent = []
+            
+    # Set up lists for all record fields in this PPN (needed for verifification only)
+    #IPIdentifiersParent = []
     imagePaths = []
     volumeNumbers = []
     carrierTypes = []
@@ -591,7 +588,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
         for carrier in carrierTypeGroup:
         
             jobID = carrier[colsBatchManifest["jobID"]]
-            IPIdentifierParent = carrier[colsBatchManifest["PPN"]]
+            #IPIdentifierParent = carrier[colsBatchManifest["PPN"]]
             imagePath = carrier[colsBatchManifest["dirDisc"]]
             volumeNumber = carrier[colsBatchManifest["volumeNo"]]
             carrierType = carrier[colsBatchManifest["carrierType"]]
@@ -601,7 +598,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
 
             # Update lists and check for some obvious errors
                       
-            IPIdentifiersParent.append(IPIdentifierParent)
+            #IPIdentifiersParent.append(IPIdentifierParent)
             imagePaths.append(imagePath)
             
             # Check if imagePath is existing directory
@@ -619,11 +616,12 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
                 errors += 1
                         
             # Create Carrier class instance for this carrier
-            thisCarrier = Carrier(PPN, IPIdentifierParent, imagePathFull, volumeNumber, carrierType)
+            #thisCarrier = Carrier(PPN, IPIdentifierParent, imagePathFull, volumeNumber, carrierType)
+            thisCarrier = Carrier(PPN, imagePathFull, volumeNumber, carrierType)
             fileGrp, divDisc, fileCounter = processCarrier(thisCarrier, fileGrp, dirSIP, fileCounterStart)
             
             ## TEST
-            print(PPN,IPIdentifierParent)
+            #print(PPN,IPIdentifierParent)
             ## TEST
             
             # Add to PPN class instance
@@ -659,7 +657,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
         # Add volumeNumbersTypeGroup to volumeNumbers list
         volumeNumbers.append(volumeNumbersTypeGroup)           
     
-    # Get metadata of IPIdentifierParent from GGC and convert to MODS format
+    # Get metadata of this PPN from GGC and convert to MODS format
     mdMODS = createMODS(thisPPNGroup)
  
     # Append metadata to METS
@@ -681,9 +679,9 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
 
     # Parent IP identifiers must all be equal
     # TODO is this error even possible, given that we're grouping by PPN??
-    if IPIdentifiersParent.count(IPIdentifiersParent[0]) != len(IPIdentifiersParent):
-        logging.error("PPN " + PPN + ": multiple values found for 'PPN'")
-        errors += 1
+    #if IPIdentifiersParent.count(IPIdentifiersParent[0]) != len(IPIdentifiersParent):
+    #    logging.error("PPN " + PPN + ": multiple values found for 'PPN'")
+    #    errors += 1
 
     # imagePath values must all be unique (no duplicates!)
     uniqueImagePaths = set(imagePaths)
