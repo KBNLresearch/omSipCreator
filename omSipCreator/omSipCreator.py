@@ -178,6 +178,11 @@ def parseCommandLine():
     args = parser.parse_args()
 
     return(args)
+
+def printHelpAndExit():
+    print('')
+    parser.print_help()
+    sys.exit()
     
 def createMODS(PPNGroup):
     # Create MODS metadata based on records in GGC
@@ -787,6 +792,10 @@ def main():
     # Get input from command line
     args = parseCommandLine()
     action = args.subcommand
+    if action == None:
+        # Exit and print help message if command line is empty
+        printHelpAndExit()
+    
     batchIn = os.path.normpath(args.batchIn)
    
     if action == "write":
