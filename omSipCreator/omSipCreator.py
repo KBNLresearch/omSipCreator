@@ -182,6 +182,7 @@ def createMODS(PPNGroup):
     
     global errors
     global warnings
+    global failedPPNs
     
     # Dictionary maps carrier types  to MODS resource types 
     resourceTypeMap = {
@@ -214,6 +215,7 @@ def createMODS(PPNGroup):
         logging.error("PPN " + PPN + ": search for PPN=" + PPNParent + " returned " + \
             str(noGGCRecords) + " catalogue records (expected 1)")
         errors += 1
+        failedPPNs.append(PPN)
     
     # Select first record
     try:
@@ -348,6 +350,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
     
     global errors
     global warnings
+    global failedPPNs
     
     fileCounter = 1
     sipFileCounter = sipFileCounterStart
@@ -389,6 +392,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
         logging.error("jobID " + carrier.jobID + ": found no files in directory '" \
         + carrier.imagePathFull)
         errors += 1
+        failedPPNs.append(carrier.PPN)
 
     if skipChecksumVerification == False:
         # Read contents of checksum file to list
@@ -412,6 +416,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 logging.error("jobID " + carrier.jobID + ": checksum mismatch for file '" + \
                 fileNameWithPath + "'")
                 errors += 1
+                failedPPNs.append(carrier.PPN)
                 
             # Get file size and append to MD5FromFile list (needed later for METS file entry)
             entry.append(str(os.path.getsize(fileNameWithPath)))
@@ -427,6 +432,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 "' not referenced in '" + \
                 MD5Files[0] + "'")
                 errors += 1
+                failedPPNs.append(carrier.PPN)
         
         # Create METS div entry (will remain empty if createSIPs != True)
         divDiscName = etree.QName(mets_ns, "div")
@@ -472,6 +478,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                     logging.error("jobID " + carrier.jobID + ": checksum mismatch for file '" + \
                     fSIP + "'")
                     errors += 1
+                    failedPPNs.append(carrier.PPN)
                     
                 # Calculate Sha512 checksum
                 sha512Sum = generate_file_sha512(fSIP)
@@ -524,6 +531,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     
     global errors
     global warnings
+    global failedPPNs
     
     # Create class instance for this PPN
     thisPPNGroup = PPNGroup()
@@ -606,6 +614,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
                 logging.error("jobID " + jobID + ": '" + imagePath + \
                 "' is not a directory")
                 errors += 1
+                failedPPNs.append(PPN)
                         
             # Create Carrier class instance for this carrier
             thisCarrier = Carrier(jobID, PPN, imagePathFull, volumeNumber, carrierType)
@@ -625,18 +634,21 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
                 logging.error("jobID " + jobID + ": '" + volumeNumber + \
                 "' is illegal value for 'volumeNumber' (must be integer)")
                 errors += 1
+                failedPPNs.append(PPN)
 
             # Check carrierType value against controlled vocabulary 
             if carrierType not in carrierTypeAllowedValues:
                 logging.error("jobID " + jobID + ": '" + carrierType + \
                 "' is illegal value for 'carrierType'")
                 errors += 1
+                failedPPNs.append(PPN)
             carrierTypes.append(carrierType)
             
             # Check success value (status)
             if success != "True":
                 logging.error("jobID " + jobID + ": value of 'success' not 'True'")
-                errors += 1          
+                errors += 1
+                failedPPNs.append(PPN)
 
             # Update structmap in METS
             structDivTop.append(divDisc)
@@ -669,6 +681,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     if len(uniqueImagePaths) != len(imagePaths):
         logging.error("PPN " + PPN + ": duplicate values found for 'imagePath'")
         errors += 1
+        failedPPNs.append(PPN)
 
     # Consistency checks on volumeNumber values within each carrierType group
             
@@ -678,6 +691,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
         if len(uniqueVolumeNumbers) != len(volumeNumbersTypeGroup):
             logging.error("PPN " + PPN + " (" + carrierType + "): duplicate values found for 'volumeNumber'")
             errors += 1
+            failedPPNs.append(PPN)
 
         # Report warning if lower value of volumeNumber not equal to '1'
         volumeNumbersTypeGroup.sort()
@@ -743,12 +757,16 @@ def main():
          "xlink" : xlink_ns,
          "xsi": xsi_ns}
        
-    # Coiunters for number of errors and warnings
+    # Counters for number of errors and warnings
     # Defined as global so we can easily add to them within functions
     global errors
     global warnings
     errors = 0
     warnings = 0
+    
+    # List of failed PPNs (used for pruning a batch)
+    global failedPPNs
+    failedPPNs = []
     
     # Set encoding of the terminal to UTF-8
     if sys.version.startswith("2"):
@@ -916,9 +934,13 @@ def main():
         logging.error("PPN " + PPN + ": directory '" + directory + "' not referenced in '"\
         + batchManifest + "'")
         errors += 1
+        failedPPNs.append(PPN)
  
     # Summarise no. of warnings / errors
     logging.info("Batch verification yielded " + str(errors) + " errors and " + str(warnings) + " warnings")
+      
+    # Get all unique values in failedPPNs by converting to a set (and then back to a list)
+    failedPPNs = (list(set(failedPPNs)))
     
 if __name__ == "__main__":
     main()
