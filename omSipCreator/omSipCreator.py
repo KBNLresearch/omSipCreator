@@ -40,7 +40,7 @@ scriptPath, scriptName = os.path.split(sys.argv[0])
 if len(scriptName) == 0:
     scriptName = 'omsipcreator'
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 # Create parser
 parser = argparse.ArgumentParser(
