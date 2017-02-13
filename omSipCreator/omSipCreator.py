@@ -907,19 +907,19 @@ def main():
         colsBatchManifest[header] = col
         col += 1
 
-    # Sort rows by IPIdentifier (PPN)
+    # Sort rows by PPN
     rowsBatchManifest.sort(key=itemgetter(1))
     
-    # Group by IPIdentifier field (PPN)
-    metaCarriersByIP = groupby(rowsBatchManifest, itemgetter(1))
+    # Group by PPN
+    metaCarriersByPPN = groupby(rowsBatchManifest, itemgetter(1))
     
     # ********
     # ** Iterate over PPNs**
     # ******** 
     
-    for IPIdentifier, carriers in metaCarriersByIP:
-        logging.info("Processing PPN " + IPIdentifier)
-        processPPN(IPIdentifier, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarriers, carrierTypeAllowedValues)
+    for PPN, carriers in metaCarriersByPPN:
+        logging.info("Processing PPN " + PPN)
+        processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarriers, carrierTypeAllowedValues)
     
     # Check if directories that are part of batch are all represented in carrier metadata file
     # (reverse already covered by checks above)
@@ -930,7 +930,7 @@ def main():
     # Report each item in list as an error
     
     for directory in diffDirs:
-        logging.error("PPN " + IPIdentifier + ": directory '" + directory + "' not referenced in '"\
+        logging.error("PPN " + PPN + ": directory '" + directory + "' not referenced in '"\
         + batchManifest + "'")
         errors += 1
  
