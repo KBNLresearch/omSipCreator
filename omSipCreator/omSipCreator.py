@@ -452,6 +452,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
         if createSIPs == True:
        
             # Create Volume directory
+            logging.info("creating carrier directory")
             dirVolume = os.path.join(SIPPath, carrier.carrierType, carrier.volumeNumber)
             try:
                 os.makedirs(dirVolume)
@@ -461,6 +462,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 errorExit(errors, warnings)
             
             # Copy files to SIP Volume directory
+            logging.info("copying files to carrier directory")
             
             # Get file names from MD5 file, as this is the easiest way to make
             # post-copy checksum verification work.
@@ -576,6 +578,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     dirSIP = "rubbish" 
      
     if createSIPs == True:
+        logging.info("creating SIP directory")
         # Create SIP directory
         dirSIP = os.path.join(dirOut,PPN)
         try:
@@ -672,6 +675,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     xmlData.append(mdMODS) 
      
     if createSIPs == True:
+        logging.info("writing METS file")
        
         if sys.version.startswith('3'):
             metsAsString = etree.tostring(mets, pretty_print=True, encoding="unicode")
