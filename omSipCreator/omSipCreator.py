@@ -14,7 +14,11 @@ import logging
 from operator import itemgetter
 from itertools import groupby
 from lxml import etree
-from kbapi import sru
+
+if __package__ == 'omSipCreator':
+    from .kbapi import sru
+else:
+    from kbapi import sru
 
 # Bind raw_input (Python 3) to input (Python 2)
 # Source: http://stackoverflow.com/a/21731110/1209004
