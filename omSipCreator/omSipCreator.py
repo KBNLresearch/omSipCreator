@@ -46,7 +46,7 @@ parser = argparse.ArgumentParser(
 class Carrier:
 
     def __init__(self, PPN, imagePathFull, volumeNumber, carrierType):
-        self.IPIdentifier = PPN
+        self.PPN = PPN
         self.imagePathFull = imagePathFull
         self.volumeNumber = volumeNumber
         self.carrierType = carrierType
@@ -55,17 +55,15 @@ class PPNGroup:
 
     def __init__(self):
         self.carriers = []
-        self.IPIdentifier = ""
-        #self.IPIdentifierParent = ""
+        self.PPN = ""
         self.carrierType = ""
 
     def append(self,carrier):
-        # Result of this is that below IP-level properties are inherited from last
-        # appended carrier (values should be identical for all carriers within IP,
+        # Result of this is that below PPN-level properties are inherited from last
+        # appended carrier (values should be identical for all carriers within PPN,
         # but important to do proper QA on this as results may be unexpected otherwise)
         self.carriers.append(carrier)
-        self.IPIdentifier = carrier.IPIdentifier
-        #self.IPIdentifierParent = carrier.IPIdentifierParent
+        self.PPN = carrier.PPN
         self.carrierType = carrier.carrierType
 
 def main_is_frozen():
@@ -185,7 +183,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
     noMD5Files = len(MD5Files)
     
     if noMD5Files != 1:
-        logging.error("PPN " + carrier.IPIdentifier + ": found " + str(noMD5Files) + " '.md5' files in directory '" \
+        logging.error("PPN " + carrier.PPN + ": found " + str(noMD5Files) + " '.md5' files in directory '" \
         + carrier.imagePathFull + "', expected 1")
         errors += 1
         # If we end up here, checksum file either does not exist, or it is ambiguous 
@@ -197,7 +195,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
     noOtherFiles = len(otherFiles)
     
     if noOtherFiles == 0:
-        logging.error("PPN " + carrier.IPIdentifier + ": found no files in directory '" \
+        logging.error("PPN " + carrier.PPN + ": found no files in directory '" \
         + carrier.imagePathFull)
         errors += 1
 
@@ -220,7 +218,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
             md5SumCalculated = generate_file_md5(fileNameWithPath)
                                    
             if md5SumCalculated != md5Sum:
-                logging.error("PPN " + carrier.IPIdentifier + ": checksum mismatch for file '" + \
+                logging.error("PPN " + carrier.PPN + ": checksum mismatch for file '" + \
                 fileNameWithPath + "'")
                 errors += 1
                 
@@ -234,7 +232,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
         for f in otherFiles:
             #print(f)
             if f not in allFilesinMD5:
-                logging.error("PPN " + carrier.IPIdentifier + ": file '" + f + \
+                logging.error("PPN " + carrier.PPN + ": file '" + f + \
                 "' not referenced in '" + \
                 MD5Files[0] + "'")
                 errors += 1
@@ -252,7 +250,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
             try:
                 os.makedirs(dirVolume)
             except OSError or IOError:
-                logging.fatal("PPN " + carrier.IPIdentifier + ": cannot create '" + dirVolume + "'" )
+                logging.fatal("PPN " + carrier.PPN + ": cannot create '" + dirVolume + "'" )
                 errors += 1
                 errorExit(errors, warnings)
             
@@ -272,7 +270,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                     # Copy to volume dir
                     shutil.copy2(os.path.join(carrier.imagePathFull,fileName),fSIP)
                 except OSError:
-                    logging.fatal("PPN " + carrier.IPIdentifier + ": cannot copy '"\
+                    logging.fatal("PPN " + carrier.PPN + ": cannot copy '"\
                     + fileName + "' to '" + fSIP + "'")
                     errors += 1
                     errorExit(errors, warnings)
@@ -280,7 +278,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 # Calculate MD5 hash of copied file, and verify against known value
                 md5SumCalculated = generate_file_md5(fSIP)                               
                 if md5SumCalculated != md5Sum:
-                    logging.error("PPN " + carrier.IPIdentifier + ": checksum mismatch for file '" + \
+                    logging.error("PPN " + carrier.PPN + ": checksum mismatch for file '" + \
                     fSIP + "'")
                     errors += 1
                     
@@ -346,9 +344,8 @@ def createMODS(IP):
         "cd-audio" : "sound recording"
         }
 
-    IPIdentifier = IP.IPIdentifier
-    #PPNParent = IP.IPIdentifierParent
-    PPNParent = IPIdentifier
+    
+    PPN = IP.PPN
     carrierType = IP.carrierType
     
     # Create MODS element
@@ -356,7 +353,7 @@ def createMODS(IP):
     mods = etree.Element(modsName, nsmap = NSMAP)
                             
     # SRU search string (searches on dc:identifier field)
-    sruSearchString = '"PPN=' + PPNParent + '"'
+    sruSearchString = '"PPN=' + PPN + '"'
     response = sru.search(sruSearchString,"GGC")
     
     if response == False:
@@ -368,7 +365,7 @@ def createMODS(IP):
     # This should return exactly one record. Return error if this is not the case
     noGGCRecords = response.sru.nr_of_records
     if noGGCRecords != 1:
-        logging.error("PPN " + IPIdentifier + ": search for PPN=" + PPNParent + " returned " + \
+        logging.error("PPN " + PPN + ": search for PPN=" + PPNParent + " returned " + \
             str(noGGCRecords) + " catalogue records (expected 1)")
         errors += 1
     
@@ -460,7 +457,7 @@ def createMODS(IP):
 
     modsIdentifierPPN = etree.SubElement(modsRelatedItem, "{%s}identifier" %(mods_ns))
     modsIdentifierPPN.attrib["type"] = "ppn"
-    modsIdentifierPPN.text = PPNParent
+    modsIdentifierPPN.text = PPN
     
     # NOTE: GGC record contain 2 URI- type identifiers:
     # 1. dc:identifier with URI of form: http://resolver.kb.nl/resolve?urn=PPN:236599380 (OpenURL?)
