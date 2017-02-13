@@ -328,7 +328,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
     return(fileGrp, divDisc, sipFileCounter)             
                 
    
-def createMODS(IP):
+def createMODS(PPNGroup):
     # Create MODS metadata based on records in GGC
     # Dublin Core to MODS mapping follows http://www.loc.gov/standards/mods/dcsimple-mods.html
     # General structure: bibliographic md is wrapped in relatedItem / type = host element
@@ -343,10 +343,9 @@ def createMODS(IP):
         "dvd-video" : "moving image",
         "cd-audio" : "sound recording"
         }
-
     
-    PPN = IP.PPN
-    carrierType = IP.carrierType
+    PPN = PPNGroup.PPN
+    carrierType = PPNGroup.carrierType
     
     # Create MODS element
     modsName = etree.QName(mods_ns, "mods")
