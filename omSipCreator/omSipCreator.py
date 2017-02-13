@@ -374,7 +374,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
     noMD5Files = len(MD5Files)
     
     if noMD5Files != 1:
-        logging.error("PPN " + carrier.PPN + ": found " + str(noMD5Files) + " '.md5' files in directory '" \
+        logging.error("jobID " + carrier.jobID + ": found " + str(noMD5Files) + " '.md5' files in directory '" \
         + carrier.imagePathFull + "', expected 1")
         errors += 1
         # If we end up here, checksum file either does not exist, or it is ambiguous 
@@ -386,7 +386,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
     noOtherFiles = len(otherFiles)
     
     if noOtherFiles == 0:
-        logging.error("PPN " + carrier.PPN + ": found no files in directory '" \
+        logging.error("jobID " + carrier.jobID + ": found no files in directory '" \
         + carrier.imagePathFull)
         errors += 1
 
@@ -409,7 +409,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
             md5SumCalculated = generate_file_md5(fileNameWithPath)
                                    
             if md5SumCalculated != md5Sum:
-                logging.error("PPN " + carrier.PPN + ": checksum mismatch for file '" + \
+                logging.error("jobID " + carrier.jobID + ": checksum mismatch for file '" + \
                 fileNameWithPath + "'")
                 errors += 1
                 
@@ -423,7 +423,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
         for f in otherFiles:
             #print(f)
             if f not in allFilesinMD5:
-                logging.error("PPN " + carrier.PPN + ": file '" + f + \
+                logging.error("jobID " + carrier.jobID + ": file '" + f + \
                 "' not referenced in '" + \
                 MD5Files[0] + "'")
                 errors += 1
@@ -441,7 +441,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
             try:
                 os.makedirs(dirVolume)
             except OSError or IOError:
-                logging.fatal("PPN " + carrier.PPN + ": cannot create '" + dirVolume + "'" )
+                logging.fatal("jobID " + carrier.jobID + ": cannot create '" + dirVolume + "'" )
                 errors += 1
                 errorExit(errors, warnings)
             
@@ -461,7 +461,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                     # Copy to volume dir
                     shutil.copy2(os.path.join(carrier.imagePathFull,fileName),fSIP)
                 except OSError:
-                    logging.fatal("PPN " + carrier.PPN + ": cannot copy '"\
+                    logging.fatal("jobID " + carrier.jobID + ": cannot copy '"\
                     + fileName + "' to '" + fSIP + "'")
                     errors += 1
                     errorExit(errors, warnings)
@@ -469,7 +469,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 # Calculate MD5 hash of copied file, and verify against known value
                 md5SumCalculated = generate_file_md5(fSIP)                               
                 if md5SumCalculated != md5Sum:
-                    logging.error("PPN " + carrier.PPN + ": checksum mismatch for file '" + \
+                    logging.error("jobID " + carrier.jobID + ": checksum mismatch for file '" + \
                     fSIP + "'")
                     errors += 1
                     
