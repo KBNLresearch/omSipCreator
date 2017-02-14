@@ -989,7 +989,7 @@ def main():
         
         if os.path.isdir(batchPruned) == True:
         
-            out.write("This will overwrite existing directory '" + batchPruned + \
+            out.write("\nThis will overwrite existing directory '" + batchPruned + \
             "' and remove its contents!\nDo you really want to proceed (Y/N)? > ")
             response = input()
             
@@ -1000,10 +1000,13 @@ def main():
                     logging.fatal("cannot remove '" + batchPruned + "'" )
                     errors += 1
                     errorExit(errors, warnings)
+            else:
+                logging.error("exiting because user pressed 'N'")
+                errorExit(errors, warnings)
 
         if os.path.isdir(batchErr) == True:
         
-            out.write("This will overwrite existing directory '" + batchErr + \
+            out.write("\nThis will overwrite existing directory '" + batchErr + \
             "' and remove its contents!\nDo you really want to proceed (Y/N)? > ")
             response = input()
             
@@ -1014,6 +1017,9 @@ def main():
                     logging.fatal("cannot remove '" + batchErr + "'" )
                     errors += 1
                     errorExit(errors, warnings)
+            else:
+                logging.error("exiting because user pressed 'N'")
+                errorExit(errors, warnings)
         
         # Create batchPruned and batchErr directories         
 
@@ -1030,7 +1036,34 @@ def main():
             errors += 1
             errorExit(errors, warnings)
        
-       
+        # Add batch manifest to batchPruned and batchErr directories
+        batchManifestPruned = os.path.normpath(batchPruned + "/" + fileBatchManifest)
+        batchManifestErr = os.path.normpath(batchErr + "/" + fileBatchManifest)
+      
+        try:
+            if sys.version.startswith('3'):
+                # Py3: csv.reader expects file opened in text mode
+                fbatchManifestPruned = open(batchManifestPruned,"w")
+                fbatchManifestErr = open(batchManifestErr,"w")
+            elif sys.version.startswith('2'):
+                # Py2: csv.reader expects file opened in binary mode
+                fbatchManifestPruned = open(batchManifestPruned,"wb")
+                fbatchManifestErr = open(batchManifestErr,"wb")
+        except IOError:
+            logging.fatal("cannot write output batch(es)")
+            errors += 1
+            errorExit(errors, warnings)
+        
+        # Create CSV writer objects
+        csvPruned = csv.writer(fbatchManifestPruned)
+        csvErr = csv.writer(fbatchManifestErr)
+        
+        # Write header rows to batch manifests
+        csvPruned.writerow(headerBatchManifest)
+        csvErr.writerow(headerBatchManifest)
+        
+        fbatchManifestPruned.close()
+        fbatchManifestErr.close()
         
         
         
