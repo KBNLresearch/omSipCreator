@@ -163,6 +163,17 @@ def parseCommandLine():
                         action="store",
                         type=str,
                         help="input batch")
+    parser_prune = subparsers.add_parser('prune',
+                        help="verify input batch, and move all PPNs with errors to \
+                        a separate batch. Warning: this will modify batchIn!")
+    parser_prune.add_argument('batchIn',
+                        action="store",
+                        type=str,
+                        help="input batch")
+    parser_prune.add_argument('batchErr',
+                        action="store",
+                        type=str,
+                        help="name of batch that will contain all PPNs with errors")
     parser_write = subparsers.add_parser('write',
                         help="verify input batch and write SIPs. Before using 'write' first \
                         run the 'verify' command and fix any reported errors.")
@@ -793,6 +804,9 @@ def main():
     global createSIPs
     createSIPs = False
     
+    # Flag that indicates if prune option is used
+    pruneBatch = False
+    
     # Get input from command line
     args = parseCommandLine()
     action = args.subcommand
@@ -805,6 +819,10 @@ def main():
     if action == "write":
         dirOut = os.path.normpath(args.dirOut)
         createSIPs = True
+    elif action == "prune":
+        batchErr = os.path.normpath(args.batchErr)
+        dirOut = None
+        pruneBatch = True
     else:
         # Dummy value
         dirOut = None
