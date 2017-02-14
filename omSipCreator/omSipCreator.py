@@ -1062,6 +1062,17 @@ def main():
         csvPruned.writerow(headerBatchManifest)
         csvErr.writerow(headerBatchManifest)
         
+        # Iterate over all entries in batch manifest
+        
+        for row in rowsBatchManifest:
+            jobID = row[0]
+            PPN = row[1]
+            dirDisc = row[2]
+            print(PPN)
+        
+        
+        
+        
         fbatchManifestPruned.close()
         fbatchManifestErr.close()
         
