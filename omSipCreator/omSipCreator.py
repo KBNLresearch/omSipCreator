@@ -164,12 +164,17 @@ def parseCommandLine():
                         type=str,
                         help="input batch")
     parser_prune = subparsers.add_parser('prune',
-                        help="verify input batch, and move all PPNs with errors to \
-                        a separate batch. Warning: this will modify batchIn!")
+                        help="verify input batch, then write 'pruned' version of batch \
+                        that omits all PPNs that have errors. Write PPNs with errors to \
+                        a separate batch.")
     parser_prune.add_argument('batchIn',
                         action="store",
                         type=str,
                         help="input batch")
+    parser_prune.add_argument('batchPruned',
+                        action="store",
+                        type=str,
+                        help="name of 'pruned' (sanitised) output batch")
     parser_prune.add_argument('batchErr',
                         action="store",
                         type=str,
@@ -820,6 +825,7 @@ def main():
         dirOut = os.path.normpath(args.dirOut)
         createSIPs = True
     elif action == "prune":
+        batchPruned = os.path.normpath(args.batchPruned)
         batchErr = os.path.normpath(args.batchErr)
         dirOut = None
         pruneBatch = True
@@ -970,12 +976,66 @@ def main():
         + batchManifest + "'")
         errors += 1
         failedPPNs.append(PPN)
- 
-    # Summarise no. of warnings / errors
-    logging.info("OmSipCreator encountered " + str(errors) + " errors and " + str(warnings) + " warnings")
-      
+       
     # Get all unique values in failedPPNs by converting to a set (and then back to a list)
     failedPPNs = (list(set(failedPPNs)))
+    
+    if pruneBatch == True and failedPPNs != []:
+    
+        logging.info("Start pruning")
+        
+        # Check if batchPruned and batchErr are existing directories. If yes,
+        # prompt user to confirm that they will be overwritten
+        
+        if os.path.isdir(batchPruned) == True:
+        
+            out.write("This will overwrite existing directory '" + batchPruned + \
+            "' and remove its contents!\nDo you really want to proceed (Y/N)? > ")
+            response = input()
+            
+            if response.upper() == "Y":
+                try:
+                    shutil.rmtree(batchPruned)
+                except OSError:
+                    logging.fatal("cannot remove '" + batchPruned + "'" )
+                    errors += 1
+                    errorExit(errors, warnings)
+
+        if os.path.isdir(batchErr) == True:
+        
+            out.write("This will overwrite existing directory '" + batchErr + \
+            "' and remove its contents!\nDo you really want to proceed (Y/N)? > ")
+            response = input()
+            
+            if response.upper() == "Y":
+                try:
+                    shutil.rmtree(batchErr)
+                except OSError:
+                    logging.fatal("cannot remove '" + batchErr + "'" )
+                    errors += 1
+                    errorExit(errors, warnings)
+        
+        # Create batchPruned and batchErr directories         
+
+        try:
+            os.makedirs(batchPruned)
+        except OSError or IOError:
+            logging.fatal("Cannot create directory '" + batchPruned + "'" )
+            errors += 1
+            errorExit(errors, warnings)
+        try:
+            os.makedirs(batchErr)
+        except OSError or IOError:
+            logging.fatal("Cannot create directory '" + batchErr + "'" )
+            errors += 1
+            errorExit(errors, warnings)
+       
+       
+        
+        
+        
+    # Summarise no. of warnings / errors
+    logging.info("OmSipCreator encountered " + str(errors) + " errors and " + str(warnings) + " warnings")
     
 if __name__ == "__main__":
     main()
