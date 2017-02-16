@@ -171,10 +171,6 @@ def parseCommandLine():
                         action="store",
                         type=str,
                         help="input batch")
-    parser_prune.add_argument('batchPruned',
-                        action="store",
-                        type=str,
-                        help="name of 'pruned' (sanitised) output batch")
     parser_prune.add_argument('batchErr',
                         action="store",
                         type=str,
@@ -825,7 +821,6 @@ def main():
         dirOut = os.path.normpath(args.dirOut)
         createSIPs = True
     elif action == "prune":
-        batchPruned = os.path.normpath(args.batchPruned)
         batchErr = os.path.normpath(args.batchErr)
         dirOut = None
         pruneBatch = True
@@ -869,7 +864,7 @@ def main():
         elif sys.version.startswith('2'):
             # Py2: csv.reader expects file opened in binary mode
             fBatchManifest = open(batchManifest,"rb")
-        batchManifestCSV = csv.reader(fBatchManifest)
+        batchManifestCSV = csv.reader(fBatchManifest, lineterminator='\n')
         headerBatchManifest = next(batchManifestCSV)
         rowsBatchManifest = [row for row in batchManifestCSV]
         fBatchManifest.close()
@@ -976,7 +971,10 @@ def main():
         + batchManifest + "'")
         errors += 1
         failedPPNs.append(PPN)
-       
+
+    # Summarise no. of warnings / errors
+    logging.info("Verify / write resulted in " + str(errors) + " errors and " + str(warnings) + " warnings")        
+   
     # Get all unique values in failedPPNs by converting to a set (and then back to a list)
     failedPPNs = (list(set(failedPPNs)))
     
@@ -984,26 +982,9 @@ def main():
     
         logging.info("Start pruning")
         
-        # Check if batchPruned and batchErr are existing directories. If yes,
-        # prompt user to confirm that they will be overwritten
+        # Check if batchErr is an existing directory. If yes,
+        # prompt user to confirm that it will be overwritten
         
-        if os.path.isdir(batchPruned) == True:
-        
-            out.write("\nThis will overwrite existing directory '" + batchPruned + \
-            "' and remove its contents!\nDo you really want to proceed (Y/N)? > ")
-            response = input()
-            
-            if response.upper() == "Y":
-                try:
-                    shutil.rmtree(batchPruned)
-                except OSError:
-                    logging.fatal("cannot remove '" + batchPruned + "'" )
-                    errors += 1
-                    errorExit(errors, warnings)
-            else:
-                logging.error("exiting because user pressed 'N'")
-                errorExit(errors, warnings)
-
         if os.path.isdir(batchErr) == True:
         
             out.write("\nThis will overwrite existing directory '" + batchErr + \
@@ -1021,14 +1002,8 @@ def main():
                 logging.error("exiting because user pressed 'N'")
                 errorExit(errors, warnings)
         
-        # Create batchPruned and batchErr directories         
+        # Create batchErr directory         
 
-        try:
-            os.makedirs(batchPruned)
-        except OSError or IOError:
-            logging.fatal("Cannot create directory '" + batchPruned + "'" )
-            errors += 1
-            errorExit(errors, warnings)
         try:
             os.makedirs(batchErr)
         except OSError or IOError:
@@ -1036,30 +1011,25 @@ def main():
             errors += 1
             errorExit(errors, warnings)
        
-        # Add batch manifest to batchPruned and batchErr directories
-        batchManifestPruned = os.path.normpath(batchPruned + "/" + fileBatchManifest)
+        # Add batch manifest to batchErr directory
         batchManifestErr = os.path.normpath(batchErr + "/" + fileBatchManifest)
       
         try:
             if sys.version.startswith('3'):
                 # Py3: csv.reader expects file opened in text mode
-                fbatchManifestPruned = open(batchManifestPruned,"w")
                 fbatchManifestErr = open(batchManifestErr,"w")
             elif sys.version.startswith('2'):
                 # Py2: csv.reader expects file opened in binary mode
-                fbatchManifestPruned = open(batchManifestPruned,"wb")
                 fbatchManifestErr = open(batchManifestErr,"wb")
         except IOError:
-            logging.fatal("cannot write output batch(es)")
+            logging.fatal("cannot write " + fbatchManifestErr)
             errors += 1
             errorExit(errors, warnings)
         
-        # Create CSV writer objects
-        csvPruned = csv.writer(fbatchManifestPruned)
-        csvErr = csv.writer(fbatchManifestErr)
+        # Create CSV writer object
+        csvErr = csv.writer(fbatchManifestErr, lineterminator='\n')
         
-        # Write header rows to batch manifests
-        csvPruned.writerow(headerBatchManifest)
+        # Write header rows to batch manifest
         csvErr.writerow(headerBatchManifest)
         
         # Iterate over all entries in batch manifest
@@ -1068,12 +1038,113 @@ def main():
             jobID = row[0]
             PPN = row[1]
             dirDisc = row[2]
-            print(PPN)
+            
+            if PPN in failedPPNs:
+                # If PPN is in list of failed PPNs then add record to error batch
+                
+                # Default state of flag that is set to "True" if checksums are missing 
+                skipChecksumVerification = False
+                
+                # Image path for this jobID in input, pruned and error batch
+                imagePathIn = os.path.normpath(os.path.join(batchIn, dirDisc))
+                imagePathErr = os.path.normpath(os.path.join(batchErr, dirDisc))
+                
+                imagePathInAbs = os.path.abspath(imagePathIn)
+                imagePathErrAbs = os.path.abspath(imagePathErr)
+                
+                # Create directory in error batch
+                try:
+                    os.makedirs(imagePathErrAbs)
+                except OSError or IOError:
+                    logging.warning("jobID " + jobID + ": could not create directory '" \
+                    + imagePathErrAbs)
+                    
+                # All files in directory
+                allFiles = glob.glob(imagePathInAbs + "/*")
+                           
+                # Find MD5 files (by extension)
+                MD5Files = [i for i in allFiles if i.endswith('.md5')]
+                  
+                # Number of MD5 files must be exactly 1
+                noMD5Files = len(MD5Files)
+                
+                if noMD5Files != 1:
+                    logging.warning("jobID " + jobID + ": found " + str(noMD5Files) + " '.md5' files in directory '" \
+                    + imagePathInAbs + "', expected 1")
+                    # If we end up here, checksum file either does not exist, or it is ambiguous 
+                    # which file should be used. No point in doing the checksum verification in that case.  
+                    skipChecksumVerification = True
+
+                # Any other files (ISOs, audio files)
+                otherFiles = [i for i in allFiles if not i.endswith('.md5')]
+                noOtherFiles = len(otherFiles)
+                
+                if noOtherFiles == 0:
+                    logging.warning("jobID " + jobID + ": found no files in directory '" \
+                    + imagePathInAbs)
+
+                if skipChecksumVerification == False:
+                    # Read contents of checksum file to list
+                    MD5FromFile = readMD5(MD5Files[0])
+                                    
+                    # List which to store names of all files that are referenced in the MD5 file
+                    allFilesinMD5 = []
+                    for entry in MD5FromFile:
+                        md5Sum = entry[0]
+                        fileName = entry[1] # Raises IndexError if entry only 1 col (malformed MD5 file)!
+                        # Normalise file path relative to imagePath
+                        fileNameWithPath = os.path.normpath(imagePathInAbs + "/" + fileName)
+                        
+                        # Calculate MD5 hash of actual file
+                        md5SumCalculated = generate_file_md5(fileNameWithPath)
+                                               
+                        if md5SumCalculated != md5Sum:
+                            logging.warning("jobID " + carrier.jobID + ": checksum mismatch for file '" + \
+                            fileNameWithPath + "'")
+                                                    
+                        # Append file name to list 
+                        allFilesinMD5.append(fileNameWithPath)
+                                                         
+                    # Copy files to SIP Volume directory
+                    logging.info("Copying files to error batch")
+                    
+                    # Get file names from MD5 file, as this is the easiest way to make
+                    # post-copy checksum verification work.
+                    for entry in MD5FromFile:
+                        md5Sum = entry[0]
+                        fileName = entry[1]
+                        # Construct paths relative to input and error batch directories
+                        fIn = os.path.join(imagePathInAbs,fileName)
+                        fErr = os.path.join(imagePathErrAbs,fileName)
+                        try:
+                            # Copy to error batch
+                            shutil.copy2(fIn,fErr)
+                        except OSError:
+                            raise
+                            logging.warning("jobID " + jobID + ": cannot copy '"\
+                            + fIn + "' to '" + fErr + "'")
+                    
+                        # Calculate MD5 hash of copied file, and verify against known value
+                        try:
+                            md5SumCalculated = generate_file_md5(fErr)                               
+                            if md5SumCalculated != md5Sum:
+                                logging.warning("jobID " + jobID + ": checksum mismatch for file '" + \
+                                fErr + "'")
+                        except IOError:
+                            logging.warning("jobID " + jobID + ": cannot compute checksum for '"\
+                            + fErr + "'")
+                            
+                            
+                
+                # Write row to error batch manifest
+                csvErr.writerow(row)
+                
+                # Remove directory from input batch
+                try:
+                    shutil.rmtree(imagePathInAbs)
+                except OSError:
+                    logging.error("cannot remove '" + imagePathInAbs + "'" )                   
         
-        
-        
-        
-        fbatchManifestPruned.close()
         fbatchManifestErr.close()
         
         
