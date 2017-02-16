@@ -847,7 +847,7 @@ def main():
     dirsInMetaCarriers = [] 
     
     # Check if batch manifest exists
-    batchManifest = os.path.normpath(batchIn + "/" + fileBatchManifest)
+    batchManifest = os.path.join(batchIn, fileBatchManifest)
     if os.path.isfile(batchManifest) == False:
         logging.fatal("file " + batchManifest + " does not exist")
         errors += 1
@@ -1012,25 +1012,33 @@ def main():
             errorExit(errors, warnings)
        
         # Add batch manifest to batchErr directory
-        batchManifestErr = os.path.normpath(batchErr + "/" + fileBatchManifest)
+        batchManifestErr = os.path.join(batchErr, fileBatchManifest)
+                
+        # Add temporary (updated) batch manifest to batchIn
+        fileBatchManifestTemp = "tmp.csv"
+        batchManifestTemp = os.path.join(batchIn, fileBatchManifestTemp)
       
         try:
             if sys.version.startswith('3'):
                 # Py3: csv.reader expects file opened in text mode
                 fbatchManifestErr = open(batchManifestErr,"w")
+                fbatchManifestTemp = open(batchManifestTemp,"w")
             elif sys.version.startswith('2'):
                 # Py2: csv.reader expects file opened in binary mode
                 fbatchManifestErr = open(batchManifestErr,"wb")
+                fbatchManifestTemp = open(batchManifestTemp,"wb")
         except IOError:
-            logging.fatal("cannot write " + fbatchManifestErr)
+            logging.fatal("cannot write batch manifest")
             errors += 1
             errorExit(errors, warnings)
         
-        # Create CSV writer object
+        # Create CSV writer objects
         csvErr = csv.writer(fbatchManifestErr, lineterminator='\n')
-        
-        # Write header rows to batch manifest
+        csvTemp = csv.writer(fbatchManifestTemp, lineterminator='\n')
+
+        # Write header rows to batch manifests
         csvErr.writerow(headerBatchManifest)
+        csvTemp.writerow(headerBatchManifest)
         
         # Iterate over all entries in batch manifest
         
@@ -1105,7 +1113,7 @@ def main():
                         # Append file name to list 
                         allFilesinMD5.append(fileNameWithPath)
                                                          
-                    # Copy files to SIP Volume directory
+                    # Copy files to error batch
                     logging.info("Copying files to error batch")
                     
                     # Get file names from MD5 file, as this is the easiest way to make
@@ -1134,8 +1142,6 @@ def main():
                             logging.warning("jobID " + jobID + ": cannot compute checksum for '"\
                             + fErr + "'")
                             
-                            
-                
                 # Write row to error batch manifest
                 csvErr.writerow(row)
                 
@@ -1144,13 +1150,24 @@ def main():
                     shutil.rmtree(imagePathInAbs)
                 except OSError:
                     logging.error("cannot remove '" + imagePathInAbs + "'" )                   
+            else:
+                # Write row to temp batch manifest
+                csvTemp.writerow(row)
         
         fbatchManifestErr.close()
+        fbatchManifestTemp.close()
         
+        # Rename original batchManifest to '.old' extension
+        thisFile = "mysequence.fasta"
+        fileBatchManifestOld = os.path.splitext(fileBatchManifest)[0] + ".old"       
+        batchManifestOld = os.path.join(batchIn, fileBatchManifestOld)
+        os.rename(batchManifest, batchManifestOld)
         
+        # Rename batchManifestTemp to batchManifest
+        os.rename(batchManifestTemp, batchManifest)
         
-    # Summarise no. of warnings / errors
-    logging.info("OmSipCreator encountered " + str(errors) + " errors and " + str(warnings) + " warnings")
+    # Summarise no. of warnings / errors during pruning
+    # logging.info("OmSipCreator encountered " + str(errors) + " errors and " + str(warnings) + " warnings")
     
 if __name__ == "__main__":
     main()
