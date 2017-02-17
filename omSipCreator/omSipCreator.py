@@ -974,7 +974,12 @@ def main():
         failedPPNs.append(PPN)
 
     # Summarise no. of warnings / errors
-    logging.info("Verify / write resulted in " + str(errors) + " errors and " + str(warnings) + " warnings")        
+    logging.info("Verify / write resulted in " + str(errors) + " errors and " + str(warnings) + " warnings")
+
+    # Reset warnings/errors
+    errors = 0
+    warnings = 0
+    
    
     # Get all unique values in failedPPNs by converting to a set (and then back to a list)
     failedPPNs = (list(set(failedPPNs)))
@@ -1061,96 +1066,107 @@ def main():
                 imagePathInAbs = os.path.abspath(imagePathIn)
                 imagePathErrAbs = os.path.abspath(imagePathErr)
                 
-                # Create directory in error batch
-                try:
-                    os.makedirs(imagePathErrAbs)
-                except OSError or IOError:
-                    logging.warning("jobID " + jobID + ": could not create directory '" \
-                    + imagePathErrAbs)
-                    
-                # All files in directory
-                allFiles = glob.glob(imagePathInAbs + "/*")
-                           
-                # Find MD5 files (by extension)
-                MD5Files = [i for i in allFiles if i.endswith('.md5')]
-                  
-                # Number of MD5 files must be exactly 1
-                noMD5Files = len(MD5Files)
+                if os.path.isdir(imagePathInAbs) == True:
                 
-                if noMD5Files != 1:
-                    logging.warning("jobID " + jobID + ": found " + str(noMD5Files) + " '.md5' files in directory '" \
-                    + imagePathInAbs + "', expected 1")
-                    # If we end up here, checksum file either does not exist, or it is ambiguous 
-                    # which file should be used. No point in doing the checksum verification in that case.  
-                    skipChecksumVerification = True
-
-                # Any other files (ISOs, audio files)
-                otherFiles = [i for i in allFiles if not i.endswith('.md5')]
-                noOtherFiles = len(otherFiles)
-                
-                if noOtherFiles == 0:
-                    logging.warning("jobID " + jobID + ": found no files in directory '" \
-                    + imagePathInAbs)
-
-                if skipChecksumVerification == False:
-                    # Read contents of checksum file to list
-                    MD5FromFile = readMD5(MD5Files[0])
-                                    
-                    # List which to store names of all files that are referenced in the MD5 file
-                    allFilesinMD5 = []
-                    for entry in MD5FromFile:
-                        md5Sum = entry[0]
-                        fileName = entry[1] # Raises IndexError if entry only 1 col (malformed MD5 file)!
-                        # Normalise file path relative to imagePath
-                        fileNameWithPath = os.path.normpath(imagePathInAbs + "/" + fileName)
+                    # Create directory in error batch
+                    try:
+                        os.makedirs(imagePathErrAbs)
+                    except OSError or IOError:
+                        logging.warning("jobID " + jobID + ": could not create directory '" \
+                        + imagePathErrAbs)
+                        warnings += 1
                         
-                        # Calculate MD5 hash of actual file
-                        md5SumCalculated = generate_file_md5(fileNameWithPath)
-                                               
-                        if md5SumCalculated != md5Sum:
-                            logging.warning("jobID " + carrier.jobID + ": checksum mismatch for file '" + \
-                            fileNameWithPath + "'")
-                                                    
-                        # Append file name to list 
-                        allFilesinMD5.append(fileNameWithPath)
-                                                         
-                    # Copy files to error batch
-                    logging.info("Copying files to error batch")
+                    # All files in directory
+                    allFiles = glob.glob(imagePathInAbs + "/*")
+                               
+                    # Find MD5 files (by extension)
+                    MD5Files = [i for i in allFiles if i.endswith('.md5')]
+                      
+                    # Number of MD5 files must be exactly 1
+                    noMD5Files = len(MD5Files)
                     
-                    # Get file names from MD5 file, as this is the easiest way to make
-                    # post-copy checksum verification work.
-                    for entry in MD5FromFile:
-                        md5Sum = entry[0]
-                        fileName = entry[1]
-                        # Construct paths relative to input and error batch directories
-                        fIn = os.path.join(imagePathInAbs,fileName)
-                        fErr = os.path.join(imagePathErrAbs,fileName)
-                        try:
-                            # Copy to error batch
-                            shutil.copy2(fIn,fErr)
-                        except OSError:
-                            raise
-                            logging.warning("jobID " + jobID + ": cannot copy '"\
-                            + fIn + "' to '" + fErr + "'")
+                    if noMD5Files != 1:
+                        logging.warning("jobID " + jobID + ": found " + str(noMD5Files) + " '.md5' files in directory '" \
+                        + imagePathInAbs + "', expected 1")
+                        warnings += 1
+                        # If we end up here, checksum file either does not exist, or it is ambiguous 
+                        # which file should be used. No point in doing the checksum verification in that case.  
+                        skipChecksumVerification = True
+
+                    # Any other files (ISOs, audio files)
+                    otherFiles = [i for i in allFiles if not i.endswith('.md5')]
+                    noOtherFiles = len(otherFiles)
                     
-                        # Calculate MD5 hash of copied file, and verify against known value
-                        try:
-                            md5SumCalculated = generate_file_md5(fErr)                               
-                            if md5SumCalculated != md5Sum:
-                                logging.warning("jobID " + jobID + ": checksum mismatch for file '" + \
-                                fErr + "'")
-                        except IOError:
-                            logging.warning("jobID " + jobID + ": cannot compute checksum for '"\
-                            + fErr + "'")
+                    if noOtherFiles == 0:
+                        logging.warning("jobID " + jobID + ": found no files in directory '" \
+                        + imagePathInAbs)
+                        warnings += 1
+
+                    if skipChecksumVerification == False:
+                        # Read contents of checksum file to list
+                        MD5FromFile = readMD5(MD5Files[0])
+                                        
+                        # List which to store names of all files that are referenced in the MD5 file
+                        allFilesinMD5 = []
+                        for entry in MD5FromFile:
+                            md5Sum = entry[0]
+                            fileName = entry[1] # Raises IndexError if entry only 1 col (malformed MD5 file)!
+                            # Normalise file path relative to imagePath
+                            fileNameWithPath = os.path.normpath(imagePathInAbs + "/" + fileName)
                             
+                            # Calculate MD5 hash of actual file
+                            md5SumCalculated = generate_file_md5(fileNameWithPath)
+                                                   
+                            if md5SumCalculated != md5Sum:
+                                logging.warning("jobID " + carrier.jobID + ": checksum mismatch for file '" + \
+                                fileNameWithPath + "'")
+                                warnings += 1
+                                                        
+                            # Append file name to list 
+                            allFilesinMD5.append(fileNameWithPath)
+                                                             
+                        # Copy files to error batch
+                        logging.info("Copying files to error batch")
+                        
+                        # Get file names from MD5 file, as this is the easiest way to make
+                        # post-copy checksum verification work.
+                        for entry in MD5FromFile:
+                            md5Sum = entry[0]
+                            fileName = entry[1]
+                            # Construct paths relative to input and error batch directories
+                            fIn = os.path.join(imagePathInAbs,fileName)
+                            fErr = os.path.join(imagePathErrAbs,fileName)
+                            try:
+                                # Copy to error batch
+                                shutil.copy2(fIn,fErr)
+                            except OSError:
+                                logging.warning("jobID " + jobID + ": cannot copy '"\
+                                + fIn + "' to '" + fErr + "'")
+                                warnings += 1
+                        
+                            # Calculate MD5 hash of copied file, and verify against known value
+                            try:
+                                md5SumCalculated = generate_file_md5(fErr)                               
+                                if md5SumCalculated != md5Sum:
+                                    logging.warning("jobID " + jobID + ": checksum mismatch for file '" + \
+                                    fErr + "'")
+                                    warnings += 1
+                            except IOError:
+                                logging.warning("jobID " + jobID + ": cannot compute checksum for '"\
+                                + fErr + "'")
+                                warnings += 1
+                                
                 # Write row to error batch manifest
                 csvErr.writerow(row)
                 
                 # Remove directory from input batch
-                try:
-                    shutil.rmtree(imagePathInAbs)
-                except OSError:
-                    logging.error("cannot remove '" + imagePathInAbs + "'" )                   
+                
+                if os.path.isdir(imagePathInAbs) == True:
+                    try:
+                        shutil.rmtree(imagePathInAbs)
+                    except OSError:
+                        logging.error("cannot remove '" + imagePathInAbs + "'" )
+                        errors += 1
             else:
                 # Write row to temp batch manifest
                 csvTemp.writerow(row)
@@ -1166,8 +1182,8 @@ def main():
         # Rename batchManifestTemp to batchManifest
         os.rename(batchManifestTemp, batchManifest)
         
-    # Summarise no. of additional warnings / errors during pruning
-    # logging.info("OmSipCreator encountered " + str(errors) + " errors and " + str(warnings) + " warnings")
+        # Summarise no. of additional warnings / errors during pruning
+        logging.info("Pruning resulted in additional " + str(errors) + " errors and " + str(warnings) + " warnings")
     
 if __name__ == "__main__":
     main()
