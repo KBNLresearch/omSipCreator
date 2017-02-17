@@ -40,7 +40,7 @@ scriptPath, scriptName = os.path.split(sys.argv[0])
 if len(scriptName) == 0:
     scriptName = 'omsipcreator'
 
-__version__ = "0.2.1"
+__version__ = "0.3.0"
 
 # Create parser
 parser = argparse.ArgumentParser(
@@ -745,6 +745,7 @@ def main():
         
     # Batch manifest file - basic capture-level metadata about carriers
     fileBatchManifest = "manifest.csv"
+    fileBatchLog = "batch.log"
 
     # Header values of mandatory columns in batch manifest
     requiredColsBatchManifest = ['jobID',
@@ -980,7 +981,6 @@ def main():
     errors = 0
     warnings = 0
     
-   
     # Get all unique values in failedPPNs by converting to a set (and then back to a list)
     failedPPNs = (list(set(failedPPNs)))
         
@@ -1157,11 +1157,13 @@ def main():
                                 warnings += 1
                                 
                 # Write row to error batch manifest
+                logging.info("Writing batch manifest entry (batchErr)")
                 csvErr.writerow(row)
                 
                 # Remove directory from input batch
                 
                 if os.path.isdir(imagePathInAbs) == True:
+                    logging.info("Removing  directory '" + imagePathInAbs + "' from batchIn")
                     try:
                         shutil.rmtree(imagePathInAbs)
                     except OSError:
@@ -1169,6 +1171,7 @@ def main():
                         errors += 1
             else:
                 # Write row to temp batch manifest
+                logging.info("Writing batch manifest entry (batchIn)")
                 csvTemp.writerow(row)
         
         fbatchManifestErr.close()
@@ -1181,6 +1184,13 @@ def main():
         
         # Rename batchManifestTemp to batchManifest
         os.rename(batchManifestTemp, batchManifest)
+        
+        logging.info("Saved old batch manifest in batchIn as '" + fileBatchManifestOld + "'")
+        
+        # Copy batch log to error batch
+        batchLogIn = os.path.join(batchIn, fileBatchLog)
+        batchLogErr = os.path.join(batchErr, fileBatchLog)
+        shutil.copy2(batchLogIn,batchLogErr)
         
         # Summarise no. of additional warnings / errors during pruning
         logging.info("Pruning resulted in additional " + str(errors) + " errors and " + str(warnings) + " warnings")
