@@ -135,13 +135,13 @@ def generate_file_md5(fileIn):
             m.update(buf)
     return m.hexdigest()
 
-def generate_file_sha512(fileIn):
-    # Generate sha512 hash of file
+def generate_file_sha256(fileIn):
+    # Generate sha256 hash of file
     # fileIn is read in chunks to ensure it will work with (very) large files as well
     # Adapted from: http://stackoverflow.com/a/1131255/1209004
 
     blocksize = 2**20
-    m = hashlib.sha512()
+    m = hashlib.sha256()
     with open(fileIn, "rb") as f:
         while True:
             buf = f.read(blocksize)
@@ -503,8 +503,8 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                     errors += 1
                     failedPPNs.append(carrier.PPN)
                     
-                # Calculate Sha512 checksum
-                sha512Sum = generate_file_sha512(fSIP)
+                # Calculate Sha256 checksum
+                sha256Sum = generate_file_sha256(fSIP)
                
                 # Create METS file and FLocat elements
                 fileElt = etree.SubElement(fileGrp, "{%s}file" %(mets_ns))
@@ -528,8 +528,8 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 fileElt.attrib["MIMETYPE"] = mimeType
                 #fileElt.attrib["CHECKSUM"] = md5Sum
                 #fileElt.attrib["CHECKSUMTYPE"] = "MD5"
-                fileElt.attrib["CHECKSUM"] = sha512Sum
-                fileElt.attrib["CHECKSUMTYPE"] = "SHA-512"
+                fileElt.attrib["CHECKSUM"] = sha256Sum
+                fileElt.attrib["CHECKSUMTYPE"] = "SHA-256"
                 
                 # TODO: check if mimeType values matches carrierType (e.g. no audio/x-wav if cd-rom, etc.)
                                 
