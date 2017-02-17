@@ -1,7 +1,7 @@
 
 ## About
 
-OmSipCreator is a tool for converting batches of disk images (e.g. ISO 9660 CD-ROM images, raw floppy disk images, but also ripped audio files)  into SIPs that are ready for ingest in an archival system. This includes automatic generation of METS metadata files with structural and bibliographic metadata. Bibliographic metadata are extracted from the KB general catalogue (GGC), and converted to MODS format. OmSipCreator also performs various quality checks on the input batches.
+OmSipCreator is a tool for converting batches of disk images (e.g. ISO 9660 CD-ROM images, raw floppy disk images, but also ripped audio files)  into SIPs that are ready for ingest in an archival system. This includes automatic generation of METS metadata files with structural and bibliographic metadata. Bibliographic metadata are extracted from the KB general catalogue (GGC), and converted to MODS format. OmSipCreator also performs various quality checks on the input batches. Finally, it can be used to remove erroneous entries from a batch. 
 
 ## Notes and warnings
 
@@ -11,21 +11,32 @@ Also, the (bibliographic) metadata component is specific to the situation and in
 
 ## Dependencies
 
-You'll need [lxml](http://lxml.de/) to run this software. Currently the software only works under Python 2.7.x; future versions are expected to be fully compatible with Python 3.x. 
+OmSipCreator was developed and tested under Python 3.6. It may (but is not guaranteed to) work under Python 2.7 as well.
+
+## Installation
+
+The recommended way to install omSipCreator is to use [pip](https://en.wikipedia.org/wiki/Pip_(package_manager)). The following command will install omSipCreator and its dependencies: 
+
+    pip install omSipCreator
+
 
 ## Usage
 
-You can tell OmSipCreator what to do using either the *verify*  or *write* subcommands. 
+OmSipCreator has three sub-commands:
+
+* *verify* - verifies a batch without writing any output
+* *write* - transforms the contents  of a batch into ingest-ready [SIPs](http://www.iasa-web.org/tc04/submission-information-package-sip)
+* *prune* - creates a sanitised version of a batch with errors. For each carrier in a bath that has errors, it will copy the data of all carriers that belong to its respective PPN to an 'error batch'. The carriers are subsequently removed from the input batch (including the batch manifest). After this operation the input batch will be error-free (and ready for further processing with the *write* subcommand).
 
 ### Verify a batch without writing any SIPs
 
-    python omSipCreator.py verify batchIn
+    omSipCreator verify batchIn
 
 Here *batchIn* is the batch directory.
 
 ### Verify a batch and write SIPs
  
-    python omSipCreator.py write batchIn dirOut
+    omSipCreator write batchIn dirOut
 
 Here *dirOut* is the directory where the SIPs will be created. If *dirOut* is an existing directory, *all* of its contents will be overwritten! OmSipCreator will prompt you for confirmation if this happens:
 
@@ -66,7 +77,7 @@ Each carrier directory contains:
 
         checksum filename
 
-    Both fields are separated by 1 or more spaces. the *filename* field should not include any file path information. Here's an example:
+    Both fields are separated by 1 or more spaces. the *filename* field must not include any file path information. Here's an example:
     
         67dfc7f5b63df9cd4c6add729fa407fe  track01.cdda.wav
         27f898419a912d5327188ccf2ad7ccce  track02.cdda.wav
@@ -76,7 +87,7 @@ Each carrier directory contains:
 
 The batch manifest is a comma-delimited text file with the name *manifest.csv*. The first line is a header line: 
 
-    jobID,PPN,dirDisc,volumeNo,carrierType
+    jobID,PPN,dirDisc,volumeNo,carrierType,title,volumeID,success
     
 Each of the remaining lines represents one carrier, for which it contains the following fields:
 
@@ -89,14 +100,19 @@ Each of the remaining lines represents one carrier, for which it contains the fo
     - dvd-rom
     - cd-audio
     - dvd-video
+6. *title* - text string with the title of the carrier (or the publication is is part of). Not used by omSipCreator.
+7. *volumeID* - text string, extracted from Primary Volume descriptor, empty if cd-audio. Not used by omSipCreator.
+8. *success* - True/False flag that indicates status of *iromlab*'s imaging process. 
+
+<!-- TODO update from here -->
 
 Below is a simple example of manifest file:
 
-    jobID,PPN,dirDisc,volumeNo,carrierType
-    1,121274306,./s01d01/,1,cd-audio
-    2,155658050,./s01d02/,1,cd-rom
-    3,236599380,./s01d03/,1,cd-rom
-    2,155658050,./s01d04/,2,cd-rom
+    jobID,PPN,dirDisc,volumeNo,carrierType,title,volumeID,success
+    1,121274306,./s01d01/,1,cd-audio,(Bijna) alles over bestandsformaten,Handbook,True
+    2,155658050,./s01d02/,1,cd-rom,
+    3,236599380,./s01d03/,1,cd-rom,
+    2,155658050,./s01d04/,2,cd-rom,
 
 In the above example the second and fourth carriers are both part of a 2-volume item. Consequently the *PPN* values of both carriers are identical.
 
