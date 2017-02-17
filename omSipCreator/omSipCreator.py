@@ -864,7 +864,8 @@ def main():
         elif sys.version.startswith('2'):
             # Py2: csv.reader expects file opened in binary mode
             fBatchManifest = open(batchManifest,"rb")
-        batchManifestCSV = csv.reader(fBatchManifest, lineterminator='\n')
+        #batchManifestCSV = csv.reader(fBatchManifest, lineterminator='\n')
+        batchManifestCSV = csv.reader(fBatchManifest)
         headerBatchManifest = next(batchManifestCSV)
         rowsBatchManifest = [row for row in batchManifestCSV]
         fBatchManifest.close()
@@ -946,7 +947,7 @@ def main():
 
     # Sort rows by PPN
     rowsBatchManifest.sort(key=itemgetter(1))
-    
+        
     # Group by PPN
     metaCarriersByPPN = groupby(rowsBatchManifest, itemgetter(1))
     
@@ -977,7 +978,7 @@ def main():
    
     # Get all unique values in failedPPNs by converting to a set (and then back to a list)
     failedPPNs = (list(set(failedPPNs)))
-    
+        
     if pruneBatch == True and failedPPNs != []:
     
         logging.info("Start pruning")
@@ -1158,7 +1159,6 @@ def main():
         fbatchManifestTemp.close()
         
         # Rename original batchManifest to '.old' extension
-        thisFile = "mysequence.fasta"
         fileBatchManifestOld = os.path.splitext(fileBatchManifest)[0] + ".old"       
         batchManifestOld = os.path.join(batchIn, fileBatchManifestOld)
         os.rename(batchManifest, batchManifestOld)
@@ -1166,7 +1166,7 @@ def main():
         # Rename batchManifestTemp to batchManifest
         os.rename(batchManifestTemp, batchManifest)
         
-    # Summarise no. of warnings / errors during pruning
+    # Summarise no. of additional warnings / errors during pruning
     # logging.info("OmSipCreator encountered " + str(errors) + " errors and " + str(warnings) + " warnings")
     
 if __name__ == "__main__":
