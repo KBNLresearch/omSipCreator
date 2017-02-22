@@ -235,14 +235,14 @@ When run in either *verify* or *write* mode, omSipCreator performs a number chec
 - Does the batch manifest exist?
 - Can the batch manifest be opened and is it parsable?
 - Does the batch manifest contain exactly 1 instance of each mandatory column?
-- Does each *imagePath* entry point to an existing directory?
+- Does each *dirDisc* entry point to an existing directory?
 - Is each *volumeNumber* entry an integer value?
 - Is each *carrierType* entry a permitted value (check against controlled vocabulary)?
-- Are all values of *imagePath* within the batch manifest unique (no duplicate values)?
+- Are all values of *dirDisc* within the batch manifest unique (no duplicate values)?
 - Are all instances of *volumeNumber* within each *carrierType* group unique?
-- Are all directories within the batch referenced in the batch manifest (by way of *imagePath*)?
-- Does each carrier directory (i.e. *imagePath*) contain exactly 1 MD5 checksum file (identified by *.md5* file extension)?
-- Does each carrier directory (i.e. *imagePath*) contain any files?
+- Are all directories within the batch referenced in the batch manifest (by way of *dirDisc*)?
+- Does each carrier directory (i.e. *dirDisc*) contain exactly 1 MD5 checksum file (identified by *.md5* file extension)?
+- Does each carrier directory (i.e. *dirDisc*) contain any files?
 - For each entry in the checksum file, is the MD5 checksum identical to the re-calculated checksum for that file?
 - Does a carrier directory contain any files that are not referenced in the checksum file?
 - Does a search for *PPN* in the GGC catalogue result in exactly 1 matching record? 
