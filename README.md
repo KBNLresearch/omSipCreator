@@ -104,7 +104,7 @@ Each carrier directory contains:
 
 The batch manifest is a comma-delimited text file with the name *manifest.csv*. The first line is a header line: 
 
-    jobID,PPN,dirDisc,volumeNo,carrierType,title,volumeID,success
+    jobID,PPN,dirDisc,volumeNo,carrierType,title,volumeID,success,containsAudio,containsData
     
 Each of the remaining lines represents one carrier, for which it contains the following fields:
 
@@ -238,6 +238,8 @@ When run in either *verify* or *write* mode, omSipCreator performs a number chec
 - Does each *dirDisc* entry point to an existing directory?
 - Is each *volumeNumber* entry an integer value?
 - Is each *carrierType* entry a permitted value (check against controlled vocabulary)?
+- Is each *carrierType* entry consistent with the values of *containsAudio* and *containsData*?
+- Is the value of the *success* flag 'True'? 
 - Are all values of *dirDisc* within the batch manifest unique (no duplicate values)?
 - Are all instances of *volumeNumber* within each *carrierType* group unique?
 - Are all directories within the batch referenced in the batch manifest (by way of *dirDisc*)?
