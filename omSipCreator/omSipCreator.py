@@ -619,6 +619,8 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
             title = carrier[colsBatchManifest["title"]]
             volumeID = carrier[colsBatchManifest["volumeID"]]
             success = carrier[colsBatchManifest["success"]]
+            containsAudio = carrier[colsBatchManifest["containsAudio"]]
+            containsData = carrier[colsBatchManifest["containsData"]]
 
             # Update imagePaths list                      
             imagePaths.append(imagePath)
@@ -671,6 +673,16 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
             # Check success value (status)
             if success != "True":
                 logging.error("jobID " + jobID + ": value of 'success' not 'True'")
+                errors += 1
+                failedPPNs.append(PPN)
+                
+            # Check if carrierType value is consistent with containsAudio and containsData
+            if carrierType in ["cd-rom", "dvd-rom", "dvd-video"] and containsData != "True":
+                logging.error("jobID " + jobID + ": carrierType cannot be '" + carrierType + "'if 'containsData' is 'False'")
+                errors += 1
+                failedPPNs.append(PPN)
+            elif carrierType == "cd-audio" and containsAudio != "True":
+                logging.error("jobID " + jobID + ": carrierType cannot be '" + carrierType + "'if 'containsAudio' is 'False'")
                 errors += 1
                 failedPPNs.append(PPN)
 
@@ -755,7 +767,9 @@ def main():
                                 'carrierType',
                                 'title',
                                 'volumeID',
-                                'success']
+                                'success',
+                                'containsAudio',
+                                'containsData']
     
     # Controlled vocabulary for 'carrierType' field
     carrierTypeAllowedValues = ['cd-rom',
