@@ -613,7 +613,6 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
         for carrier in carrierTypeGroup:
         
             jobID = carrier[colsBatchManifest["jobID"]]
-            imagePath = carrier[colsBatchManifest["dirDisc"]]
             volumeNumber = carrier[colsBatchManifest["volumeNo"]]
             carrierType = carrier[colsBatchManifest["carrierType"]]
             title = carrier[colsBatchManifest["title"]]
@@ -623,21 +622,21 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
             containsData = carrier[colsBatchManifest["containsData"]]
 
             # Update imagePaths list                      
-            imagePaths.append(imagePath)
+            imagePaths.append(jobID)
             
             # Check for some obvious errors
             
             # Check if imagePath is existing directory
             
             # Full path, relative to batchIn TODO: check behaviour on Window$
-            imagePathFull = os.path.normpath(os.path.join(batchIn, imagePath)) 
+            imagePathFull = os.path.normpath(os.path.join(batchIn, jobID)) 
             imagePathAbs = os.path.abspath(imagePathFull)
             
             # Append absolute path to list (used later for completeness check)
             dirsInMetaCarriers.append(imagePathAbs)
             
             if os.path.isdir(imagePathFull) == False:
-                logging.error("jobID " + jobID + ": '" + imagePath + \
+                logging.error("jobID " + jobID + ": '" + imagePathFull + \
                 "' is not a directory")
                 errors += 1
                 failedPPNs.append(PPN)
@@ -714,6 +713,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     # IP-level consistency checks
 
     # imagePath values must all be unique (no duplicates!)
+    # TODO: image paths now follow directly from jobID, so maybe we don't need this anymore?
     uniqueImagePaths = set(imagePaths)
     if len(uniqueImagePaths) != len(imagePaths):
         logging.error("PPN " + PPN + ": duplicate values found for 'imagePath'")
