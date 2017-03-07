@@ -762,7 +762,6 @@ def main():
     # Header values of mandatory columns in batch manifest
     requiredColsBatchManifest = ['jobID',
                                 'PPN',
-                                'dirDisc',
                                 'volumeNo',
                                 'carrierType',
                                 'title',
@@ -1065,7 +1064,6 @@ def main():
         for row in rowsBatchManifest:
             jobID = row[0]
             PPN = row[1]
-            dirDisc = row[2]
             
             if PPN in failedPPNs:
                 # If PPN is in list of failed PPNs then add record to error batch
@@ -1074,8 +1072,8 @@ def main():
                 skipChecksumVerification = False
                 
                 # Image path for this jobID in input, pruned and error batch
-                imagePathIn = os.path.normpath(os.path.join(batchIn, dirDisc))
-                imagePathErr = os.path.normpath(os.path.join(batchErr, dirDisc))
+                imagePathIn = os.path.normpath(os.path.join(batchIn, jobID))
+                imagePathErr = os.path.normpath(os.path.join(batchErr, jobID))
                 
                 imagePathInAbs = os.path.abspath(imagePathIn)
                 imagePathErrAbs = os.path.abspath(imagePathErr)
