@@ -712,11 +712,11 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
 
     # IP-level consistency checks
 
-    # imagePath values must all be unique (no duplicates!)
+    # jobID values must all be unique (no duplicates!)
     # TODO: image paths now follow directly from jobID, so maybe we don't need this anymore?
     uniqueImagePaths = set(imagePaths)
     if len(uniqueImagePaths) != len(imagePaths):
-        logging.error("PPN " + PPN + ": duplicate values found for 'imagePath'")
+        logging.error("PPN " + PPN + ": duplicate values found for 'jobID'")
         errors += 1
         failedPPNs.append(PPN)
 
