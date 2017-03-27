@@ -518,11 +518,14 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 fLocat.attrib[etree.QName(xlink_ns, "href")] = "file:///" + carrier.carrierType + "/" + carrier.volumeNumber + "/" + fileName
                 
                 # Add MIME type and checksum to file element
-                # TODO replace by proper signature-based identification (e.g. Fido) 
+                # Note: neither of these Mimetypes are formally registered at
+                # IANA but they seem to be widely used
                 if fileName.endswith(".iso"):
-                    mimeType = "application/x-iso9660"
+                    mimeType = "application/x-iso9660-image"
                 elif fileName.endswith(".wav"):
-                    mimeType = "audio/x-wav"
+                    mimeType = "audio/wav"
+                elif fileName.endswith(".flac"):
+                    mimeType = "audio/flac"
                 else:
                     mimeType = "application/octet-stream"   
                 fileElt.attrib["MIMETYPE"] = mimeType
@@ -601,7 +604,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
             errorExit(errors, warnings)
             
     # Set up lists for all record fields in this PPN (needed for verifification only)
-    imagePaths = []
+    jobIDs = []
     volumeNumbers = []
     carrierTypes = []
     
@@ -621,8 +624,8 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
             containsAudio = carrier[colsBatchManifest["containsAudio"]]
             containsData = carrier[colsBatchManifest["containsData"]]
 
-            # Update imagePaths list                      
-            imagePaths.append(jobID)
+            # Update jobIDs list                      
+            jobIDs.append(jobID)
             
             # Check for some obvious errors
             
@@ -713,9 +716,8 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     # IP-level consistency checks
 
     # jobID values must all be unique (no duplicates!)
-    # TODO: image paths now follow directly from jobID, so maybe we don't need this anymore?
-    uniqueImagePaths = set(imagePaths)
-    if len(uniqueImagePaths) != len(imagePaths):
+    uniquejobIDs = set(jobIDs)
+    if len(uniquejobIDs) != len(jobIDs):
         logging.error("PPN " + PPN + ": duplicate values found for 'jobID'")
         errors += 1
         failedPPNs.append(PPN)
