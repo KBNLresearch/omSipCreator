@@ -5,6 +5,7 @@ import os
 import re
 from shutil import copytree
 import sys
+import site
 
 from setuptools import setup, find_packages
 
