@@ -4,7 +4,7 @@ import os
 import subprocess as sub
 import string
 from random import choice
-if __package__ == 'omsipcreator':
+if __package__ == 'omSipCreator':
     from . import config
 else:
     import config
