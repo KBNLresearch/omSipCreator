@@ -9,6 +9,11 @@ import site
 
 from setuptools import setup, find_packages
 
+def errorExit(msg):
+    msgString=("Error: " + msg + "\n")
+    sys.stderr.write(msgString)
+    sys.exit()
+
 def read(*parts):
     path = os.path.join(os.path.dirname(__file__), *parts)
     with codecs.open(path, encoding='utf-8') as fobj:
