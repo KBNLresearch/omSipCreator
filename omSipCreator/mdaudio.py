@@ -2,7 +2,7 @@
 from lxml import etree
 import io
 
-if __package__ == 'omsipcreator':
+if __package__ == 'omSipCreator':
     from . import config
     from . import shared
 else:
@@ -12,8 +12,7 @@ else:
 # Wrapper module for mediainfo
 
 def getTechMetadata(fileRef):
-    mediaInfoExe = "F:/johan/pythonCode/omSipCreator/omSipCreator/tools/mediainfo/MediaInfo.exe"
-    #args = [config.mediaInfoExe]
+    args = [config.mediaInfoExe]
     args = [mediaInfoExe]
     args.append( "--Output=EBUCore")
     args.append(fileRef)
@@ -34,14 +33,3 @@ def getTechMetadata(fileRef):
     dictOut["stderr"] = err
     
     return(dictOut)
-    
-def main():
-    import os
-    
-    audioFile = os.path.normpath("E:/detectDamagedAudio/data/frogs-01.wav")
-    myDictOut = getTechMetadata(audioFile)
-    print(myDictOut)
-
-
-main()
-

@@ -14,11 +14,14 @@ import logging
 from operator import itemgetter
 from itertools import groupby
 from lxml import etree
-
 if __package__ == 'omSipCreator':
     from .kbapi import sru
+    from . import config
+    from . import mdaudio
 else:
     from kbapi import sru
+    import config
+    import mdaudio
 
 # Bind raw_input (Python 3) to input (Python 2)
 # Source: http://stackoverflow.com/a/21731110/1209004
@@ -89,7 +92,8 @@ def checkFileExists(fileIn):
     # Check if file exists and exit if not
     if os.path.isfile(fileIn) == False:
         msg = "file " + fileIn + " does not exist!"
-        errorExit(msg)
+        sys.stderr.write("Error: " + msg + "\n")
+        sys.exit()
     
 def get_immediate_subdirectories(a_dir, ignoreDirs):
     # Returns list of immediate subdirectories
