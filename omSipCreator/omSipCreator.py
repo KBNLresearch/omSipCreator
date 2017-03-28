@@ -41,9 +41,9 @@ scriptPath, scriptName = os.path.split(sys.argv[0])
 
 # scriptName is empty when called from Java/Jython, so this needs a fix
 if len(scriptName) == 0:
-    scriptName = 'omsipcreator'
+    scriptName = 'omSipCreator'
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 # Create parser
 parser = argparse.ArgumentParser(
