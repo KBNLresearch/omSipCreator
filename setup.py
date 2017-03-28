@@ -3,7 +3,6 @@
 import codecs
 import os
 import re
-from shutil import copyfile
 from shutil import copytree
 import sys
 
@@ -27,7 +26,7 @@ def post_install():
     from win32com.client import Dispatch
     
     # Package name
-    packageName = 'omsipcreator'
+    packageName = 'omSipCreator'
         
     # Locate Windows user directory
     userDir = os.path.expanduser('~')
@@ -49,7 +48,7 @@ def post_install():
     
     if os.path.isdir(toolsDirUser) == False:
         # No tools directory in user dir, so copy it from location in source or package. Location is
-        # /iromlab/conf/tools in 'site-packages' directory (if installed with pip)
+        # /omsipcreator/conf/tools in 'site-packages' directory (if installed with pip)
                
         # Locate site-packages dir (this returns multiple entries)
         sitePackageDirs = site.getsitepackages()
@@ -60,7 +59,7 @@ def post_install():
                 sitePackageDir = dir
                 
         # Construct path to tools dir
-        toolsDirPackage = os.path.join(sitePackageDir,'iromlab', 'tools')
+        toolsDirPackage = os.path.join(sitePackageDir, packageName, 'tools')
         
         # If package tools dir exists, copy it to the user directory        
         if os.path.isdir(toolsDirPackage) == True:
