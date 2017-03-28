@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 from lxml import etree
-from StringIO import StringIO
+import io
 
 if __package__ == 'omsipcreator':
     from . import config
@@ -24,14 +24,15 @@ def getTechMetadata(fileRef):
     status, out, err = shared.launchSubProcess(args)
     
     # Parse string to element
-    outElt = etree.parse(StringIO(out))
-    print(outElt)
-
+    root = etree.fromstring(out.encode('utf-8'))
+    print(root)
+    print(type(root))
+    
     # Main results to dictionary
     dictOut = {}
     dictOut["cmdStr"] = cmdStr
     dictOut["status"] = status
-    dictOut["outElt"] = outElt
+    #dictOut["outElt"] = outElt
     dictOut["stderr"] = err
     
     return(dictOut)
