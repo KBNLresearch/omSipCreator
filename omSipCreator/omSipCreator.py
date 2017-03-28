@@ -84,6 +84,12 @@ def get_main_dir():
 def errorExit(errors, warnings):
     logging.info("Batch verification yielded " + str(errors) + " errors and " + str(warnings) + " warnings")
     sys.exit()
+
+def checkFileExists(fileIn):
+    # Check if file exists and exit if not
+    if os.path.isfile(fileIn) == False:
+        msg = "file " + fileIn + " does not exist!"
+        errorExit(msg)
     
 def get_immediate_subdirectories(a_dir, ignoreDirs):
     # Returns list of immediate subdirectories
@@ -756,6 +762,17 @@ def main():
     consoleHandler = logging.StreamHandler()
     consoleHandler.setFormatter(logFormatter)
     logger.addHandler(consoleHandler)
+    
+    # Locate Windows user directory
+    userDir = os.path.expanduser('~')
+    # Config directory
+    configDirUser = os.path.join(userDir,'omSipCreator')
+    # Tools directory
+    toolsDirUser = os.path.join(configDirUser,'tools')
+    
+    # Path to MediaInfo
+    config.mediaInfoExe = os.path.join(toolsDirUser, 'mediainfo', 'MediaInfo.exe')
+    checkFileExists(config.mediaInfoExe)
         
     # Batch manifest file - basic capture-level metadata about carriers
     fileBatchManifest = "manifest.csv"
