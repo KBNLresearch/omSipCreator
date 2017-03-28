@@ -3,6 +3,8 @@
 import codecs
 import os
 import re
+from shutil import copyfile
+from shutil import copytree
 import sys
 
 from setuptools import setup, find_packages
@@ -19,6 +21,60 @@ def find_version(*file_paths):
         return version_match.group(1)
     raise RuntimeError("Unable to find version string.")
 
+def post_install():
+    # Install pre-packaged tools to user dir
+    
+    from win32com.client import Dispatch
+    
+    # Package name
+    packageName = 'omsipcreator'
+        
+    # Locate Windows user directory
+    userDir = os.path.expanduser('~')
+    # Config directory
+    configDirUser = os.path.join(userDir, packageName)
+    
+    # Create config directory if it doesn't exist
+    if os.path.isdir(configDirUser) == False:
+        try:
+            os.makedirs(configDirUser)
+        except IOError:
+            msg = 'could not create configuration directory'
+            errorExit(msg)
+            
+    # Install tools
+
+    # Tools directory
+    toolsDirUser = os.path.join(configDirUser,'tools')
+    
+    if os.path.isdir(toolsDirUser) == False:
+        # No tools directory in user dir, so copy it from location in source or package. Location is
+        # /iromlab/conf/tools in 'site-packages' directory (if installed with pip)
+               
+        # Locate site-packages dir (this returns multiple entries)
+        sitePackageDirs = site.getsitepackages()
+        
+        # Assumptions: site package dir is called 'site-packages' and is unique (?)
+        for dir in sitePackageDirs:
+            if 'site-packages'in dir:
+                sitePackageDir = dir
+                
+        # Construct path to tools dir
+        toolsDirPackage = os.path.join(sitePackageDir,'iromlab', 'tools')
+        
+        # If package tools dir exists, copy it to the user directory        
+        if os.path.isdir(toolsDirPackage) == True:
+            try:
+                copytree(toolsDirPackage, toolsDirUser)
+            except IOError:
+                msg = 'could not copy tools directory to ' + toolsDirUser
+                errorExit(msg)
+        # This should never happen but who knows ...
+        else:
+            msg = 'no tools directory found in package'
+            errorExit(msg)
+     
+    
 install_requires = [
     'requests',
     'setuptools',
@@ -51,3 +107,5 @@ setup(name='omSipCreator',
     ]
     )
 
+if sys.argv[1] == 'install' and sys.platform == 'win32':
+    post_install()

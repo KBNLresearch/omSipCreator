@@ -24,15 +24,13 @@ def getTechMetadata(fileRef):
     status, out, err = shared.launchSubProcess(args)
     
     # Parse string to element
-    root = etree.fromstring(out.encode('utf-8'))
-    print(root)
-    print(type(root))
+    outElt = etree.fromstring(out.encode('utf-8'))
     
     # Main results to dictionary
     dictOut = {}
     dictOut["cmdStr"] = cmdStr
     dictOut["status"] = status
-    #dictOut["outElt"] = outElt
+    dictOut["outElt"] = outElt
     dictOut["stderr"] = err
     
     return(dictOut)
@@ -41,8 +39,8 @@ def main():
     import os
     
     audioFile = os.path.normpath("E:/detectDamagedAudio/data/frogs-01.wav")
-    getTechMetadata(audioFile)
-    
+    myDictOut = getTechMetadata(audioFile)
+    print(myDictOut)
 
 
 main()
