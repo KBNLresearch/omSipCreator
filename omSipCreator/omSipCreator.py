@@ -416,8 +416,10 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
         skipChecksumVerification = True
 
     # Find logfiles (by name extension)
-    noIsobusterLogs = len([i for i in allFiles if i.endswith('isobuster.log')])
-    noDbpowerampLogs = len([i for i in allFiles if i.endswith('dbpoweramp.log')])
+    isobusterLogs = [i for i in allFiles if i.endswith('isobuster.log')]
+    noIsobusterLogs = len(isobusterLogs)
+    dBpowerampLogs = [i for i in allFiles if i.endswith('dbpoweramp.log')]
+    noDbpowerampLogs = len(dBpowerampLogs)
     
     # Any other files (ISOs, audio files)
     otherFiles = [i for i in allFiles if not i.endswith(('.md5', '.log'))]
@@ -480,7 +482,6 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
             
         # Check if any files in directory are missing from MD5 file
         for f in otherFiles:
-            #print(f)
             if f not in allFilesinMD5:
                 logging.error("jobID " + carrier.jobID + ": file '" + f + \
                 "' not referenced in '" + \
@@ -510,8 +511,12 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
             logging.info("copying files to carrier directory")
             
             # Get file names from MD5 file, as this is the easiest way to make
-            # post-copy checksum verification work.
-            for entry in MD5FromFile:
+            # post-copy checksum verification work. Filter out log files first!
+            
+            filesToCopy = [i for i in MD5FromFile if not i[1].endswith('.log')]
+            
+            for entry in filesToCopy:
+
                 md5Sum = entry[0]
                 fileName = entry[1]
                 fileSize = entry[2]
