@@ -415,16 +415,39 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
         # which file should be used. No point in doing the checksum verification in that case.  
         skipChecksumVerification = True
 
-    # Any other files (ISOs, audio files)
-    otherFiles = [i for i in allFiles if not i.endswith('.md5')]
-    noOtherFiles = len(otherFiles)
+    # Find logfiles (by name extension)
+    noIsobusterLogs = len([i for i in allFiles if i.endswith('isobuster.log')])
+    noDbpowerampLogs = len([i for i in allFiles if i.endswith('dbpoweramp.log')])
     
+    # Any other files (ISOs, audio files)
+    otherFiles = [i for i in allFiles if not i.endswith(('.md5', '.log'))]
+    noOtherFiles = len(otherFiles)
+        
     if noOtherFiles == 0:
         logging.error("jobID " + carrier.jobID + ": found no files in directory '" \
         + carrier.imagePathFull)
         errors += 1
         failedPPNs.append(carrier.PPN)
+    
+    # Get number of ISO files and number of audio files, and cross-check consistency
+    # with log file names
+    isOFiles = [i for i in otherFiles if i.endswith(('.iso', '.ISO'))]
+    noIsoFiles = len(isOFiles)
+    audioFiles = [i for i in otherFiles if i.endswith(('.wav', '.WAV', 'flac', 'FLAC'))]
+    noAudioFiles = len(audioFiles)
+           
+    if noIsoFiles > 0 and noIsobusterLogs != 1:
+        logging.error("jobID " + carrier.jobID + " : expected 1 file 'isobuster.log' in directory '" \
+        + carrier.imagePathFull + " , found " + str(noIsobusterLogs))
+        errors += 1
+        failedPPNs.append(carrier.PPN)
 
+    if noAudioFiles > 0 and noDbpowerampLogs != 1:
+        logging.error("jobID " + carrier.jobID + " : expected 1 file 'dbpoweramp.log' in directory '" \
+        + carrier.imagePathFull + " , found " + str(noDbpowerampLogs))
+        errors += 1
+        failedPPNs.append(carrier.PPN)
+      
     if skipChecksumVerification == False:
         # Read contents of checksum file to list
         MD5FromFile = readMD5(MD5Files[0])
