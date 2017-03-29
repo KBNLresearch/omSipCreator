@@ -618,10 +618,9 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     volumeNumbers = []
     carrierTypes = []
     
-    carriersByType = groupby(carriers, itemgetter(4))
+    carriersByType = groupby(carriers, itemgetter(3))
     
-    for carrierType, carrierTypeGroup in carriersByType:
-        # Set up list to store all Volume Numbers within this type group
+    for carrierTypeCarriers, carrierTypeGroup in carriersByType:
         volumeNumbersTypeGroup = []
         for carrier in carrierTypeGroup:
         
