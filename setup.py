@@ -5,8 +5,14 @@ import os
 import re
 from shutil import copytree
 import sys
+import site
 
 from setuptools import setup, find_packages
+
+def errorExit(msg):
+    msgString=("Error: " + msg + "\n")
+    sys.stderr.write(msgString)
+    sys.exit()
 
 def read(*parts):
     path = os.path.join(os.path.dirname(__file__), *parts)
@@ -94,7 +100,8 @@ setup(name='omSipCreator',
       maintainer_email = 'johan.vanderknijff@kb.nl',
       url = 'https://github.com/KBNLresearch/omSipCreator',
       download_url='https://github.com/KBNLresearch/omSipCreator/archive/' + find_version('omSipCreator', 'omSipCreator.py') + '.tar.gz',
-      package_data={'omSipCreator': ['*.*']},
+      package_data={'omSipCreator': ['*.*','tools/*.*','tools/mediainfo/*.*','tools/mediainfo/Plugin/*.*','tools/mediainfo/Plugin/Custom/*.*']},
+      zip_safe=False,
       entry_points={'console_scripts': [
         'omSipCreator = omSipCreator.omSipCreator:main',
       ]},
