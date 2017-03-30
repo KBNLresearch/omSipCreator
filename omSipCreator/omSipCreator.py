@@ -424,7 +424,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
 
     # PPN is PPN identifier (by which we grouped data)
     # carriers is another iterator that contains individual carrier records
-    
+                
     # Create class instance for this PPN
     thisPPNGroup = PPNGroup()
     
@@ -464,8 +464,10 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     structDivTop.attrib["TYPE"] = "physical"
     structDivTop.attrib["LABEL"] = "volumes"
     
-    # Initialise counter that is used to assign file IDs
+    # Initialise counters that are used to assign file and carrier-level IDs
     fileCounterStart = 1
+    carrierCounterStart = 1
+    carrierCounter = carrierCounterStart
     
     # Dummy value for dirSIP (needed if createSIPs = False)
     dirSIP = "rubbish" 
@@ -525,6 +527,10 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
             thisCarrier = Carrier(jobID, PPN, imagePathFull, volumeNumber, carrierType)
             fileGrp, divDisc, fileCounter = processCarrier(thisCarrier, fileGrp, dirSIP, fileCounterStart)
             
+            # Add carrier identifier to divDisc
+            carrierID = "DISC_" + str(carrierCounter).zfill(3)
+            divDisc.attrib["ID"] = carrierID
+            
             # Add to PPNGroup class instance
             thisPPNGroup.append(thisCarrier)
             
@@ -567,6 +573,9 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
 
             # Update structmap in METS
             structDivTop.append(divDisc)
+            
+            # Update carrierCounter
+            carrierCounter += 1
   
         # Add volumeNumbersTypeGroup to volumeNumbers list
         volumeNumbers.append(volumeNumbersTypeGroup)           
