@@ -15,10 +15,12 @@ from operator import itemgetter
 from itertools import groupby
 from lxml import etree
 if __package__ == 'omSipCreator':
+    from .mods import createMODS
     from .kbapi import sru
     from . import config
     from . import mdaudio
 else:
+    from mods import createMODS
     from kbapi import sru
     import config
     import mdaudio
@@ -206,7 +208,7 @@ def printHelpAndExit():
     parser.print_help()
     sys.exit()
     
-def createMODS(PPNGroup):
+def createMODSOld(PPNGroup):
     # Create MODS metadata based on records in GGC
     # Dublin Core to MODS mapping follows http://www.loc.gov/standards/mods/dcsimple-mods.html
     # General structure: bibliographic md is wrapped in relatedItem / type = host element
@@ -567,8 +569,6 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 else:
                     mimeType = "application/octet-stream"   
                 fileElt.attrib["MIMETYPE"] = mimeType
-                #fileElt.attrib["CHECKSUM"] = md5Sum
-                #fileElt.attrib["CHECKSUMTYPE"] = "MD5"
                 fileElt.attrib["CHECKSUM"] = sha256Sum
                 fileElt.attrib["CHECKSUMTYPE"] = "SHA-256"
                 
@@ -604,17 +604,20 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     metsName = etree.QName(mets_ns, "mets")
     mets = etree.Element(metsName, nsmap = NSMAP)
     # Add schema reference
-    mets.attrib[etree.QName(xsi_ns, "schemaLocation")] = "".join([metsSchema," ",modsSchema]) 
-    # Subelements for dmdSec, fileSec and structMap
+    mets.attrib[etree.QName(xsi_ns, "schemaLocation")] = "".join([metsSchema," ",modsSchema, " ",premisSchema]) 
+    # Subelements for dmdSec, amdSec, fileSec and structMap
     dmdSec = etree.SubElement(mets, "{%s}dmdSec" %(mets_ns))
     # Add identifier
     # TODO: do we need any more than this? probably not ..
     dmdSec.attrib["ID"] = "dmdID"
-    # Create mdWrap and xmlData child elements 
-    mdWrap = etree.SubElement(dmdSec, "{%s}mdWrap" %(mets_ns))
-    mdWrap.attrib["MDTYPE"] = "MODS"
-    mdWrap.attrib["MDTYPEVERSION"] = "3.4"
-    xmlData =  etree.SubElement(mdWrap, "{%s}xmlData" %(mets_ns))
+    amdSec = etree.SubElement(mets, "{%s}amdSec" %(mets_ns))
+    # Add identifier
+    amdSec.attrib["ID"] = "amdID"
+    # Create mdWrapDmd and xmlData child elements 
+    mdWrapDmd = etree.SubElement(dmdSec, "{%s}mdWrap" %(mets_ns))
+    mdWrapDmd.attrib["MDTYPE"] = "MODS"
+    mdWrapDmd.attrib["MDTYPEVERSION"] = "3.4"
+    xmlDataDmd =  etree.SubElement(mdWrapDmd, "{%s}xmlData" %(mets_ns))
     # Create fileSec and structMap elements
     fileSec = etree.SubElement(mets, "{%s}fileSec" %(mets_ns))
     fileGrp = etree.SubElement(fileSec, "{%s}fileGrp" %(mets_ns))
@@ -735,7 +738,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     mdMODS = createMODS(thisPPNGroup)
  
     # Append metadata to METS
-    xmlData.append(mdMODS) 
+    xmlDataDmd.append(mdMODS) 
      
     if createSIPs == True:
         logging.info("writing METS file")
@@ -829,20 +832,25 @@ def main():
     # Define name spaces for METS output
     global mets_ns
     global mods_ns
+    global premis_ns
     global xlink_ns
     global xsi_ns
     global metsSchema
     global modsSchema
+    global premisSchema
     global NSMAP
     mets_ns = 'http://www.loc.gov/METS/'
     mods_ns = 'http://www.loc.gov/mods/v3'
+    premis_ns = 'http://www.loc.gov/premis/v3'
     xlink_ns = 'http://www.w3.org/1999/xlink'
     xsi_ns = 'http://www.w3.org/2001/XMLSchema-instance'
     metsSchema = 'http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd'
     modsSchema = 'http://www.loc.gov/mods/v3 https://www.loc.gov/standards/mods/v3/mods-3-4.xsd'
+    premisSchema = 'http://www.loc.gov/mods/v3 https://www.loc.gov/standards/premis/premis.xsd'
     
     NSMAP =  {"mets" : mets_ns,
          "mods" : mods_ns,
+         "premis" : premis_ns,
          "xlink" : xlink_ns,
          "xsi": xsi_ns}
        
@@ -871,6 +879,13 @@ def main():
     
     # Flag that indicates if prune option is used
     pruneBatch = False
+    
+    ## TEST
+    config.mods_ns = mods_ns
+    config.NSMAP = NSMAP
+    config.scriptName = scriptName
+    config.__version__ = __version__
+    ## TEST
     
     # Get input from command line
     args = parseCommandLine()
