@@ -39,13 +39,13 @@ SIP Creator for Offline Media images.
  """
 
 # Script name
-scriptPath, scriptName = os.path.split(sys.argv[0])
+config.scriptPath, config.scriptName = os.path.split(sys.argv[0])
 
 # scriptName is empty when called from Java/Jython, so this needs a fix
-if len(scriptName) == 0:
-    scriptName = 'omSipCreator'
+if len(config.scriptName) == 0:
+    config.scriptName = 'omSipCreator'
 
-__version__ = "0.4.6"
+config.__version__ = "0.4.6"
 
 # Create parser
 parser = argparse.ArgumentParser(
@@ -129,8 +129,8 @@ def readMD5(fileIn):
         return(data)
     except IOError:
         logging.fatal("cannot read '" + fileIn + "'")
-        errors += 1
-        errorExit(errors, warnings)
+        config.errors += 1
+        errorExit(config.errors, config.warnings)
 
 def generate_file_md5(fileIn):
     # Generate MD5 hash of file
@@ -207,171 +207,7 @@ def printHelpAndExit():
     print('')
     parser.print_help()
     sys.exit()
-    
-def createMODSOld(PPNGroup):
-    # Create MODS metadata based on records in GGC
-    # Dublin Core to MODS mapping follows http://www.loc.gov/standards/mods/dcsimple-mods.html
-    # General structure: bibliographic md is wrapped in relatedItem / type = host element
-    
-    global errors
-    global warnings
-    global failedPPNs
-    
-    # Dictionary maps carrier types  to MODS resource types 
-    resourceTypeMap = {
-        "cd-rom" : "software, multimedia",
-        "dvd-rom" : "software, multimedia",
-        "dvd-video" : "moving image",
-        "cd-audio" : "sound recording"
-        }
-    
-    PPN = PPNGroup.PPN
-    carrierType = PPNGroup.carrierType
-    
-    # Create MODS element
-    modsName = etree.QName(mods_ns, "mods")
-    mods = etree.Element(modsName, nsmap = NSMAP)
-                            
-    # SRU search string (searches on dc:identifier field)
-    sruSearchString = '"PPN=' + PPN + '"'
-    response = sru.search(sruSearchString,"GGC")
-    
-    if response == False:
-        # Sru.search returns False if no match was found
-        noGGCRecords = 0
-    else:
-        noGGCRecords = response.sru.nr_of_records
-    
-    # This should return exactly one record. Return error if this is not the case
-    noGGCRecords = response.sru.nr_of_records
-    if noGGCRecords != 1:
-        logging.error("PPN " + PPN + ": search for PPN=" + PPNParent + " returned " + \
-            str(noGGCRecords) + " catalogue records (expected 1)")
-        errors += 1
-        failedPPNs.append(PPN)
-    
-    # Select first record
-    try:
-        record = next(response.records)
-        # Extract metadata
-        titles = record.titles
-        creators = record.creators
-        contributors = record.contributors
-        publishers = record.publishers
-        dates = record.dates
-        subjectsBrinkman = record.subjectsBrinkman
-        annotations = record.annotations
-        identifiersURI = record.identifiersURI
-        identifiersISBN = record.identifiersISBN
-        recordIdentifiersURI = record.recordIdentifiersURI
-        collectionIdentifiers = record.collectionIdentifiers
-    except StopIteration:
-        # Create empty lists fot all metadata fields in case noGGCRecords = 0
-        titles = []
-        creators = []
-        contributors = []
-        publishers = []
-        dates = []
-        subjectsBrinkman = []
-        annotations = []
-        identifiersURI = []
-        identifiersISBN = []
-        recordIdentifiersURI = []
-        collectionIdentifiers = []
-          
-    # Create MODS entries
-    
-    for title in titles:
-        modsTitleInfo = etree.SubElement(mods, "{%s}titleInfo" %(mods_ns))
-        modsTitle = etree.SubElement(modsTitleInfo, "{%s}title" %(mods_ns))
-        modsTitle.text = title
-          
-    for creator in creators:
-        modsName = etree.SubElement(mods, "{%s}name" %(mods_ns))
-        modsNamePart = etree.SubElement(modsName, "{%s}namePart" %(mods_ns))
-        modsNamePart.text = creator
-        modsRole =  etree.SubElement(modsName, "{%s}role" %(mods_ns))
-        modsRoleTerm =  etree.SubElement(modsRole, "{%s}roleTerm" %(mods_ns))
-        modsRoleTerm.attrib["type"] = "text"
-        modsRoleTerm.text = "creator"
-        
-    for contributor in contributors:
-        modsName = etree.SubElement(mods, "{%s}name" %(mods_ns))
-        modsNamePart = etree.SubElement(modsName, "{%s}namePart" %(mods_ns))
-        modsNamePart.text = contributor
-        modsRole =  etree.SubElement(modsName, "{%s}role" %(mods_ns))
-        modsRoleTerm =  etree.SubElement(modsRole, "{%s}roleTerm" %(mods_ns))
-        modsRoleTerm.attrib["type"] = "text"
-        modsRoleTerm.text = "contributor"
-    
-    for publisher in publishers:
-        modsOriginInfo = etree.SubElement(mods, "{%s}originInfo" %(mods_ns))
-        modsOriginInfo.attrib["displayLabel"] = "publisher"
-        modsPublisher = etree.SubElement(modsOriginInfo, "{%s}publisher" %(mods_ns))
-        modsPublisher.text = publisher
-                 
-    for date in dates:
-        # Note that DC date isn't necessarily issue date, and LoC DC to MODS mapping
-        # suggests that dateOther be used as default. However KB Metadata model
-        # only recognises dateIssued, so we'll use that. 
-        modsOriginInfo = etree.SubElement(mods, "{%s}originInfo" %(mods_ns))
-        modsDateIssued = etree.SubElement(modsOriginInfo, "{%s}dateIssued" %(mods_ns))
-        modsDateIssued.text = date
-    
-    # TODO: perhaps add authority and language attributes
-    modsSubject = etree.SubElement(mods, "{%s}subject" %(mods_ns))    
-    for subjectBrinkman in subjectsBrinkman:
-        modsTopic = etree.SubElement(modsSubject, "{%s}topic" %(mods_ns))
-        modsTopic.text = subjectBrinkman
-        
-    modsTypeOfResource = etree.SubElement(mods, "{%s}typeOfResource" %(mods_ns))
-    modsTypeOfResource.text = resourceTypeMap[carrierType]
-
-    for annotation in annotations:
-        modsNote = etree.SubElement(mods, "{%s}note" %(mods_ns))
-        modsNote.text = annotation
-    
-    # This record establishes the link with the parent publication as it is described
-    # in the GGC
-    modsRelatedItem = etree.SubElement(mods, "{%s}relatedItem" %(mods_ns))
-    modsRelatedItem.attrib["type"] = "host"
-
-    modsIdentifierPPN = etree.SubElement(modsRelatedItem, "{%s}identifier" %(mods_ns))
-    modsIdentifierPPN.attrib["type"] = "ppn"
-    modsIdentifierPPN.text = PPN
-    
-    # NOTE: GGC record contain 2 URI- type identifiers:
-    # 1. dc:identifier with URI of form: http://resolver.kb.nl/resolve?urn=PPN:236599380 (OpenURL?)
-    # 2. dcx:recordIdentifier with URI of form: http://opc4.kb.nl/DB=1/PPN?PPN=236599380
-    # URL 1. resolves to URL2, but not sure which one is more persistent?
-    # Also a MODS RecordIdentifier field does exist, but it doesn't have a 'type' attribute
-    # so we cannot specify it is a URI. For now both are included as 'identifier' elements
-    #
-    
-    for identifierURI in identifiersURI:
-        modsIdentifierURI = etree.SubElement(modsRelatedItem, "{%s}identifier" %(mods_ns))
-        modsIdentifierURI.attrib["type"] = "uri"
-        modsIdentifierURI.text = identifierURI
-    """
-    for recordIdentifierURI in recordIdentifiersURI:
-        modsIdentifierURI = etree.SubElement(modsRelatedItem, "{%s}identifier" %(mods_ns))
-        modsIdentifierURI.attrib["type"] = "uri"
-        modsIdentifierURI.text = recordIdentifierURI
-    """
-    
-    for identifierISBN in identifiersISBN:
-        modsIdentifierISBN = etree.SubElement(modsRelatedItem, "{%s}identifier" %(mods_ns))
-        modsIdentifierISBN.attrib["type"] = "isbn"
-        modsIdentifierISBN.text = identifierISBN
-   
-    # Add some info on how MODS was generated
-    modsRecordInfo = etree.SubElement(mods, "{%s}recordInfo" %(mods_ns))
-    modsRecordOrigin = etree.SubElement(modsRecordInfo, "{%s}recordOrigin" %(mods_ns))
-    originText = "Automatically generated by " + scriptName + " v. " + __version__  + " from records in KB Catalogue."
-    modsRecordOrigin.text = originText
-      
-    return(mods)
-       
+           
 def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
     # Process contents of imagepath directory
     # TODO: * check file type / extension matches carrierType!
@@ -380,11 +216,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
        
     # Counters used to assign file ORDER and IDs, sipFileCounter must be unique for
     # each file within SIP
-    
-    global errors
-    global warnings
-    global failedPPNs
-    
+        
     fileCounter = 1
     sipFileCounter = sipFileCounterStart
     
@@ -412,7 +244,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
     if noMD5Files != 1:
         logging.error("jobID " + carrier.jobID + ": found " + str(noMD5Files) + " '.md5' files in directory '" \
         + carrier.imagePathFull + "', expected 1")
-        errors += 1
+        config.errors += 1
         # If we end up here, checksum file either does not exist, or it is ambiguous 
         # which file should be used. No point in doing the checksum verification in that case.  
         skipChecksumVerification = True
@@ -430,8 +262,8 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
     if noOtherFiles == 0:
         logging.error("jobID " + carrier.jobID + ": found no files in directory '" \
         + carrier.imagePathFull)
-        errors += 1
-        failedPPNs.append(carrier.PPN)
+        config.errors += 1
+        config.failedPPNs.append(carrier.PPN)
     
     # Get number of ISO files and number of audio files, and cross-check consistency
     # with log file names
@@ -443,14 +275,14 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
     if noIsoFiles > 0 and noIsobusterLogs != 1:
         logging.error("jobID " + carrier.jobID + " : expected 1 file 'isobuster.log' in directory '" \
         + carrier.imagePathFull + " , found " + str(noIsobusterLogs))
-        errors += 1
-        failedPPNs.append(carrier.PPN)
+        config.errors += 1
+        config.failedPPNs.append(carrier.PPN)
 
     if noAudioFiles > 0 and noDbpowerampLogs != 1:
         logging.error("jobID " + carrier.jobID + " : expected 1 file 'dbpoweramp.log' in directory '" \
         + carrier.imagePathFull + " , found " + str(noDbpowerampLogs))
-        errors += 1
-        failedPPNs.append(carrier.PPN)
+        config.errors += 1
+        config.failedPPNs.append(carrier.PPN)
       
     if skipChecksumVerification == False:
         # Read contents of checksum file to list
@@ -473,8 +305,8 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
             if md5SumCalculated != md5Sum:
                 logging.error("jobID " + carrier.jobID + ": checksum mismatch for file '" + \
                 fileNameWithPath + "'")
-                errors += 1
-                failedPPNs.append(carrier.PPN)
+                config.errors += 1
+                config.failedPPNs.append(carrier.PPN)
                 
             # Get file size and append to MD5FromFile list (needed later for METS file entry)
             entry.append(str(os.path.getsize(fileNameWithPath)))
@@ -488,16 +320,16 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 logging.error("jobID " + carrier.jobID + ": file '" + f + \
                 "' not referenced in '" + \
                 MD5Files[0] + "'")
-                errors += 1
-                failedPPNs.append(carrier.PPN)
+                config.errors += 1
+                config.failedPPNs.append(carrier.PPN)
         
         # Create METS div entry (will remain empty if createSIPs != True)
-        divDiscName = etree.QName(mets_ns, "div")
-        divDisc = etree.Element(divDiscName, nsmap = NSMAP)
+        divDiscName = etree.QName(config.mets_ns, "div")
+        divDisc = etree.Element(divDiscName, nsmap = config.NSMAP)
         divDisc.attrib["TYPE"] = carrier.carrierType    
         divDisc.attrib["ORDER"] = carrier.volumeNumber
                         
-        if createSIPs == True:
+        if config.createSIPs == True:
        
             # Create Volume directory
             logging.info("creating carrier directory")
@@ -506,8 +338,8 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 os.makedirs(dirVolume)
             except OSError or IOError:
                 logging.fatal("jobID " + carrier.jobID + ": cannot create '" + dirVolume + "'" )
-                errors += 1
-                errorExit(errors, warnings)
+                config.errors += 1
+                errorExit(config.errors, config.warnings)
             
             # Copy files to SIP Volume directory
             logging.info("copying files to carrier directory")
@@ -532,30 +364,30 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 except OSError:
                     logging.fatal("jobID " + carrier.jobID + ": cannot copy '"\
                     + fileName + "' to '" + fSIP + "'")
-                    errors += 1
-                    errorExit(errors, warnings)
+                    config.errors += 1
+                    errorExit(config.errors, config.warnings)
             
                 # Calculate MD5 hash of copied file, and verify against known value
                 md5SumCalculated = generate_file_md5(fSIP)                               
                 if md5SumCalculated != md5Sum:
                     logging.error("jobID " + carrier.jobID + ": checksum mismatch for file '" + \
                     fSIP + "'")
-                    errors += 1
-                    failedPPNs.append(carrier.PPN)
+                    config.errors += 1
+                    config.failedPPNs.append(carrier.PPN)
                     
                 # Calculate Sha256 checksum
                 sha256Sum = generate_file_sha256(fSIP)
                
                 # Create METS file and FLocat elements
-                fileElt = etree.SubElement(fileGrp, "{%s}file" %(mets_ns))
+                fileElt = etree.SubElement(fileGrp, "{%s}file" %(config.mets_ns))
                 fileElt.attrib["ID"] = fileID 
                 fileElt.attrib["SIZE"] = fileSize
                 # TODO: add SEQ and CREATED, DMDID attributes as well
                 
-                fLocat = etree.SubElement(fileElt, "{%s}FLocat" %(mets_ns))
+                fLocat = etree.SubElement(fileElt, "{%s}FLocat" %(config.mets_ns))
                 fLocat.attrib["LOCTYPE"] = "URL"
                 # File locations relative to SIP root (= location of METS file)             
-                fLocat.attrib[etree.QName(xlink_ns, "href")] = "file:///" + carrier.carrierType + "/" + carrier.volumeNumber + "/" + fileName
+                fLocat.attrib[etree.QName(config.xlink_ns, "href")] = "file:///" + carrier.carrierType + "/" + carrier.volumeNumber + "/" + fileName
                 
                 # Add MIME type and checksum to file element
                 # Note: neither of these Mimetypes are formally registered at
@@ -575,10 +407,10 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 # TODO: check if mimeType values matches carrierType (e.g. no audio/x-wav if cd-rom, etc.)
                                 
                 # Create track divisor element for structmap
-                divFile = etree.SubElement(divDisc, "{%s}div" %(mets_ns))
+                divFile = etree.SubElement(divDisc, "{%s}div" %(config.mets_ns))
                 divFile.attrib["TYPE"] = carrierTypeMap[carrier.carrierType]
                 divFile.attrib["ORDER"] = str(fileCounter)
-                fptr = etree.SubElement(divFile, "{%s}fptr" %(mets_ns))
+                fptr = etree.SubElement(divFile, "{%s}fptr" %(config.mets_ns))
                 fptr.attrib["FILEID"] = fileID
                 
                 fileCounter += 1
@@ -593,37 +425,33 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     # PPN is PPN identifier (by which we grouped data)
     # carriers is another iterator that contains individual carrier records
     
-    global errors
-    global warnings
-    global failedPPNs
-    
     # Create class instance for this PPN
     thisPPNGroup = PPNGroup()
     
     # Create METS element for this SIP
-    metsName = etree.QName(mets_ns, "mets")
-    mets = etree.Element(metsName, nsmap = NSMAP)
+    metsName = etree.QName(config.mets_ns, "mets")
+    mets = etree.Element(metsName, nsmap = config.NSMAP)
     # Add schema reference
-    mets.attrib[etree.QName(xsi_ns, "schemaLocation")] = "".join([metsSchema," ",modsSchema, " ",premisSchema]) 
+    mets.attrib[etree.QName(config.xsi_ns, "schemaLocation")] = "".join([config.metsSchema," ",config.modsSchema, " ",config.premisSchema]) 
     # Subelements for dmdSec, amdSec, fileSec and structMap
-    dmdSec = etree.SubElement(mets, "{%s}dmdSec" %(mets_ns))
+    dmdSec = etree.SubElement(mets, "{%s}dmdSec" %(config.mets_ns))
     # Add identifier
     # TODO: do we need any more than this? probably not ..
     dmdSec.attrib["ID"] = "dmdID"
-    amdSec = etree.SubElement(mets, "{%s}amdSec" %(mets_ns))
+    amdSec = etree.SubElement(mets, "{%s}amdSec" %(config.mets_ns))
     # Add identifier
     amdSec.attrib["ID"] = "amdID"
     # Create mdWrapDmd and xmlData child elements 
-    mdWrapDmd = etree.SubElement(dmdSec, "{%s}mdWrap" %(mets_ns))
+    mdWrapDmd = etree.SubElement(dmdSec, "{%s}mdWrap" %(config.mets_ns))
     mdWrapDmd.attrib["MDTYPE"] = "MODS"
     mdWrapDmd.attrib["MDTYPEVERSION"] = "3.4"
-    xmlDataDmd =  etree.SubElement(mdWrapDmd, "{%s}xmlData" %(mets_ns))
+    xmlDataDmd =  etree.SubElement(mdWrapDmd, "{%s}xmlData" %(config.mets_ns))
     # Create fileSec and structMap elements
-    fileSec = etree.SubElement(mets, "{%s}fileSec" %(mets_ns))
-    fileGrp = etree.SubElement(fileSec, "{%s}fileGrp" %(mets_ns))
-    structMap = etree.SubElement(mets, "{%s}structMap" %(mets_ns))
+    fileSec = etree.SubElement(mets, "{%s}fileSec" %(config.mets_ns))
+    fileGrp = etree.SubElement(fileSec, "{%s}fileGrp" %(config.mets_ns))
+    structMap = etree.SubElement(mets, "{%s}structMap" %(config.mets_ns))
     # Add top-level divisor element to structMap
-    structDivTop = etree.SubElement(structMap, "{%s}div" %(mets_ns))
+    structDivTop = etree.SubElement(structMap, "{%s}div" %(config.mets_ns))
     structDivTop.attrib["TYPE"] = "physical"
     structDivTop.attrib["LABEL"] = "volumes"
     
@@ -633,7 +461,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     # Dummy value for dirSIP (needed if createSIPs = False)
     dirSIP = "rubbish" 
      
-    if createSIPs == True:
+    if config.createSIPs == True:
         logging.info("creating SIP directory")
         # Create SIP directory
         dirSIP = os.path.join(dirOut,PPN)
@@ -641,8 +469,8 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
             os.makedirs(dirSIP)
         except OSError:
             logging.fatal("cannot create '" + dirSIP + "'" )
-            errors += 1
-            errorExit(errors, warnings)
+            config.errors += 1
+            errorExit(config.errors, config.warnings)
             
     # Set up lists for all record fields in this PPN (needed for verifification only)
     jobIDs = []
@@ -681,8 +509,8 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
             if os.path.isdir(imagePathFull) == False:
                 logging.error("jobID " + jobID + ": '" + imagePathFull + \
                 "' is not a directory")
-                errors += 1
-                failedPPNs.append(PPN)
+                config.errors += 1
+                config.failedPPNs.append(PPN)
                         
             # Create Carrier class instance for this carrier
             thisCarrier = Carrier(jobID, PPN, imagePathFull, volumeNumber, carrierType)
@@ -701,32 +529,32 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
                 # Raises error if volumeNumber string doesn't represent integer
                 logging.error("jobID " + jobID + ": '" + volumeNumber + \
                 "' is illegal value for 'volumeNumber' (must be integer)")
-                errors += 1
-                failedPPNs.append(PPN)
+                config.errors += 1
+                config.failedPPNs.append(PPN)
 
             # Check carrierType value against controlled vocabulary 
             if carrierType not in carrierTypeAllowedValues:
                 logging.error("jobID " + jobID + ": '" + carrierType + \
                 "' is illegal value for 'carrierType'")
-                errors += 1
-                failedPPNs.append(PPN)
+                config.errors += 1
+                config.failedPPNs.append(PPN)
             carrierTypes.append(carrierType)
             
             # Check success value (status)
             if success != "True":
                 logging.error("jobID " + jobID + ": value of 'success' not 'True'")
-                errors += 1
-                failedPPNs.append(PPN)
+                config.errors += 1
+                config.failedPPNs.append(PPN)
                 
             # Check if carrierType value is consistent with containsAudio and containsData
             if carrierType in ["cd-rom", "dvd-rom", "dvd-video"] and containsData != "True":
                 logging.error("jobID " + jobID + ": carrierType cannot be '" + carrierType + "'if 'containsData' is 'False'")
-                errors += 1
-                failedPPNs.append(PPN)
+                config.errors += 1
+                config.failedPPNs.append(PPN)
             elif carrierType == "cd-audio" and containsAudio != "True":
                 logging.error("jobID " + jobID + ": carrierType cannot be '" + carrierType + "'if 'containsAudio' is 'False'")
-                errors += 1
-                failedPPNs.append(PPN)
+                config.errors += 1
+                config.failedPPNs.append(PPN)
 
             # Update structmap in METS
             structDivTop.append(divDisc)
@@ -740,7 +568,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     # Append metadata to METS
     xmlDataDmd.append(mdMODS) 
      
-    if createSIPs == True:
+    if config.createSIPs == True:
         logging.info("writing METS file")
        
         if sys.version.startswith('3'):
@@ -759,8 +587,8 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     uniquejobIDs = set(jobIDs)
     if len(uniquejobIDs) != len(jobIDs):
         logging.error("PPN " + PPN + ": duplicate values found for 'jobID'")
-        errors += 1
-        failedPPNs.append(PPN)
+        config.errors += 1
+        config.failedPPNs.append(PPN)
 
     # Consistency checks on volumeNumber values within each carrierType group
             
@@ -769,22 +597,22 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
         uniqueVolumeNumbers = set(volumeNumbersTypeGroup)
         if len(uniqueVolumeNumbers) != len(volumeNumbersTypeGroup):
             logging.error("PPN " + PPN + " (" + carrierType + "): duplicate values found for 'volumeNumber'")
-            errors += 1
-            failedPPNs.append(PPN)
+            config.errors += 1
+            config.failedPPNs.append(PPN)
 
         # Report warning if lower value of volumeNumber not equal to '1'
         volumeNumbersTypeGroup.sort()
         if volumeNumbersTypeGroup[0] != 1:
             logging.warning("PPN " + PPN + " (" + carrierType + "): expected '1' as lower value for 'volumeNumber', found '" + \
             str(volumeNumbersTypeGroup[0]) + "'")
-            warnings += 1
+            config.warnings += 1
         
         # Report warning if volumeNumber does not contain consecutive numbers (indicates either missing 
         # volumes or data entry error)
             
         if sorted(volumeNumbersTypeGroup) != list(range(min(volumeNumbersTypeGroup), max(volumeNumbersTypeGroup) + 1)):
             logging.warning("PPN " + PPN + " (" + carrierType + "): values for 'volumeNumber' are not consecutive")
-            warnings += 1
+            config.warnings += 1
     
 def main():
     
@@ -830,40 +658,27 @@ def main():
                                 'dvd-video']
                                 
     # Define name spaces for METS output
-    global mets_ns
-    global mods_ns
-    global premis_ns
-    global xlink_ns
-    global xsi_ns
-    global metsSchema
-    global modsSchema
-    global premisSchema
-    global NSMAP
-    mets_ns = 'http://www.loc.gov/METS/'
-    mods_ns = 'http://www.loc.gov/mods/v3'
-    premis_ns = 'http://www.loc.gov/premis/v3'
-    xlink_ns = 'http://www.w3.org/1999/xlink'
-    xsi_ns = 'http://www.w3.org/2001/XMLSchema-instance'
-    metsSchema = 'http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd'
-    modsSchema = 'http://www.loc.gov/mods/v3 https://www.loc.gov/standards/mods/v3/mods-3-4.xsd'
-    premisSchema = 'http://www.loc.gov/mods/v3 https://www.loc.gov/standards/premis/premis.xsd'
+    config.mets_ns = 'http://www.loc.gov/METS/'
+    config.mods_ns = 'http://www.loc.gov/mods/v3'
+    config.premis_ns = 'http://www.loc.gov/premis/v3'
+    config.xlink_ns = 'http://www.w3.org/1999/xlink'
+    config.xsi_ns = 'http://www.w3.org/2001/XMLSchema-instance'
+    config.metsSchema = 'http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd'
+    config.modsSchema = 'http://www.loc.gov/mods/v3 https://www.loc.gov/standards/mods/v3/mods-3-4.xsd'
+    config.premisSchema = 'http://www.loc.gov/mods/v3 https://www.loc.gov/standards/premis/premis.xsd'
     
-    NSMAP =  {"mets" : mets_ns,
-         "mods" : mods_ns,
-         "premis" : premis_ns,
-         "xlink" : xlink_ns,
-         "xsi": xsi_ns}
+    config.NSMAP =  {"mets" : config.mets_ns,
+         "mods" : config.mods_ns,
+         "premis" : config.premis_ns,
+         "xlink" : config.xlink_ns,
+         "xsi": config.xsi_ns}
        
     # Counters for number of errors and warnings
-    # Defined as global so we can easily add to them within functions
-    global errors
-    global warnings
-    errors = 0
-    warnings = 0
+    config.errors = 0
+    config.warnings = 0
     
     # List of failed PPNs (used for pruning a batch)
-    global failedPPNs
-    failedPPNs = []
+    config.failedPPNs = []
     
     # Set encoding of the terminal to UTF-8
     if sys.version.startswith("2"):
@@ -873,20 +688,12 @@ def main():
         out = codecs.getwriter("UTF-8")(sys.stdout.buffer)
         err = codecs.getwriter("UTF-8")(sys.stderr.buffer)
         
-    # Global flag that indicates if SIPs will be written
-    global createSIPs
-    createSIPs = False
+    # Flag that indicates if SIPs will be written
+    config.createSIPs = False
     
     # Flag that indicates if prune option is used
-    pruneBatch = False
-    
-    ## TEST
-    config.mods_ns = mods_ns
-    config.NSMAP = NSMAP
-    config.scriptName = scriptName
-    config.__version__ = __version__
-    ## TEST
-    
+    config.pruneBatch = False
+       
     # Get input from command line
     args = parseCommandLine()
     action = args.subcommand
@@ -898,11 +705,11 @@ def main():
    
     if action == "write":
         dirOut = os.path.normpath(args.dirOut)
-        createSIPs = True
+        config.createSIPs = True
     elif action == "prune":
         batchErr = os.path.normpath(args.batchErr)
         dirOut = None
-        pruneBatch = True
+        config.pruneBatch = True
     else:
         # Dummy value
         dirOut = None
@@ -910,8 +717,8 @@ def main():
     # Check if batch dir exists
     if os.path.isdir(batchIn) == False:
         logging.fatal("input batch directory does not exist")
-        errors += 1
-        errorExit(errors, warnings)
+        config.errors += 1
+        errorExit(config.errors, config.warnings)
         
     # Get listing of all directories (not files) in batch dir (used later for completeness check)
     # Note: all entries as full, absolute file paths!
@@ -929,8 +736,8 @@ def main():
     batchManifest = os.path.join(batchIn, fileBatchManifest)
     if os.path.isfile(batchManifest) == False:
         logging.fatal("file " + batchManifest + " does not exist")
-        errors += 1
-        errorExit(errors, warnings)
+        config.errors += 1
+        errorExit(config.errors, config.warnings)
 
     # Read batch manifest as CSV and import header and
     # row data to 2 separate lists
@@ -950,12 +757,12 @@ def main():
         fBatchManifest.close()
     except IOError:
         logging.fatal("cannot read " + batchManifest)
-        errors += 1
-        errorExit(errors, warnings)
+        config.errors += 1
+        errorExit(config.errors, config.warnings)
     except csv.Error:
         logging.fatal("error parsing " + batchManifest)
-        errors += 1
-        errorExit(errors, warnings)
+        config.errors += 1
+        errorExit(config.errors, config.warnings)
 
     # Iterate over rows and check that number of columns
     # corresponds to number of header columns.
@@ -972,11 +779,11 @@ def main():
             rowsBatchManifest.remove(row)
         elif colsRow != colsHeader:
             logging.fatal("wrong number of columns in row " + str(rowCount) + " of '" + batchManifest + "'")
-            errors += 1
-            errorExit(errors, warnings)
+            config.errors += 1
+            errorExit(config.errors, config.warnings)
 
     # Create output directory if in SIP creation mode
-    if createSIPs == True:
+    if config.createSIPs == True:
         # Remove output dir tree if it exists already
         # Potentially dangerous, so ask for user confirmation 
         if os.path.isdir(dirOut) == True:
@@ -990,16 +797,16 @@ def main():
                     shutil.rmtree(dirOut)
                 except OSError:
                     logging.fatal("cannot remove '" + dirOut + "'" )
-                    errors += 1
-                    errorExit(errors, warnings)
+                    config.errors += 1
+                    errorExit(config.errors, config.warnings)
                 
         # Create new dir
         try:
             os.makedirs(dirOut)
         except OSError:
             logging.fatal("cannot create '" + dirOut + "'" )
-            errors += 1
-            errorExit(errors, warnings)
+            config.errors += 1
+            errorExit(config.errors, config.warnings)
 
     # ********
     # ** Process batch manifest **
@@ -1012,9 +819,9 @@ def main():
         if occurs != 1:
             logging.fatal("found " + str(occurs) + " occurrences of column '" + requiredCol + "' in " + \
             batchManifest + " (expected 1)")
-            errors += 1
+            config.errors += 1
             # No point in continuing if we end up here ...
-            errorExit(errors, warnings)
+            errorExit(config.errors, config.warnings)
 
     # Set up dictionary to store header fields and corresponding column numbers
     colsBatchManifest = {}
@@ -1049,20 +856,20 @@ def main():
     for directory in diffDirs:
         logging.error("PPN " + PPN + ": directory '" + directory + "' not referenced in '"\
         + batchManifest + "'")
-        errors += 1
-        failedPPNs.append(PPN)
+        config.errors += 1
+        config.failedPPNs.append(PPN)
 
     # Summarise no. of warnings / errors
-    logging.info("Verify / write resulted in " + str(errors) + " errors and " + str(warnings) + " warnings")
+    logging.info("Verify / write resulted in " + str(config.errors) + " errors and " + str(config.warnings) + " warnings")
 
     # Reset warnings/errors
-    errors = 0
-    warnings = 0
+    config.errors = 0
+    config.warnings = 0
     
     # Get all unique values in failedPPNs by converting to a set (and then back to a list)
-    failedPPNs = (list(set(failedPPNs)))
+    config.failedPPNs = (list(set(config.failedPPNs)))
         
-    if pruneBatch == True and failedPPNs != []:
+    if config.pruneBatch == True and config.failedPPNs != []:
     
         logging.info("Start pruning")
         
@@ -1080,11 +887,11 @@ def main():
                     shutil.rmtree(batchErr)
                 except OSError:
                     logging.fatal("cannot remove '" + batchErr + "'" )
-                    errors += 1
-                    errorExit(errors, warnings)
+                    config.errors += 1
+                    errorExit(config.errors, config.warnings)
             else:
                 logging.error("exiting because user pressed 'N'")
-                errorExit(errors, warnings)
+                errorExit(config.errors, config.warnings)
         
         # Create batchErr directory         
 
@@ -1092,8 +899,8 @@ def main():
             os.makedirs(batchErr)
         except OSError or IOError:
             logging.fatal("Cannot create directory '" + batchErr + "'" )
-            errors += 1
-            errorExit(errors, warnings)
+            config.errors += 1
+            errorExit(config.errors, config.warnings)
        
         # Add batch manifest to batchErr directory
         batchManifestErr = os.path.join(batchErr, fileBatchManifest)
@@ -1113,8 +920,8 @@ def main():
                 fbatchManifestTemp = open(batchManifestTemp,"wb")
         except IOError:
             logging.fatal("cannot write batch manifest")
-            errors += 1
-            errorExit(errors, warnings)
+            config.errors += 1
+            errorExit(config.errors, config.warnings)
         
         # Create CSV writer objects
         csvErr = csv.writer(fbatchManifestErr, lineterminator='\n')
@@ -1130,7 +937,7 @@ def main():
             jobID = row[0]
             PPN = row[1]
             
-            if PPN in failedPPNs:
+            if PPN in config.failedPPNs:
                 # If PPN is in list of failed PPNs then add record to error batch
                 
                 # Default state of flag that is set to "True" if checksums are missing 
@@ -1151,7 +958,7 @@ def main():
                     except OSError or IOError:
                         logging.error("jobID " + jobID + ": could not create directory '" \
                         + imagePathErrAbs)
-                        errors += 1
+                        config.errors += 1
                         
                     # All files in directory
                     allFiles = glob.glob(imagePathInAbs + "/*")
@@ -1172,7 +979,7 @@ def main():
                         except IOError or OSError:
                             logging.error("jobID " + jobID + ": cannot copy '"\
                             + fileIn + "' to '" + fileErr + "'")
-                            errors += 1
+                            config.errors += 1
                         
                         # Verify MD5 checksum
                         md5SumIn = generate_file_md5(fileIn)
@@ -1181,7 +988,7 @@ def main():
                         if md5SumIn != md5SumErr:
                             logging.error("jobID " + jobID + ": checksum of '"\
                             + fileIn + "' does not match '" + fileErr + "'")
-                            errors += 1
+                            config.errors += 1
                                                                                              
                 # Write row to error batch manifest
                 logging.info("Writing batch manifest entry (batchErr)")
@@ -1194,7 +1001,7 @@ def main():
                         shutil.rmtree(imagePathInAbs)
                     except OSError:
                         logging.error("cannot remove '" + imagePathInAbs + "'" )
-                        errors += 1
+                        config.errors += 1
             else:
                 # Write row to temp batch manifest
                 logging.info("Writing batch manifest entry (batchIn)")
@@ -1219,7 +1026,7 @@ def main():
         shutil.copy2(batchLogIn,batchLogErr)
         
         # Summarise no. of additional warnings / errors during pruning
-        logging.info("Pruning resulted in additional " + str(errors) + " errors and " + str(warnings) + " warnings")
+        logging.info("Pruning resulted in additional " + str(config.errors) + " errors and " + str(config.warnings) + " warnings")
     
 if __name__ == "__main__":
     main()

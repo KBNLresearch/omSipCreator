@@ -1,0 +1,17 @@
+config.scriptName
+config.__version__ 
+config.mets_ns
+config.mods_ns
+config.premis_ns
+config.xlink_ns
+config.xsi_ns
+config.metsSchema
+config.modsSchema
+config.premisSchema
+config.NSMAP
+config.errors
+config.warnings
+config.failedPPNs
+config.createSIPs
+config.pruneBatch
+config.mediaInfoExe
