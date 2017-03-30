@@ -15,11 +15,6 @@ def createMODS(PPNGroup):
     # Dublin Core to MODS mapping follows http://www.loc.gov/standards/mods/dcsimple-mods.html
     # General structure: bibliographic md is wrapped in relatedItem / type = host element
     
-    global errors
-    global warnings
-    global failedPPNs
-    global mods_ns
-    
     # Dictionary maps carrier types  to MODS resource types 
     resourceTypeMap = {
         "cd-rom" : "software, multimedia",

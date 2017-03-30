@@ -413,12 +413,15 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 fptr = etree.SubElement(divFile, "{%s}fptr" %(config.mets_ns))
                 fptr.attrib["FILEID"] = fileID
                 
+                # Generate event metadata from Isobuster/dBpoweramp logs
+                premisEvent = createEvent()
+                
                 fileCounter += 1
                 sipFileCounter += 1
     else:
         # Dummy value, not used
         divDisc = etree.Element('rubbish')
-    return(fileGrp, divDisc, sipFileCounter)             
+    return(fileGrp, divDisc, premisEvent, sipFileCounter)             
     
 def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarriers, carrierTypeAllowedValues):
 
@@ -447,13 +450,6 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     amdSec = etree.SubElement(mets, "{%s}amdSec" %(config.mets_ns))
     # Add identifier
     amdSec.attrib["ID"] = "amdID1"
-    # Create digiprovMD, mdWrap and xmlData child elements
-    digiprovMD = etree.SubElement(amdSec, "{%s}digiprovMD" %(config.mets_ns))
-    digiprovMD.attrib["ID"] = "amdID2" # TODO: this should refer to structmap identifier + element is repeatable for each carrier! So shouldn't be defined here!
-    mdWrapdigiprov = etree.SubElement(digiprovMD, "{%s}mdWrap" %(config.mets_ns))
-    mdWrapdigiprov.attrib["MIMETYPE"] = "text/xml"
-    mdWrapdigiprov.attrib["MDTYPE"] = "PREMIS:EVENT"
-    xmlDatadigiprov =  etree.SubElement(mdWrapdigiprov, "{%s}xmlData" %(config.mets_ns))
     
     # Create fileSec and structMap elements
     fileSec = etree.SubElement(mets, "{%s}fileSec" %(config.mets_ns))
@@ -525,12 +521,23 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
                         
             # Create Carrier class instance for this carrier
             thisCarrier = Carrier(jobID, PPN, imagePathFull, volumeNumber, carrierType)
-            fileGrp, divDisc, fileCounter = processCarrier(thisCarrier, fileGrp, dirSIP, fileCounterStart)
+            fileGrp, divDisc, premisEvent, fileCounter = processCarrier(thisCarrier, fileGrp, dirSIP, fileCounterStart)
             
-            # Add carrier identifier to divDisc
+            # Add carrier identifier to divDisc as ADMID (because identifier refers to event metadata in amdSec, see below) 
             carrierID = "DISC_" + str(carrierCounter).zfill(3)
-            divDisc.attrib["ID"] = carrierID
+            divDisc.attrib["ADMID"] = carrierID
             
+            # Create digiprovMD, mdWrap and xmlData child elements
+            digiprovMD = etree.SubElement(amdSec, "{%s}digiprovMD" %(config.mets_ns))
+            digiprovMD.attrib["ID"] = carrierID
+            mdWrapdigiprov = etree.SubElement(digiprovMD, "{%s}mdWrap" %(config.mets_ns))
+            mdWrapdigiprov.attrib["MIMETYPE"] = "text/xml"
+            mdWrapdigiprov.attrib["MDTYPE"] = "PREMIS:EVENT"
+            xmlDatadigiprov =  etree.SubElement(mdWrapdigiprov, "{%s}xmlData" %(config.mets_ns))
+            
+            # Append PREMIS event that was returned by ProcessCarrier
+            xmlDatadigiprov.append(premisEvent)
+                        
             # Add to PPNGroup class instance
             thisPPNGroup.append(thisCarrier)
             
