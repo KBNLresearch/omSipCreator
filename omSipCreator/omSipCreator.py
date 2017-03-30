@@ -15,14 +15,14 @@ from operator import itemgetter
 from itertools import groupby
 from lxml import etree
 if __package__ == 'omSipCreator':
-    from .mods import createMODS
-    from .kbapi import sru
     from . import config
+    from .mods import createMODS
+    from .premis import createEvent
     from . import mdaudio
 else:
-    from mods import createMODS
-    from kbapi import sru
     import config
+    from mods import createMODS
+    from premis import createEvent
     import mdaudio
 
 # Bind raw_input (Python 3) to input (Python 2)

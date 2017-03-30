@@ -3,14 +3,12 @@ from lxml import etree
 
 if __package__ == 'omSipCreator':
     from . import config
-    from .kbapi import sru
 else:
     import config
-    from kbapi import sru
     
-# Module for writing MODS metadata
+# Module for writing PREMIS metadata
 
-def createMODS(PPNGroup):
+def createEvent(PPNGroup):
     # Create MODS metadata based on records in GGC
     # Dublin Core to MODS mapping follows http://www.loc.gov/standards/mods/dcsimple-mods.html
     # General structure: bibliographic md is wrapped in relatedItem / type = host element
