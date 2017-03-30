@@ -434,18 +434,28 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     # Add schema reference
     mets.attrib[etree.QName(config.xsi_ns, "schemaLocation")] = "".join([config.metsSchema," ",config.modsSchema, " ",config.premisSchema]) 
     # Subelements for dmdSec, amdSec, fileSec and structMap
+    # dmdSec
     dmdSec = etree.SubElement(mets, "{%s}dmdSec" %(config.mets_ns))
     # Add identifier
     # TODO: do we need any more than this? probably not ..
-    dmdSec.attrib["ID"] = "dmdID"
-    amdSec = etree.SubElement(mets, "{%s}amdSec" %(config.mets_ns))
-    # Add identifier
-    amdSec.attrib["ID"] = "amdID"
-    # Create mdWrapDmd and xmlData child elements 
+    dmdSec.attrib["ID"] = "dmdID1"
+    # Create mdWrap and xmlData child elements 
     mdWrapDmd = etree.SubElement(dmdSec, "{%s}mdWrap" %(config.mets_ns))
     mdWrapDmd.attrib["MDTYPE"] = "MODS"
     mdWrapDmd.attrib["MDTYPEVERSION"] = "3.4"
     xmlDataDmd =  etree.SubElement(mdWrapDmd, "{%s}xmlData" %(config.mets_ns))
+    # amdSec
+    amdSec = etree.SubElement(mets, "{%s}amdSec" %(config.mets_ns))
+    # Add identifier
+    amdSec.attrib["ID"] = "amdID1"
+    # Create digiprovMD, mdWrap and xmlData child elements
+    digiprovMD = etree.SubElement(amdSec, "{%s}digiprovMD" %(config.mets_ns))
+    digiprovMD.attrib["ID"] = "amdID2"
+    mdWrapdigiprov = etree.SubElement(digiprovMD, "{%s}mdWrap" %(config.mets_ns))
+    mdWrapdigiprov.attrib["MIMETYPE"] = "text/xml"
+    mdWrapdigiprov.attrib["MDTYPE"] = "PREMIS:EVENT"
+    xmlDatadigiprov =  etree.SubElement(mdWrapdigiprov, "{%s}xmlData" %(config.mets_ns))
+    
     # Create fileSec and structMap elements
     fileSec = etree.SubElement(mets, "{%s}fileSec" %(config.mets_ns))
     fileGrp = etree.SubElement(fileSec, "{%s}fileGrp" %(config.mets_ns))
