@@ -437,7 +437,6 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     # dmdSec
     dmdSec = etree.SubElement(mets, "{%s}dmdSec" %(config.mets_ns))
     # Add identifier
-    # TODO: do we need any more than this? probably not ..
     dmdSec.attrib["ID"] = "dmdID1"
     # Create mdWrap and xmlData child elements 
     mdWrapDmd = etree.SubElement(dmdSec, "{%s}mdWrap" %(config.mets_ns))
@@ -450,7 +449,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     amdSec.attrib["ID"] = "amdID1"
     # Create digiprovMD, mdWrap and xmlData child elements
     digiprovMD = etree.SubElement(amdSec, "{%s}digiprovMD" %(config.mets_ns))
-    digiprovMD.attrib["ID"] = "amdID2"
+    digiprovMD.attrib["ID"] = "amdID2" # TODO: this should refer to structmap identifier + element is repeatable for each carrier! So shouldn't be defined here!
     mdWrapdigiprov = etree.SubElement(digiprovMD, "{%s}mdWrap" %(config.mets_ns))
     mdWrapdigiprov.attrib["MIMETYPE"] = "text/xml"
     mdWrapdigiprov.attrib["MDTYPE"] = "PREMIS:EVENT"
