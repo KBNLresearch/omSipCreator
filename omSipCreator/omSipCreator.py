@@ -45,7 +45,7 @@ config.scriptPath, config.scriptName = os.path.split(sys.argv[0])
 if len(config.scriptName) == 0:
     config.scriptName = 'omSipCreator'
 
-config.__version__ = "0.4.8"
+config.__version__ = "0.4.9"
 
 # Create parser
 parser = argparse.ArgumentParser(

@@ -87,12 +87,11 @@ install_requires = [
     'pypiwin32'
 ]
 
-setup_requires = ['pypiwin32']
-
 setup(name='omSipCreator',
       packages=find_packages(),
       version=find_version('omSipCreator', 'omSipCreator.py'),
       license='Apache License 2.0',
+      install_requires=install_requires,
       platforms=['POSIX', 'Windows'],
       description='Create ingest-ready SIPs from batches of optical media images',
       long_description='Create ingest-ready SIPs from batches of optical media images',
