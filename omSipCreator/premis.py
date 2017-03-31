@@ -11,9 +11,10 @@ else:
 def createEvent():
     # Create PREMIS event
     
-    ## TEST
     eventName = etree.QName(config.premis_ns, "event")
     event = etree.Element(eventName, nsmap = config.NSMAP)
-    ## TEST
+    eventIdentifier = etree.SubElement(eventIdentifier, "{%s}eventIdentifier" %(config.premis_ns))
+    eventIdentifierType = etree.SubElement(eventIdentifier, "{%s}eventIdentifierType" %(config.premis_ns))
+    eventIdentifierValue = etree.SubElement(eventIdentifier, "{%s}eventIdentifierValue" %(config.premis_ns))
          
     return(event)
