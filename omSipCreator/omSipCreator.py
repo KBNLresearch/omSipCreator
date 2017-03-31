@@ -414,16 +414,23 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 fptr.attrib["FILEID"] = fileID
                 
                 # Generate event metadata from Isobuster/dBpoweramp logs
-                premisEvent = createEvent()
-                
+                # For each carrier we can have an Isobuster even, a dBpoweramp event, or both
+                # Events are wrapped in a list premisEvents
+                premisEvents = []
+                if isobusterLogs != []:
+                    premisEvent = createEvent(isobusterLogs[0])
+                    premisEvents.append(premisEvent)
+                if dBpowerampLogs != []:
+                    premisEvent = createEvent(dBpowerampLogs[0])
+                    premisEvents.append(premisEvent)
                 fileCounter += 1
                 sipFileCounter += 1
         else:
             # Dummy values not used
             divDisc = etree.Element('rubbish')
-            premisEvent = etree.Element('rubbish')
+            premisEvents = []
         
-    return(fileGrp, divDisc, premisEvent, sipFileCounter)             
+    return(fileGrp, divDisc, premisEvents, sipFileCounter)             
     
 def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarriers, carrierTypeAllowedValues):
 
@@ -486,6 +493,13 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     volumeNumbers = []
     carrierTypes = []
     
+    # Sort rows by carrier type
+    #carriers.sort(key=itemgetter(3))
+    
+    ## TEST
+    #print("carriers type = " + str(type(carriers)))
+    ## TEST
+    
     carriersByType = groupby(carriers, itemgetter(3))
     
     for carrierTypeCarriers, carrierTypeGroup in carriersByType:
@@ -523,22 +537,22 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
                         
             # Create Carrier class instance for this carrier
             thisCarrier = Carrier(jobID, PPN, imagePathFull, volumeNumber, carrierType)
-            fileGrp, divDisc, premisEvent, fileCounter = processCarrier(thisCarrier, fileGrp, dirSIP, fileCounterStart)
+            fileGrp, divDisc, premisEvents, fileCounter = processCarrier(thisCarrier, fileGrp, dirSIP, fileCounterStart)
             
             # Add carrier identifier to divDisc as ADMID (because identifier refers to event metadata in amdSec, see below) 
             carrierID = "DISC_" + str(carrierCounter).zfill(3)
             divDisc.attrib["ADMID"] = carrierID
             
-            # Create digiprovMD, mdWrap and xmlData child elements
-            digiprovMD = etree.SubElement(amdSec, "{%s}digiprovMD" %(config.mets_ns))
-            digiprovMD.attrib["ID"] = carrierID
-            mdWrapdigiprov = etree.SubElement(digiprovMD, "{%s}mdWrap" %(config.mets_ns))
-            mdWrapdigiprov.attrib["MIMETYPE"] = "text/xml"
-            mdWrapdigiprov.attrib["MDTYPE"] = "PREMIS:EVENT"
-            xmlDatadigiprov =  etree.SubElement(mdWrapdigiprov, "{%s}xmlData" %(config.mets_ns))
-            
-            # Append PREMIS event that was returned by ProcessCarrier
-            xmlDatadigiprov.append(premisEvent)
+            # Append PREMIS events that were returned by ProcessCarrier
+            for premisEvent in premisEvents:
+                # Create digiprovMD, mdWrap and xmlData child elements
+                digiprovMD = etree.SubElement(amdSec, "{%s}digiprovMD" %(config.mets_ns))
+                digiprovMD.attrib["ID"] = carrierID
+                mdWrapdigiprov = etree.SubElement(digiprovMD, "{%s}mdWrap" %(config.mets_ns))
+                mdWrapdigiprov.attrib["MIMETYPE"] = "text/xml"
+                mdWrapdigiprov.attrib["MDTYPE"] = "PREMIS:EVENT"
+                xmlDatadigiprov =  etree.SubElement(mdWrapdigiprov, "{%s}xmlData" %(config.mets_ns))
+                xmlDatadigiprov.append(premisEvent)
                         
             # Add to PPNGroup class instance
             thisPPNGroup.append(thisCarrier)
@@ -858,6 +872,9 @@ def main():
         colsBatchManifest[header] = col
         col += 1
 
+    ## TEST 
+    print("rowsBatchManifest = " + str(type(rowsBatchManifest)))
+    ## TEST
     # Sort rows by PPN
     rowsBatchManifest.sort(key=itemgetter(1))
         
