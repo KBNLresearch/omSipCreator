@@ -87,6 +87,8 @@ install_requires = [
     'pypiwin32'
 ]
 
+setup_requires = ['pypiwin32']
+
 setup(name='omSipCreator',
       packages=find_packages(),
       version=find_version('omSipCreator', 'omSipCreator.py'),
