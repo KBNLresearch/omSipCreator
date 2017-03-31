@@ -493,13 +493,10 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     volumeNumbers = []
     carrierTypes = []
     
+    # Convert to list (needed because othwerwise we can't sort)
+    carriers = list(carriers)
     # Sort rows by carrier type
-    #carriers.sort(key=itemgetter(3))
-    
-    ## TEST
-    #print("carriers type = " + str(type(carriers)))
-    ## TEST
-    
+    carriers.sort(key=itemgetter(3))
     carriersByType = groupby(carriers, itemgetter(3))
     
     for carrierTypeCarriers, carrierTypeGroup in carriersByType:
