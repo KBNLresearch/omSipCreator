@@ -13,7 +13,7 @@ def createEvent():
     
     eventName = etree.QName(config.premis_ns, "event")
     event = etree.Element(eventName, nsmap = config.NSMAP)
-    eventIdentifier = etree.SubElement(eventIdentifier, "{%s}eventIdentifier" %(config.premis_ns))
+    eventIdentifier = etree.SubElement(event, "{%s}eventIdentifier" %(config.premis_ns))
     eventIdentifierType = etree.SubElement(eventIdentifier, "{%s}eventIdentifierType" %(config.premis_ns))
     eventIdentifierValue = etree.SubElement(eventIdentifier, "{%s}eventIdentifierValue" %(config.premis_ns))
          

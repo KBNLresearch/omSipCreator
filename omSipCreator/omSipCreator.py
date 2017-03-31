@@ -418,9 +418,11 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 
                 fileCounter += 1
                 sipFileCounter += 1
-    else:
-        # Dummy value, not used
-        divDisc = etree.Element('rubbish')
+        else:
+            # Dummy values not used
+            divDisc = etree.Element('rubbish')
+            premisEvent = etree.Element('rubbish')
+        
     return(fileGrp, divDisc, premisEvent, sipFileCounter)             
     
 def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarriers, carrierTypeAllowedValues):
