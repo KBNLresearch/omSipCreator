@@ -876,9 +876,6 @@ def main():
         colsBatchManifest[header] = col
         col += 1
 
-    ## TEST 
-    print("rowsBatchManifest = " + str(type(rowsBatchManifest)))
-    ## TEST
     # Sort rows by PPN
     rowsBatchManifest.sort(key=itemgetter(1))
         
