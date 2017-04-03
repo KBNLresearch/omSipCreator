@@ -17,12 +17,12 @@ from lxml import etree
 if __package__ == 'omSipCreator':
     from . import config
     from .mods import createMODS
-    from .premis import createEvent
+    from .premis import addCreationEvent
     from . import mdaudio
 else:
     import config
     from mods import createMODS
-    from premis import createEvent
+    from premis import addCreationEvent
     import mdaudio
 
 # Bind raw_input (Python 3) to input (Python 2)
@@ -416,13 +416,13 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 # Generate event metadata from Isobuster/dBpoweramp logs
                 # For each carrier we can have an Isobuster even, a dBpoweramp event, or both
                 # Events are wrapped in a list premisEvents
-                premisEvents = []
+                premisCreationEvents = []
                 if isobusterLogs != []:
-                    premisEvent = createEvent(isobusterLogs[0])
-                    premisEvents.append(premisEvent)
+                    premisEvent = addCreationEvent(isobusterLogs[0])
+                    premisCreationEvents.append(premisEvent)
                 if dBpowerampLogs != []:
-                    premisEvent = createEvent(dBpowerampLogs[0])
-                    premisEvents.append(premisEvent)
+                    premisEvent = addCreationEvent(dBpowerampLogs[0])
+                    premisCreationEvents.append(premisEvent)
                 fileCounter += 1
                 sipFileCounter += 1
         else:
@@ -430,7 +430,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
             divDisc = etree.Element('rubbish')
             premisEvents = []
         
-    return(fileGrp, divDisc, premisEvents, sipFileCounter)             
+    return(fileGrp, divDisc, premisCreationEvents, sipFileCounter)             
     
 def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarriers, carrierTypeAllowedValues):
 
