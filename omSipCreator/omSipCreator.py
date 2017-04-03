@@ -539,16 +539,17 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
             # Add carrier identifier to divDisc as ADMID (because identifier refers to event metadata in amdSec, see below) 
             carrierID = "DISC_" + str(carrierCounter).zfill(3)
             divDisc.attrib["ADMID"] = carrierID
+
+            # Create digiprovMD, mdWrap and xmlData child elements
+            digiprovMD = etree.SubElement(amdSec, "{%s}digiprovMD" %(config.mets_ns))
+            digiprovMD.attrib["ID"] = carrierID
+            mdWrapdigiprov = etree.SubElement(digiprovMD, "{%s}mdWrap" %(config.mets_ns))
+            mdWrapdigiprov.attrib["MIMETYPE"] = "text/xml"
+            mdWrapdigiprov.attrib["MDTYPE"] = "PREMIS:EVENT"
+            xmlDatadigiprov =  etree.SubElement(mdWrapdigiprov, "{%s}xmlData" %(config.mets_ns))
             
             # Append PREMIS events that were returned by ProcessCarrier
             for premisEvent in premisEvents:
-                # Create digiprovMD, mdWrap and xmlData child elements
-                digiprovMD = etree.SubElement(amdSec, "{%s}digiprovMD" %(config.mets_ns))
-                digiprovMD.attrib["ID"] = carrierID
-                mdWrapdigiprov = etree.SubElement(digiprovMD, "{%s}mdWrap" %(config.mets_ns))
-                mdWrapdigiprov.attrib["MIMETYPE"] = "text/xml"
-                mdWrapdigiprov.attrib["MDTYPE"] = "PREMIS:EVENT"
-                xmlDatadigiprov =  etree.SubElement(mdWrapdigiprov, "{%s}xmlData" %(config.mets_ns))
                 xmlDatadigiprov.append(premisEvent)
                         
             # Add to PPNGroup class instance
