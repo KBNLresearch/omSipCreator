@@ -312,7 +312,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
             entry.append(str(os.path.getsize(fileNameWithPath)))
                         
             # Append file name to list 
-            allFilesinMD5.append(fileNameWithPath)
+            allFilesinMD5.append(fileNameWithPath)            
             
         # Check if any files in directory are missing from MD5 file
         for f in otherFiles:
@@ -413,22 +413,28 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 fptr = etree.SubElement(divFile, "{%s}fptr" %(config.mets_ns))
                 fptr.attrib["FILEID"] = fileID
                 
-                # Generate event metadata from Isobuster/dBpoweramp logs
-                # For each carrier we can have an Isobuster even, a dBpoweramp event, or both
-                # Events are wrapped in a list premisEvents
-                premisCreationEvents = []
-                if isobusterLogs != []:
-                    premisEvent = addCreationEvent(isobusterLogs[0])
-                    premisCreationEvents.append(premisEvent)
-                if dBpowerampLogs != []:
-                    premisEvent = addCreationEvent(dBpowerampLogs[0])
-                    premisCreationEvents.append(premisEvent)
+                # If file is an audio file extract technical metadata
+                if fileName.endswith(('.wav', '.WAV', 'flac', 'FLAC')):
+                    pass
+
                 fileCounter += 1
                 sipFileCounter += 1
-        else:
-            # Dummy values not used
-            divDisc = etree.Element('rubbish')
-            premisEvents = []
+                    
+            # Generate event metadata from Isobuster/dBpoweramp logs
+            # For each carrier we can have an Isobuster even, a dBpoweramp event, or both
+            # Events are wrapped in a list premisEvents
+            premisCreationEvents = []
+            if isobusterLogs != []:
+                premisEvent = addCreationEvent(isobusterLogs[0])
+                premisCreationEvents.append(premisEvent)
+            if dBpowerampLogs != []:
+                premisEvent = addCreationEvent(dBpowerampLogs[0])
+                premisCreationEvents.append(premisEvent)
+
+    else:
+        # Dummy values not used
+        divDisc = etree.Element('rubbish')
+        premisEvents = []
         
     return(fileGrp, divDisc, premisCreationEvents, sipFileCounter)             
     
