@@ -11,9 +11,8 @@ else:
     
 # Wrapper module for mediainfo
 
-def getTechMetadata(fileRef):
+def getAudioMetadata(fileRef):
     args = [config.mediaInfoExe]
-    args = [mediaInfoExe]
     args.append( "--Output=EBUCore")
     args.append(fileRef)
     

@@ -18,12 +18,12 @@ if __package__ == 'omSipCreator':
     from . import config
     from .mods import createMODS
     from .premis import addCreationEvent
-    from . import mdaudio
+    from .mdaudio import getAudioMetadata
 else:
     import config
     from mods import createMODS
     from premis import addCreationEvent
-    import mdaudio
+    from mdaudio import getAudioMetadata
 
 # Bind raw_input (Python 3) to input (Python 2)
 # Source: http://stackoverflow.com/a/21731110/1209004
@@ -349,18 +349,25 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
             
             filesToCopy = [i for i in MD5FromFile if not i[1].endswith('.log')]
             
+            # Set up list that will hold techMD elements
+            listTechMD = []
+            
             for entry in filesToCopy:
 
                 md5Sum = entry[0]
                 fileName = entry[1]
                 fileSize = entry[2]
-                # Generate unique file ID
-                fileID = "FILE_" + str(sipFileCounter).zfill(3) 
+                # Generate unique file ID (used in structMap) + admin ID (used in amdSec)
+                fileID = "f_" + str(sipFileCounter).zfill(3)
+                admID = "file_" + str(sipFileCounter).zfill(3)
+                # Construct bath relative to carrier directory
+                fIn = os.path.join(carrier.imagePathFull,fileName)
+                
                 # Construct path relative to volume directory
                 fSIP = os.path.join(dirVolume,fileName)
                 try:
                     # Copy to volume dir
-                    shutil.copy2(os.path.join(carrier.imagePathFull,fileName),fSIP)
+                    shutil.copy2(fIn, fSIP)
                 except OSError:
                     logging.fatal("jobID " + carrier.jobID + ": cannot copy '"\
                     + fileName + "' to '" + fSIP + "'")
@@ -381,6 +388,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 # Create METS file and FLocat elements
                 fileElt = etree.SubElement(fileGrp, "{%s}file" %(config.mets_ns))
                 fileElt.attrib["ID"] = fileID 
+                fileElt.attrib["ADMID"] = admID
                 fileElt.attrib["SIZE"] = fileSize
                 # TODO: add SEQ and CREATED, DMDID attributes as well
                 
@@ -412,10 +420,12 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 divFile.attrib["ORDER"] = str(fileCounter)
                 fptr = etree.SubElement(divFile, "{%s}fptr" %(config.mets_ns))
                 fptr.attrib["FILEID"] = fileID
-                
+                                               
                 # If file is an audio file extract technical metadata
-                if fileName.endswith(('.wav', '.WAV', 'flac', 'FLAC')):
-                    pass
+                if fIn.endswith(('.wav', '.WAV', 'flac', 'FLAC')):
+                    
+                    audioMD = getAudioMetadata(fIn)
+                    listTechMD.append(audioMD)
 
                 fileCounter += 1
                 sipFileCounter += 1
@@ -436,7 +446,8 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
         divDisc = etree.Element('rubbish')
         premisEvents = []
         
-    return(fileGrp, divDisc, premisCreationEvents, sipFileCounter)             
+    return(fileGrp, divDisc, premisCreationEvents, listTechMD, sipFileCounter)             
+
     
 def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarriers, carrierTypeAllowedValues):
 
@@ -540,10 +551,14 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
                         
             # Create Carrier class instance for this carrier
             thisCarrier = Carrier(jobID, PPN, imagePathFull, volumeNumber, carrierType)
-            fileGrp, divDisc, premisEvents, fileCounter = processCarrier(thisCarrier, fileGrp, dirSIP, fileCounterStart)
+            fileGrp, divDisc, premisEvents, listTechMD, fileCounter = processCarrier(thisCarrier, fileGrp, dirSIP, fileCounterStart)
+            ## NOTE
+            # listTechMD: list of techMD elements, each of which represent one file. Wraps EbuCore audio metdata + possibly other tech 
+            # metadata
+            ## NOTE
             
             # Add carrier identifier to divDisc as ADMID (because identifier refers to event metadata in amdSec, see below) 
-            carrierID = "DISC_" + str(carrierCounter).zfill(3)
+            carrierID = "disc_" + str(carrierCounter).zfill(3)
             divDisc.attrib["ADMID"] = carrierID
 
             # Create digiprovMD, mdWrap and xmlData child elements
@@ -553,7 +568,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
             mdWrapdigiprov.attrib["MIMETYPE"] = "text/xml"
             mdWrapdigiprov.attrib["MDTYPE"] = "PREMIS:EVENT"
             xmlDatadigiprov =  etree.SubElement(mdWrapdigiprov, "{%s}xmlData" %(config.mets_ns))
-            
+
             # Append PREMIS events that were returned by ProcessCarrier
             for premisEvent in premisEvents:
                 xmlDatadigiprov.append(premisEvent)
