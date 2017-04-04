@@ -41,6 +41,18 @@ def addCreationEvent(log):
     eventDateTime = etree.SubElement(event, "{%s}eventDateTime" %(config.premis_ns))
     eventDateTime.text = eventDateTimeFormatted
     
+    # Agent element
+    agent = etree.SubElement(event, "{%s}agent" %(config.premis_ns))
+    agentIdentifier = etree.SubElement(agent, "{%s}agentIdentifier" %(config.premis_ns))
+    agentIdentifierType = etree.SubElement(agentIdentifier, "{%s}agentIdentifierType" %(config.premis_ns))
+    agentIdentifierType.text = "URI"
+    
+    # Values of agentIdentifierValue and agentName are set further below
+    agentIdentifierValue = etree.SubElement(agentIdentifier, "{%s}agentIdentifierValue" %(config.premis_ns))
+    agentName = etree.SubElement(agent, "{%s}agentName" %(config.premis_ns))
+    agentType = etree.SubElement(agent, "{%s}agentType" %(config.premis_ns))
+    agentType.text = "software"
+    
     # eventDetailInformation container with eventDetail element
     eventDetailInformation = etree.SubElement(event, "{%s}eventDetailInformation" %(config.premis_ns))
     eventDetail = etree.SubElement(eventDetailInformation, "{%s}eventDetail" %(config.premis_ns))
@@ -59,9 +71,15 @@ def addCreationEvent(log):
     comment = etree.Comment(isoBusterComment)
    
     if logName == "isobuster.log":
+        # URI to isoBuster Wikidata page
+        agentIdentifierValue.text = "https://www.wikidata.org/wiki/Q304733"
+        agentName.text = "isoBuster"
         eventDetail.text = "Image created with IsoBuster"
         eventOutcomeDetail.insert(1, comment)
     elif logName == "dbpoweramp.log":
+        # URI to dBpoweramp Wikidata page
+        agentIdentifierValue.text = "https://www.wikidata.org/wiki/Q1152133"
+        agentName.text = "dBpoweramp"
         eventDetail.text = "Audio ripped with dBpoweramp"
         
     return(event)
