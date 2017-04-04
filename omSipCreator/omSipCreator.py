@@ -420,12 +420,17 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 divFile.attrib["ORDER"] = str(fileCounter)
                 fptr = etree.SubElement(divFile, "{%s}fptr" %(config.mets_ns))
                 fptr.attrib["FILEID"] = fileID
+                
+                # Create techMD element
+                techMDName = etree.QName(config.premis_ns, "techMD")
+                techMD = etree.Element(techMDName, nsmap = config.NSMAP)
                                                
                 # If file is an audio file extract technical metadata
                 if fIn.endswith(('.wav', '.WAV', 'flac', 'FLAC')):
                     
                     audioMD = getAudioMetadata(fIn)
-                    listTechMD.append(audioMD)
+                    listTechMD.append(techMD)
+                    # TODO: wrap audioMD inside mdWrap element inside techMD element for this file!!
 
                 fileCounter += 1
                 sipFileCounter += 1
@@ -572,7 +577,11 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
             # Append PREMIS events that were returned by ProcessCarrier
             for premisEvent in premisEvents:
                 xmlDatadigiprov.append(premisEvent)
-                        
+            
+            # Append techMD elements to amdSec
+            for techMD in listTechMD:
+                amdSec.append(techMD)
+            
             # Add to PPNGroup class instance
             thisPPNGroup.append(thisCarrier)
             
