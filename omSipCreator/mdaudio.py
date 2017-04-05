@@ -21,8 +21,12 @@ def getAudioMetadata(fileRef):
      
     status, out, err = shared.launchSubProcess(args)
     
+    # Configure XML parser to get rid of blank lines in MediaInfo output
+    parser = etree.XMLParser(remove_blank_text=True)
+    
     # Parse string to element
-    outElt = etree.fromstring(out.encode('utf-8'))
+    #outElt = etree.fromstring(out.encode('utf-8'))
+    outElt = etree.XML(out.encode('utf-8'), parser=parser)
     
     # Main results to dictionary
     dictOut = {}

@@ -422,15 +422,27 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 fptr.attrib["FILEID"] = fileID
                 
                 # Create techMD element
-                techMDName = etree.QName(config.premis_ns, "techMD")
+                techMDName = etree.QName(config.mets_ns, "techMD")
                 techMD = etree.Element(techMDName, nsmap = config.NSMAP)
+                techMD.attrib["ID"] = admID
+                mdWrap = etree.SubElement(techMD, "{%s}mdWrap" %(config.mets_ns))
+                mdWrap.attrib["MIMETYPE"] = "text/xml"
+                # EBUCore has no registered METS MDTYPE, so need to use OTHER
+                mdWrap.attrib["MDTYPE"] = "OTHER"
+                mdWrap.attrib["OTHERMDTYPE"] = "EBUCore"
+                mdWrap.attrib["MDTYPEVERSION"] = "1.5"
+                xmlData = etree.SubElement(mdWrap, "{%s}xmlData" %(config.mets_ns))
+                
+                # <mets:mdWrap MIMETYPE="text/xml" MDTYPE="PREMIS:EVENT">
+                # <mets:xmlData>
+                
                                                
                 # If file is an audio file extract technical metadata
-                if fIn.endswith(('.wav', '.WAV', 'flac', 'FLAC')):
-                    
-                    audioMD = getAudioMetadata(fIn)
+                if fSIP.endswith(('.wav', '.WAV', 'flac', 'FLAC')):
+                    audioMDOut = getAudioMetadata(fSIP)
+                    audioMD = audioMDOut["outElt"]
+                    xmlData.append(audioMD)
                     listTechMD.append(techMD)
-                    # TODO: wrap audioMD inside mdWrap element inside techMD element for this file!!
 
                 fileCounter += 1
                 sipFileCounter += 1
@@ -566,6 +578,10 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
             carrierID = "disc_" + str(carrierCounter).zfill(3)
             divDisc.attrib["ADMID"] = carrierID
 
+            # Append techMD elements to amdSec
+            for techMD in listTechMD:
+                amdSec.append(techMD)
+                
             # Create digiprovMD, mdWrap and xmlData child elements
             digiprovMD = etree.SubElement(amdSec, "{%s}digiprovMD" %(config.mets_ns))
             digiprovMD.attrib["ID"] = carrierID
@@ -573,15 +589,11 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
             mdWrapdigiprov.attrib["MIMETYPE"] = "text/xml"
             mdWrapdigiprov.attrib["MDTYPE"] = "PREMIS:EVENT"
             xmlDatadigiprov =  etree.SubElement(mdWrapdigiprov, "{%s}xmlData" %(config.mets_ns))
-
+            
             # Append PREMIS events that were returned by ProcessCarrier
             for premisEvent in premisEvents:
                 xmlDatadigiprov.append(premisEvent)
-            
-            # Append techMD elements to amdSec
-            for techMD in listTechMD:
-                amdSec.append(techMD)
-            
+                        
             # Add to PPNGroup class instance
             thisPPNGroup.append(thisCarrier)
             
