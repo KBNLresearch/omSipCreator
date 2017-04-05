@@ -430,12 +430,8 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 # EBUCore has no registered METS MDTYPE, so need to use OTHER
                 mdWrap.attrib["MDTYPE"] = "OTHER"
                 mdWrap.attrib["OTHERMDTYPE"] = "EBUCore"
-                mdWrap.attrib["MDTYPEVERSION"] = "1.5"
-                xmlData = etree.SubElement(mdWrap, "{%s}xmlData" %(config.mets_ns))
-                
-                # <mets:mdWrap MIMETYPE="text/xml" MDTYPE="PREMIS:EVENT">
-                # <mets:xmlData>
-                
+                mdWrap.attrib["MDTYPEVERSION"] = "1.6"
+                xmlData = etree.SubElement(mdWrap, "{%s}xmlData" %(config.mets_ns))              
                                                
                 # If file is an audio file extract technical metadata
                 if fSIP.endswith(('.wav', '.WAV', 'flac', 'FLAC')):
@@ -527,6 +523,9 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     volumeNumbers = []
     carrierTypes = []
     
+    # Set up list that will is used to collect all digiProv elements for all carriers within PPN
+    digiProvElementsPPN = []
+    
     # Convert to list (needed because othwerwise we can't sort)
     carriers = list(carriers)
     # Sort rows by carrier type
@@ -568,7 +567,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
                         
             # Create Carrier class instance for this carrier
             thisCarrier = Carrier(jobID, PPN, imagePathFull, volumeNumber, carrierType)
-            fileGrp, divDisc, premisEvents, listTechMD, fileCounter = processCarrier(thisCarrier, fileGrp, dirSIP, fileCounterStart)
+            fileGrp, divDisc, premisEventsCarrier, listTechMD, fileCounter = processCarrier(thisCarrier, fileGrp, dirSIP, fileCounterStart)
             ## NOTE
             # listTechMD: list of techMD elements, each of which represent one file. Wraps EbuCore audio metdata + possibly other tech 
             # metadata
@@ -583,7 +582,11 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
                 amdSec.append(techMD)
                 
             # Create digiprovMD, mdWrap and xmlData child elements
-            digiprovMD = etree.SubElement(amdSec, "{%s}digiprovMD" %(config.mets_ns))
+            # TODO all techMD and digoprovMD section must be contiguous, so must be done outside this loop!
+            
+            digiprovMDName = etree.QName(config.mets_ns, "digiprovMD")
+            digiprovMD = etree.Element(digiprovMDName, nsmap = config.NSMAP)
+            #digiprovMD = etree.SubElement(amdSec, "{%s}digiprovMD" %(config.mets_ns))
             digiprovMD.attrib["ID"] = carrierID
             mdWrapdigiprov = etree.SubElement(digiprovMD, "{%s}mdWrap" %(config.mets_ns))
             mdWrapdigiprov.attrib["MIMETYPE"] = "text/xml"
@@ -591,9 +594,11 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
             xmlDatadigiprov =  etree.SubElement(mdWrapdigiprov, "{%s}xmlData" %(config.mets_ns))
             
             # Append PREMIS events that were returned by ProcessCarrier
-            for premisEvent in premisEvents:
+            for premisEvent in premisEventsCarrier:
                 xmlDatadigiprov.append(premisEvent)
-                        
+            
+            digiProvElementsPPN.append(digiprovMD)
+            
             # Add to PPNGroup class instance
             thisPPNGroup.append(thisCarrier)
             
@@ -647,7 +652,11 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     mdMODS = createMODS(thisPPNGroup)
  
     # Append metadata to METS
-    xmlDataDmd.append(mdMODS) 
+    xmlDataDmd.append(mdMODS)
+    
+    # Append digiProvMD elements to amdSec
+    for digiProvMDElt in digiProvElementsPPN:
+        amdSec.append(digiProvMDElt)
      
     if config.createSIPs == True:
         logging.info("writing METS file")
