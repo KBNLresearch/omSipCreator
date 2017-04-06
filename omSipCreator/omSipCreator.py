@@ -831,8 +831,6 @@ def main():
 
     # Read batch manifest as CSV and import header and
     # row data to 2 separate lists
-    # TODO: make this work in Python 3, see also:
-    # http://stackoverflow.com/a/5181085/1209004
     try:
         if sys.version.startswith('3'):
             # Py3: csv.reader expects file opened in text mode
