@@ -838,7 +838,6 @@ def main():
         elif sys.version.startswith('2'):
             # Py2: csv.reader expects file opened in binary mode
             fBatchManifest = open(batchManifest,"rb")
-        #batchManifestCSV = csv.reader(fBatchManifest, lineterminator='\n')
         batchManifestCSV = csv.reader(fBatchManifest)
         headerBatchManifest = next(batchManifestCSV)
         rowsBatchManifest = [row for row in batchManifestCSV]
