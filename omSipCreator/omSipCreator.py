@@ -668,7 +668,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
 
         metsFname = os.path.join(dirSIP,"mets.xml")
         
-        with open(metsFname, "w") as text_file:
+        with open(metsFname, "w", encoding="utf-8") as text_file:
             text_file.write(metsAsString)
 
     # IP-level consistency checks
