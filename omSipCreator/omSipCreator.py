@@ -118,7 +118,7 @@ def readMD5(fileIn):
 
     try:
         data = []
-        f = open(fileIn,"r")
+        f = open(fileIn,"r", encoding="utf-8")
         for row in f:
             rowSplit = row.split(' ', 1)
             # Second col contains file name. Strip away any path components if they are present
@@ -664,7 +664,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
         if sys.version.startswith('3'):
             metsAsString = etree.tostring(mets, pretty_print=True, encoding="unicode")
         elif sys.version.startswith('2'):
-            metsAsString = etree.tostring(mets, pretty_print=True, encoding="UTF-8")
+            metsAsString = etree.tostring(mets, pretty_print=True, encoding="utf-8")
 
         metsFname = os.path.join(dirSIP,"mets.xml")
         
@@ -836,7 +836,7 @@ def main():
     try:
         if sys.version.startswith('3'):
             # Py3: csv.reader expects file opened in text mode
-            fBatchManifest = open(batchManifest,"r")
+            fBatchManifest = open(batchManifest,"r", encoding="utf-8")
         elif sys.version.startswith('2'):
             # Py2: csv.reader expects file opened in binary mode
             fBatchManifest = open(batchManifest,"rb")
@@ -1002,8 +1002,8 @@ def main():
         try:
             if sys.version.startswith('3'):
                 # Py3: csv.reader expects file opened in text mode
-                fbatchManifestErr = open(batchManifestErr,"w")
-                fbatchManifestTemp = open(batchManifestTemp,"w")
+                fbatchManifestErr = open(batchManifestErr,"w", encoding="utf-8")
+                fbatchManifestTemp = open(batchManifestTemp,"w", encoding="utf-8")
             elif sys.version.startswith('2'):
                 # Py2: csv.reader expects file opened in binary mode
                 fbatchManifestErr = open(batchManifestErr,"wb")
