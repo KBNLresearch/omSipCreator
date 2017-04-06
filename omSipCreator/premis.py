@@ -83,3 +83,20 @@ def addCreationEvent(log):
         eventDetail.text = "Audio ripped with dBpoweramp"
         
     return(event)
+
+def addObjectInstance():
+
+    # Create PREMIS object instance
+    objectName = etree.QName(config.premis_ns, "object")
+    object = etree.Element(objectName, nsmap = config.NSMAP)
+    # TODO change to xsi:type
+    object.attrib["type"] = "premis:file"
+      
+    # Object identifier
+    objectIdentifier = etree.SubElement(object, "{%s}objectIdentifier" %(config.premis_ns))
+    objectIdentifierType = etree.SubElement(objectIdentifier, "{%s}objectIdentifierType" %(config.premis_ns))
+    objectIdentifierType.text = "UUID"
+    objectIdentifierValue = etree.SubElement(objectIdentifier, "{%s}objectIdentifierValue" %(config.premis_ns))
+    objectIdentifierValue.text = str(uuid.uuid1())
+               
+    return(object)

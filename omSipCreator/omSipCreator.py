@@ -18,11 +18,13 @@ if __package__ == 'omSipCreator':
     from . import config
     from .mods import createMODS
     from .premis import addCreationEvent
+    from .premis import addObjectInstance
     from .mdaudio import getAudioMetadata
 else:
     import config
     from mods import createMODS
     from premis import addCreationEvent
+    from premis import addObjectInstance
     from mdaudio import getAudioMetadata
 
 # Bind raw_input (Python 3) to input (Python 2)
@@ -425,20 +427,33 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 techMDName = etree.QName(config.mets_ns, "techMD")
                 techMD = etree.Element(techMDName, nsmap = config.NSMAP)
                 techMD.attrib["ID"] = admID
-                mdWrap = etree.SubElement(techMD, "{%s}mdWrap" %(config.mets_ns))
-                mdWrap.attrib["MIMETYPE"] = "text/xml"
+                
+                # Add wrapper element for PREMIS object metadata
+                mdWrapObject = etree.SubElement(techMD, "{%s}mdWrap" %(config.mets_ns))
+                mdWrapObject.attrib["MIMETYPE"] = "text/xml"
+                mdWrapObject.attrib["MDTYPE"] = "PREMIS:OBJECT"
+                mdWrapObject.attrib["MDTYPEVERSION"] = "3.0"
+                xmlDataObject = etree.SubElement(mdWrapObject, "{%s}xmlData" %(config.mets_ns)) 
+                
+                # Add wrapper element for audio metadata
+                mdWrapEBUCore = etree.SubElement(techMD, "{%s}mdWrap" %(config.mets_ns))
+                mdWrapEBUCore.attrib["MIMETYPE"] = "text/xml"
                 # EBUCore has no registered METS MDTYPE, so need to use OTHER
-                mdWrap.attrib["MDTYPE"] = "OTHER"
-                mdWrap.attrib["OTHERMDTYPE"] = "EBUCore"
-                mdWrap.attrib["MDTYPEVERSION"] = "1.6"
-                xmlData = etree.SubElement(mdWrap, "{%s}xmlData" %(config.mets_ns))              
-                                               
+                mdWrapEBUCore.attrib["MDTYPE"] = "OTHER"
+                mdWrapEBUCore.attrib["OTHERMDTYPE"] = "EBUCore"
+                mdWrapEBUCore.attrib["MDTYPEVERSION"] = "1.6"
+                xmlDataEBUCore = etree.SubElement(mdWrapEBUCore, "{%s}xmlData" %(config.mets_ns))              
+               
+                premisObjectInfo = addObjectInstance()
+                xmlDataObject.append(premisObjectInfo)
+                
                 # If file is an audio file extract technical metadata
                 if fSIP.endswith(('.wav', '.WAV', 'flac', 'FLAC')):
                     audioMDOut = getAudioMetadata(fSIP)
                     audioMD = audioMDOut["outElt"]
-                    xmlData.append(audioMD)
-                    listTechMD.append(techMD)
+                    xmlDataEBUCore.append(audioMD)
+                
+                listTechMD.append(techMD)
 
                 fileCounter += 1
                 sipFileCounter += 1
@@ -591,6 +606,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
             mdWrapdigiprov = etree.SubElement(digiprovMD, "{%s}mdWrap" %(config.mets_ns))
             mdWrapdigiprov.attrib["MIMETYPE"] = "text/xml"
             mdWrapdigiprov.attrib["MDTYPE"] = "PREMIS:EVENT"
+            mdWrapdigiprov.attrib["MDTYPEVERSION"] = "3.0"
             xmlDatadigiprov =  etree.SubElement(mdWrapdigiprov, "{%s}xmlData" %(config.mets_ns))
             
             # Append PREMIS events that were returned by ProcessCarrier
