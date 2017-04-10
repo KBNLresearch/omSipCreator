@@ -434,21 +434,20 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 mdWrapObject.attrib["MDTYPE"] = "PREMIS:OBJECT"
                 mdWrapObject.attrib["MDTYPEVERSION"] = "3.0"
                 xmlDataObject = etree.SubElement(mdWrapObject, "{%s}xmlData" %(config.mets_ns)) 
-                
-                # Add wrapper element for audio metadata
-                mdWrapEBUCore = etree.SubElement(techMD, "{%s}mdWrap" %(config.mets_ns))
-                mdWrapEBUCore.attrib["MIMETYPE"] = "text/xml"
-                # EBUCore has no registered METS MDTYPE, so need to use OTHER
-                mdWrapEBUCore.attrib["MDTYPE"] = "OTHER"
-                mdWrapEBUCore.attrib["OTHERMDTYPE"] = "EBUCore"
-                mdWrapEBUCore.attrib["MDTYPEVERSION"] = "1.6"
-                xmlDataEBUCore = etree.SubElement(mdWrapEBUCore, "{%s}xmlData" %(config.mets_ns))              
-               
+                               
                 premisObjectInfo = addObjectInstance()
                 xmlDataObject.append(premisObjectInfo)
                 
                 # If file is an audio file extract technical metadata
                 if fSIP.endswith(('.wav', '.WAV', 'flac', 'FLAC')):
+                    # Add wrapper element for audio metadata
+                    mdWrapEBUCore = etree.SubElement(techMD, "{%s}mdWrap" %(config.mets_ns))
+                    mdWrapEBUCore.attrib["MIMETYPE"] = "text/xml"
+                    # EBUCore has no registered METS MDTYPE, so need to use OTHER
+                    mdWrapEBUCore.attrib["MDTYPE"] = "OTHER"
+                    mdWrapEBUCore.attrib["OTHERMDTYPE"] = "EBUCore"
+                    mdWrapEBUCore.attrib["MDTYPEVERSION"] = "1.6"
+                    xmlDataEBUCore = etree.SubElement(mdWrapEBUCore, "{%s}xmlData" %(config.mets_ns))   
                     audioMDOut = getAudioMetadata(fSIP)
                     audioMD = audioMDOut["outElt"]
                     xmlDataEBUCore.append(audioMD)
@@ -771,7 +770,7 @@ def main():
     config.xsi_ns = 'http://www.w3.org/2001/XMLSchema-instance'
     config.metsSchema = 'http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd'
     config.modsSchema = 'http://www.loc.gov/mods/v3 https://www.loc.gov/standards/mods/v3/mods-3-4.xsd'
-    config.premisSchema = 'http://www.loc.gov/mods/v3 https://www.loc.gov/standards/premis/premis.xsd'
+    config.premisSchema = 'http://www.loc.gov/premis/v3 https://www.loc.gov/standards/premis/premis.xsd'
     
     config.NSMAP =  {"mets" : config.mets_ns,
          "mods" : config.mods_ns,

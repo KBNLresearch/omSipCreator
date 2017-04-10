@@ -89,7 +89,6 @@ def addObjectInstance():
     # Create PREMIS object instance
     objectName = etree.QName(config.premis_ns, "object")
     object = etree.Element(objectName, nsmap = config.NSMAP)
-    # TODO change to xsi:type config.xsi_ns
     object.attrib["{%s}type" %config.xsi_ns] = "premis:file"
       
     # Object identifier
