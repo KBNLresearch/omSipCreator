@@ -40,19 +40,7 @@ def addCreationEvent(log):
     eventDateTimeFormatted = datetime.fromtimestamp(eventDateTimeValue).strftime('%Y-%m-%d %H:%M:%S')
     eventDateTime = etree.SubElement(event, "{%s}eventDateTime" %(config.premis_ns))
     eventDateTime.text = eventDateTimeFormatted
-    
-    # Agent element
-    agent = etree.SubElement(event, "{%s}agent" %(config.premis_ns))
-    agentIdentifier = etree.SubElement(agent, "{%s}agentIdentifier" %(config.premis_ns))
-    agentIdentifierType = etree.SubElement(agentIdentifier, "{%s}agentIdentifierType" %(config.premis_ns))
-    agentIdentifierType.text = "URI"
-    
-    # Values of agentIdentifierValue and agentName are set further below
-    agentIdentifierValue = etree.SubElement(agentIdentifier, "{%s}agentIdentifierValue" %(config.premis_ns))
-    agentName = etree.SubElement(agent, "{%s}agentName" %(config.premis_ns))
-    agentType = etree.SubElement(agent, "{%s}agentType" %(config.premis_ns))
-    agentType.text = "software"
-    
+                
     # eventDetailInformation container with eventDetail element
     eventDetailInformation = etree.SubElement(event, "{%s}eventDetailInformation" %(config.premis_ns))
     eventDetail = etree.SubElement(eventDetailInformation, "{%s}eventDetail" %(config.premis_ns))
@@ -61,6 +49,14 @@ def addCreationEvent(log):
     eventOutcomeInformation = etree.SubElement(event, "{%s}eventOutcomeInformation" %(config.premis_ns))
     eventOutcomeDetail = etree.SubElement(eventOutcomeInformation, "{%s}eventOutcomeDetail" %(config.premis_ns))
     eventOutcomeDetailNote = etree.SubElement(eventOutcomeDetail, "{%s}eventOutcomeDetailNote" %(config.premis_ns))
+
+    # linkingAgentIdentifier element
+    linkingAgentIdentifier = etree.SubElement(event, "{%s}linkingAgentIdentifier" %(config.premis_ns))
+    linkingAgentIdentifierType = etree.SubElement(linkingAgentIdentifier, "{%s}linkingAgentIdentifierType" %(config.premis_ns))
+    linkingAgentIdentifierType.text = "URI"
+    
+    # Values of linkingAgentIdentifierValue and agentName are set further below
+    linkingAgentIdentifierValue = etree.SubElement(linkingAgentIdentifier, "{%s}linkingAgentIdentifierValue" %(config.premis_ns))
     
     # Name of log
     logName = os.path.basename(log)
@@ -71,18 +67,44 @@ def addCreationEvent(log):
     comment = etree.Comment(isoBusterComment)
    
     if logName == "isobuster.log":
+        eventDetail.text = "Image created with IsoBuster"
+        eventOutcomeDetail.insert(1, comment)
+        # URI to isoBuster Wikidata page
+        linkingAgentIdentifierValue.text = "https://www.wikidata.org/wiki/Q304733"
+    elif logName == "dbpoweramp.log":
+        # URI to dBpoweramp Wikidata page
+        eventDetail.text = "Audio ripped with dBpoweramp"
+        # URI to dBpoweramp Wikidata page
+        linkingAgentIdentifierValue.text = "https://www.wikidata.org/wiki/Q1152133"
+    return(event)
+    
+def addAgent(softwareName):
+
+    # Create PREMIS agent instance
+    agentName = etree.QName(config.premis_ns, "agent")
+    agent = etree.Element(agentName, nsmap = config.NSMAP)
+    agent = etree.SubElement(event, "{%s}agent" %(config.premis_ns))
+    agentIdentifier = etree.SubElement(agent, "{%s}agentIdentifier" %(config.premis_ns))
+    agentIdentifierType = etree.SubElement(agentIdentifier, "{%s}agentIdentifierType" %(config.premis_ns))
+    agentIdentifierType.text = "URI"
+    
+    # Values of agentIdentifierValue and agentName are set further below
+    agentIdentifierValue = etree.SubElement(agentIdentifier, "{%s}agentIdentifierValue" %(config.premis_ns))
+    agentName = etree.SubElement(agent, "{%s}agentName" %(config.premis_ns))
+    agentType = etree.SubElement(agent, "{%s}agentType" %(config.premis_ns))
+    agentType.text = "software"
+   
+    if softwareName == "isobuster":
         # URI to isoBuster Wikidata page
         agentIdentifierValue.text = "https://www.wikidata.org/wiki/Q304733"
         agentName.text = "isoBuster"
-        eventDetail.text = "Image created with IsoBuster"
-        eventOutcomeDetail.insert(1, comment)
-    elif logName == "dbpoweramp.log":
+    elif softwareName == "dbpoweramp":
         # URI to dBpoweramp Wikidata page
         agentIdentifierValue.text = "https://www.wikidata.org/wiki/Q1152133"
         agentName.text = "dBpoweramp"
-        eventDetail.text = "Audio ripped with dBpoweramp"
         
-    return(event)
+    return(agent)
+
 
 def addObjectInstance():
 
