@@ -428,6 +428,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 techMD.attrib["ID"] = admID
                 
                 # Add wrapper element for PREMIS object metadata
+                
                 mdWrapObject = etree.SubElement(techMD, "{%s}mdWrap" %(config.mets_ns))
                 mdWrapObject.attrib["MIMETYPE"] = "text/xml"
                 mdWrapObject.attrib["MDTYPE"] = "PREMIS:OBJECT"
@@ -437,6 +438,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 premisObjectInfo = addObjectInstance(fSIP, fileSize, mimeType, sha512Sum, md5Sum)
                 xmlDataObject.append(premisObjectInfo)
                 
+                """
                 # If file is an audio file extract technical metadata
                 if fSIP.endswith(('.wav', '.WAV', 'flac', 'FLAC')):
                     # Add wrapper element for audio metadata
@@ -450,9 +452,9 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                     audioMDOut = getAudioMetadata(fSIP)
                     audioMD = audioMDOut["outElt"]
                     xmlDataEBUCore.append(audioMD)
-                
+                """
                 listTechMD.append(techMD)
-
+                
                 fileCounter += 1
                 sipFileCounter += 1
                     
@@ -492,7 +494,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     # dmdSec
     dmdSec = etree.SubElement(mets, "{%s}dmdSec" %(config.mets_ns))
     # Add identifier
-    dmdSec.attrib["ID"] = "dmdID1"
+    dmdSec.attrib["ID"] = "dmdSec_1"
     # Create mdWrap and xmlData child elements 
     mdWrapDmd = etree.SubElement(dmdSec, "{%s}mdWrap" %(config.mets_ns))
     mdWrapDmd.attrib["MDTYPE"] = "MODS"
@@ -501,7 +503,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     # amdSec
     amdSec = etree.SubElement(mets, "{%s}amdSec" %(config.mets_ns))
     # Add identifier
-    amdSec.attrib["ID"] = "amdID1"
+    amdSec.attrib["ID"] = "amdSec_1"
     
     # Create fileSec and structMap elements
     fileSec = etree.SubElement(mets, "{%s}fileSec" %(config.mets_ns))
@@ -516,6 +518,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     fileCounterStart = 1
     carrierCounterStart = 1
     carrierCounter = carrierCounterStart
+    counterdigiprovMD = 1
     
     # Dummy value for dirSIP (needed if createSIPs = False)
     dirSIP = "rubbish" 
@@ -586,21 +589,20 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
             # metadata
             ## NOTE
             
-            # Add carrier identifier to divDisc as ADMID (because identifier refers to event metadata in amdSec, see below) 
+            # Construct unique identifier for digiProvMD (see below) and add to divDisc as ADMID 
             carrierID = "disc_" + str(carrierCounter).zfill(3)
-            divDisc.attrib["ADMID"] = carrierID
+            digiProvID = "digiprovMD_" + str(counterdigiprovMD)
+            divDisc.attrib["ADMID"] = digiProvID
 
             # Append techMD elements to amdSec
             for techMD in listTechMD:
                 amdSec.append(techMD)
                 
             # Create digiprovMD, mdWrap and xmlData child elements
-            # TODO all techMD and digoprovMD section must be contiguous, so must be done outside this loop!
             
             digiprovMDName = etree.QName(config.mets_ns, "digiprovMD")
             digiprovMD = etree.Element(digiprovMDName, nsmap = config.NSMAP)
-            #digiprovMD = etree.SubElement(amdSec, "{%s}digiprovMD" %(config.mets_ns))
-            digiprovMD.attrib["ID"] = carrierID
+            digiprovMD.attrib["ID"] = digiProvID
             mdWrapdigiprov = etree.SubElement(digiprovMD, "{%s}mdWrap" %(config.mets_ns))
             mdWrapdigiprov.attrib["MIMETYPE"] = "text/xml"
             mdWrapdigiprov.attrib["MDTYPE"] = "PREMIS:EVENT"
@@ -656,8 +658,9 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
             # Update structmap in METS
             structDivTop.append(divDisc)
             
-            # Update carrierCounter
+            # Update counters
             carrierCounter += 1
+            counterdigiprovMD += 1
   
         # Add volumeNumbersTypeGroup to volumeNumbers list
         volumeNumbers.append(volumeNumbersTypeGroup)           
