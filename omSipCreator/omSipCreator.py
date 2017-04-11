@@ -222,13 +222,12 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
     sipFileCounter = sipFileCounterStart
     counterTechMD = counterTechMDStart
     
-    # Mapping between carrierType and structmap TYPE field
+    # Mapping between mimeType and structmap TYPE field
     
-    carrierTypeMap = {
-        "cd-rom" : "disk image",
-        "dvd-rom" : "disk image",
-        "dvd-video" : "disk image",
-        "cd-audio" : "audio track"
+    mimeTypeMap = {
+        "application/x-iso9660-image" : "disk image",
+        "audio/flac" : "audio track",
+        "audio/wav" : "audio track"
         }
     
     # Default state of flag that is set to "True" if checksums are missing 
@@ -418,7 +417,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                                 
                 # Create track divisor element for structmap
                 divFile = etree.SubElement(divDisc, "{%s}div" %(config.mets_ns))
-                divFile.attrib["TYPE"] = carrierTypeMap[carrier.carrierType]
+                divFile.attrib["TYPE"] = mimeTypeMap[mimeType]
                 divFile.attrib["ORDER"] = str(fileCounter)
                 fptr = etree.SubElement(divFile, "{%s}fptr" %(config.mets_ns))
                 fptr.attrib["FILEID"] = fileID
