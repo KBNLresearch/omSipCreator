@@ -423,27 +423,36 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                 fptr = etree.SubElement(divFile, "{%s}fptr" %(config.mets_ns))
                 fptr.attrib["FILEID"] = fileID
                 
-                # Create techMD element
-                techMDName = etree.QName(config.mets_ns, "techMD")
-                techMD = etree.Element(techMDName, nsmap = config.NSMAP)
-                techMDID = "techMD_" + str(counterTechMD)
-                techMD.attrib["ID"] = techMDID
+                # Create techMD element for PREMIS object information
+                techMDPremisName = etree.QName(config.mets_ns, "techMD")
+                techMDPremis = etree.Element(techMDPremisName, nsmap = config.NSMAP)
+                techMDPremisID = "techMD_" + str(counterTechMD)
+                techMDPremis.attrib["ID"] = techMDPremisID
                 
                 # Add wrapper element for PREMIS object metadata
-                
-                mdWrapObject = etree.SubElement(techMD, "{%s}mdWrap" %(config.mets_ns))
-                mdWrapObject.attrib["MIMETYPE"] = "text/xml"
-                mdWrapObject.attrib["MDTYPE"] = "PREMIS:OBJECT"
-                mdWrapObject.attrib["MDTYPEVERSION"] = "3.0"
-                xmlDataObject = etree.SubElement(mdWrapObject, "{%s}xmlData" %(config.mets_ns)) 
+                mdWrapObjectPremis = etree.SubElement(techMDPremis, "{%s}mdWrap" %(config.mets_ns))
+                mdWrapObjectPremis.attrib["MIMETYPE"] = "text/xml"
+                mdWrapObjectPremis.attrib["MDTYPE"] = "PREMIS:OBJECT"
+                mdWrapObjectPremis.attrib["MDTYPEVERSION"] = "3.0"
+                xmlDataObjectPremis = etree.SubElement(mdWrapObjectPremis, "{%s}xmlData" %(config.mets_ns)) 
                                
                 premisObjectInfo = addObjectInstance(fSIP, fileSize, mimeType, sha512Sum, md5Sum)
-                xmlDataObject.append(premisObjectInfo)
+                xmlDataObjectPremis.append(premisObjectInfo)
+                listTechMD.append(techMDPremis)
                 
-                # If file is an audio file extract technical metadata
+                # String of techMD identifiers that are used as ADMID attribute of fileElt
+                techMDIDs = techMDPremisID
+                
+                # If file is an audio file extract technical metadata in EBUCore format. This is
+                # wrapped in a separate techMD element
                 if fSIP.endswith(('.wav', '.WAV', 'flac', 'FLAC')):
+                    counterTechMD += 1
+                    techMDAudioName = etree.QName(config.mets_ns, "techMD")
+                    techMDAudio = etree.Element(techMDAudioName, nsmap = config.NSMAP)
+                    techMDAudioID = "techMD_" + str(counterTechMD)
+                    techMDAudio.attrib["ID"] = techMDAudioID
                     # Add wrapper element for audio metadata
-                    mdWrapEBUCore = etree.SubElement(techMD, "{%s}mdWrap" %(config.mets_ns))
+                    mdWrapEBUCore = etree.SubElement(techMDAudio, "{%s}mdWrap" %(config.mets_ns))
                     mdWrapEBUCore.attrib["MIMETYPE"] = "text/xml"
                     # EBUCore has no registered METS MDTYPE, so need to use OTHER
                     mdWrapEBUCore.attrib["MDTYPE"] = "OTHER"
@@ -453,11 +462,13 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                     audioMDOut = getAudioMetadata(fSIP)
                     audioMD = audioMDOut["outElt"]
                     xmlDataEBUCore.append(audioMD)
-
-                listTechMD.append(techMD)
+                    listTechMD.append(techMDAudio)
+                    
+                    # Update TechMDIDs
+                    techMDIDs = techMDIDs + " " + techMDAudioID
                 
                 # Add techMDIDs to fileElt
-                fileElt.attrib["ADMID"] = techMDID # TODO change to sequence of all techMDIDs that are associated with this file
+                fileElt.attrib["ADMID"] = techMDIDs
                 
                 fileCounter += 1
                 sipFileCounter += 1
