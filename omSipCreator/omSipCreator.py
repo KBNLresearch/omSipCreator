@@ -209,7 +209,7 @@ def printHelpAndExit():
     parser.print_help()
     sys.exit()
            
-def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
+def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMDStart):
     # Process contents of imagepath directory
     # TODO: * check file type / extension matches carrierType!
     # TODO: currently lots of file path manipulations which make things hard to read, 
@@ -220,6 +220,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
         
     fileCounter = 1
     sipFileCounter = sipFileCounterStart
+    counterTechMD = counterTechMDStart
     
     # Mapping between carrierType and structmap TYPE field
     
@@ -358,10 +359,10 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 md5Sum = entry[0]
                 fileName = entry[1]
                 fileSize = entry[2]
-                # Generate unique file ID (used in structMap) + admin ID (used in amdSec)
-                fileID = "f_" + str(sipFileCounter).zfill(3)
-                admID = "file_" + str(sipFileCounter).zfill(3)
-                # Construct bath relative to carrier directory
+                # Generate unique file ID (used in structMap)
+                fileID = "file_" + str(sipFileCounter)
+                #admID = "file_" + str(sipFileCounter).zfill(3) # TODO WRONG, should be sequence of ID values of techMD sections that describe this file!! 
+                # Construct path relative to carrier directory
                 fIn = os.path.join(carrier.imagePathFull,fileName)
                 
                 # Construct path relative to volume directory
@@ -389,7 +390,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 # Create METS file and FLocat elements
                 fileElt = etree.SubElement(fileGrp, "{%s}file" %(config.mets_ns))
                 fileElt.attrib["ID"] = fileID 
-                fileElt.attrib["ADMID"] = admID
+                #fileElt.attrib["ADMID"] = techMDID # TODO change to sequence of all techMDIDs that are associated with this file
                 fileElt.attrib["SIZE"] = fileSize
                 # TODO: add SEQ and CREATED, DMDID attributes as well
                 
@@ -425,7 +426,8 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 # Create techMD element
                 techMDName = etree.QName(config.mets_ns, "techMD")
                 techMD = etree.Element(techMDName, nsmap = config.NSMAP)
-                techMD.attrib["ID"] = admID
+                techMDID = "techMD_" + str(counterTechMD)
+                techMD.attrib["ID"] = techMDID
                 
                 # Add wrapper element for PREMIS object metadata
                 
@@ -455,8 +457,12 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 """
                 listTechMD.append(techMD)
                 
+                # Add techMDIDs to fileElt
+                fileElt.attrib["ADMID"] = techMDID # TODO change to sequence of all techMDIDs that are associated with this file
+                
                 fileCounter += 1
                 sipFileCounter += 1
+                counterTechMD += 1
                     
             # Generate event metadata from Isobuster/dBpoweramp logs
             # For each carrier we can have an Isobuster even, a dBpoweramp event, or both
@@ -474,7 +480,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
         divDisc = etree.Element('rubbish')
         premisEvents = []
         
-    return(fileGrp, divDisc, premisCreationEvents, listTechMD, sipFileCounter)             
+    return(fileGrp, divDisc, premisCreationEvents, listTechMD, sipFileCounter, counterTechMD)             
 
     
 def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarriers, carrierTypeAllowedValues):
@@ -518,7 +524,8 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     fileCounterStart = 1
     carrierCounterStart = 1
     carrierCounter = carrierCounterStart
-    counterdigiprovMD = 1
+    counterDigiprovMD = 1
+    counterTechMD = 1
     
     # Dummy value for dirSIP (needed if createSIPs = False)
     dirSIP = "rubbish" 
@@ -583,7 +590,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
                         
             # Create Carrier class instance for this carrier
             thisCarrier = Carrier(jobID, PPN, imagePathFull, volumeNumber, carrierType)
-            fileGrp, divDisc, premisEventsCarrier, listTechMD, fileCounter = processCarrier(thisCarrier, fileGrp, dirSIP, fileCounterStart)
+            fileGrp, divDisc, premisEventsCarrier, listTechMD, fileCounter, counterTechMD = processCarrier(thisCarrier, fileGrp, dirSIP, fileCounterStart, counterTechMD)
             ## NOTE
             # listTechMD: list of techMD elements, each of which represent one file. Wraps EbuCore audio metdata + possibly other tech 
             # metadata
@@ -591,7 +598,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
             
             # Construct unique identifier for digiProvMD (see below) and add to divDisc as ADMID 
             carrierID = "disc_" + str(carrierCounter).zfill(3)
-            digiProvID = "digiprovMD_" + str(counterdigiprovMD)
+            digiProvID = "digiprovMD_" + str(counterDigiprovMD)
             divDisc.attrib["ADMID"] = digiProvID
 
             # Append techMD elements to amdSec
@@ -618,8 +625,9 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
             # Add to PPNGroup class instance
             thisPPNGroup.append(thisCarrier)
             
-            # Update fileCounterStart # TODO will go wrong b/c not updated now that it lives in this function!!!
+            # Update fileCounterStart and counterTechMDStart
             fileCounterStart = fileCounter
+            counterTechMDStart = counterTechMD 
                                                           
             # convert volumeNumber to integer (so we can do more checking below)
             try:
@@ -660,7 +668,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
             
             # Update counters
             carrierCounter += 1
-            counterdigiprovMD += 1
+            counterDigiprovMD += 1
   
         # Add volumeNumbersTypeGroup to volumeNumbers list
         volumeNumbers.append(volumeNumbersTypeGroup)           
