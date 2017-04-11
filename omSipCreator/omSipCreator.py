@@ -509,7 +509,8 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     # dmdSec
     dmdSec = etree.SubElement(mets, "{%s}dmdSec" %(config.mets_ns))
     # Add identifier
-    dmdSec.attrib["ID"] = "dmdSec_1"
+    dmdSecID = "dmdSec_1"
+    dmdSec.attrib["ID"] = dmdSecID
     # Create mdWrap and xmlData child elements 
     mdWrapDmd = etree.SubElement(dmdSec, "{%s}mdWrap" %(config.mets_ns))
     mdWrapDmd.attrib["MDTYPE"] = "MODS"
@@ -518,7 +519,8 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     # amdSec
     amdSec = etree.SubElement(mets, "{%s}amdSec" %(config.mets_ns))
     # Add identifier
-    amdSec.attrib["ID"] = "amdSec_1"
+    amdSecID = "amdSec_1"
+    amdSec.attrib["ID"] = amdSecID
     
     # Create fileSec and structMap elements
     fileSec = etree.SubElement(mets, "{%s}fileSec" %(config.mets_ns))
@@ -528,6 +530,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     structDivTop = etree.SubElement(structMap, "{%s}div" %(config.mets_ns))
     structDivTop.attrib["TYPE"] = "physical"
     structDivTop.attrib["LABEL"] = "volumes"
+    structDivTop.attrib["DMDID"] = dmdSecID
     
     # Initialise counters that are used to assign file and carrier-level IDs
     fileCounterStart = 1
