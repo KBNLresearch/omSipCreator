@@ -440,7 +440,6 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                 premisObjectInfo = addObjectInstance(fSIP, fileSize, mimeType, sha512Sum, md5Sum)
                 xmlDataObject.append(premisObjectInfo)
                 
-                """
                 # If file is an audio file extract technical metadata
                 if fSIP.endswith(('.wav', '.WAV', 'flac', 'FLAC')):
                     # Add wrapper element for audio metadata
@@ -454,7 +453,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                     audioMDOut = getAudioMetadata(fSIP)
                     audioMD = audioMDOut["outElt"]
                     xmlDataEBUCore.append(audioMD)
-                """
+
                 listTechMD.append(techMD)
                 
                 # Add techMDIDs to fileElt
