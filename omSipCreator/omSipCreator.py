@@ -3,7 +3,6 @@
 import sys
 import os
 import shutil
-import ntpath
 import glob
 import imp
 import argparse
@@ -125,7 +124,7 @@ def readMD5(fileIn):
             rowSplit = row.split(' ', 1)
             # Second col contains file name. Strip away any path components if they are present
             fileName = rowSplit[1].strip() # Raises IndexError if entry only 1 col (malformed MD5 file)!
-            rowSplit[1] = ntpath.basename(fileName) 
+            rowSplit[1] = os.path.basename(fileName) 
             data.append(rowSplit)    
         f.close()
         return(data)
@@ -401,7 +400,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 
                 # Add MIME type and checksum to file element
                 # Note: neither of these Mimetypes are formally registered at
-                # IANA but they seem to be widely used
+                # IANA but they seem to be widely used. Also, DIAS filetypes list uses /audio/x-wav!
                 if fileName.endswith(".iso"):
                     mimeType = "application/x-iso9660-image"
                 elif fileName.endswith(".wav"):
@@ -435,7 +434,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart):
                 mdWrapObject.attrib["MDTYPEVERSION"] = "3.0"
                 xmlDataObject = etree.SubElement(mdWrapObject, "{%s}xmlData" %(config.mets_ns)) 
                                
-                premisObjectInfo = addObjectInstance()
+                premisObjectInfo = addObjectInstance(fSIP, fileSize, mimeType, sha512Sum, md5Sum)
                 xmlDataObject.append(premisObjectInfo)
                 
                 # If file is an audio file extract technical metadata
