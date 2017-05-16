@@ -106,7 +106,7 @@ def addAgent(softwareName):
     return(agent)
 
 
-def addObjectInstance(fileName, fileSize, mimeType,sha512Sum, md5Sum):
+def addObjectInstance(fileName, fileSize, mimeType,sha512Sum):
 
     # Dictionary that links formatName values to mimeTypes
     formatNames = {
@@ -146,17 +146,7 @@ def addObjectInstance(fileName, fileSize, mimeType,sha512Sum, md5Sum):
     messageDigestOriginator = etree.SubElement(fixity1, "{%s}messageDigestOriginator" %(config.premis_ns))
     # Value more or less follows convention for DM 1.5
     messageDigestOriginator.text = "python.hashlib.sha512.hexdigest"
-    
-    # Additional fixity element for MD5 checksum (do we really need this?)
-    fixity2 = etree.SubElement(objectCharacteristics, "{%s}fixity" %(config.premis_ns))
-    messageDigestAlgorithm = etree.SubElement(fixity2, "{%s}messageDigestAlgorithm" %(config.premis_ns))
-    messageDigestAlgorithm.text = "MD5"
-    messageDigest = etree.SubElement(fixity2, "{%s}messageDigest" %(config.premis_ns))
-    messageDigest.text = md5Sum
-    messageDigestOriginator = etree.SubElement(fixity2, "{%s}messageDigestOriginator" %(config.premis_ns))
-    # Value more or less follows convention for DM 1.5
-    messageDigestOriginator.text = "python.hashlib.md5.hexdigest"
-    
+        
     # Size
     size = etree.SubElement(objectCharacteristics, "{%s}size" %(config.premis_ns))
     size.text = fileSize

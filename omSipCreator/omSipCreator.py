@@ -113,8 +113,8 @@ def get_immediate_subdirectories(a_dir, ignoreDirs):
 
     return(subDirs)
 
-def readMD5(fileIn):
-    # Read MD 5 file, return contents as nested list
+def readChecksums(fileIn):
+    # Read checksum file, return contents as nested list
     # Also strip away any file paths if they exist (return names only)
 
     try:
@@ -133,20 +133,6 @@ def readMD5(fileIn):
         config.errors += 1
         errorExit(config.errors, config.warnings)
 
-def generate_file_md5(fileIn):
-    # Generate MD5 hash of file
-    # fileIn is read in chunks to ensure it will work with (very) large files as well
-    # Adapted from: http://stackoverflow.com/a/1131255/1209004
-
-    blocksize = 2**20
-    m = hashlib.md5()
-    with open(fileIn, "rb") as f:
-        while True:
-            buf = f.read(blocksize)
-            if not buf:
-                break
-            m.update(buf)
-    return m.hexdigest()
 
 def generate_file_sha512(fileIn):
     # Generate sha512 hash of file
@@ -236,14 +222,14 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
     # All files in directory
     allFiles = glob.glob(carrier.imagePathFull + "/*")
                
-    # Find MD5 files (by extension)
-    MD5Files = [i for i in allFiles if i.endswith('.md5')]
+    # Find checksum files (by extension)
+    checksumFiles = [i for i in allFiles if i.endswith('.sha512')]
       
-    # Number of MD5 files must be exactly 1
-    noMD5Files = len(MD5Files)
+    # Number of checksum files must be exactly 1
+    noChecksumFiles = len(checksumFiles)
     
-    if noMD5Files != 1:
-        logging.error("jobID " + carrier.jobID + ": found " + str(noMD5Files) + " '.md5' files in directory '" \
+    if noChecksumFiles != 1:
+        logging.error("jobID " + carrier.jobID + ": found " + str(noChecksumFiles) + " checksum files in directory '" \
         + carrier.imagePathFull + "', expected 1")
         config.errors += 1
         # If we end up here, checksum file either does not exist, or it is ambiguous 
@@ -257,7 +243,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
     noDbpowerampLogs = len(dBpowerampLogs)
     
     # Any other files (ISOs, audio files)
-    otherFiles = [i for i in allFiles if not i.endswith(('.md5', '.log'))]
+    otherFiles = [i for i in allFiles if not i.endswith(('.sha512', '.log'))]
     noOtherFiles = len(otherFiles)
         
     if noOtherFiles == 0:
@@ -287,40 +273,40 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
       
     if skipChecksumVerification == False:
         # Read contents of checksum file to list
-        MD5FromFile = readMD5(MD5Files[0])
+        checksumsFromFile = readChecksums(checksumFiles[0])
         
         # Sort ascending by file name - this ensures correct order when making structMap
-        MD5FromFile.sort(key=itemgetter(1))
+        checksumsFromFile.sort(key=itemgetter(1))
                 
-        # List which to store names of all files that are referenced in the MD5 file
-        allFilesinMD5 = []
-        for entry in MD5FromFile:
-            md5Sum = entry[0]
-            fileName = entry[1] # Raises IndexError if entry only 1 col (malformed MD5 file)!
+        # List which to store names of all files that are referenced in the checksum file
+        allFilesinChecksumFile = []
+        for entry in checksumsFromFile:
+            checksum = entry[0]
+            fileName = entry[1] # Raises IndexError if entry only 1 col (malformed checksum file)!
             # Normalise file path relative to imagePath
             fileNameWithPath = os.path.normpath(carrier.imagePathFull + "/" + fileName)
             
-            # Calculate MD5 hash of actual file
-            md5SumCalculated = generate_file_md5(fileNameWithPath)
+            # Calculate SHA-512 hash of actual file
+            checksumCalculated = generate_file_sha512(fileNameWithPath)
                                    
-            if md5SumCalculated != md5Sum:
+            if checksumCalculated != checksum:
                 logging.error("jobID " + carrier.jobID + ": checksum mismatch for file '" + \
                 fileNameWithPath + "'")
                 config.errors += 1
                 config.failedPPNs.append(carrier.PPN)
                 
-            # Get file size and append to MD5FromFile list (needed later for METS file entry)
+            # Get file size and append to allFilesinChecksumFile list (needed later for METS file entry)
             entry.append(str(os.path.getsize(fileNameWithPath)))
                         
             # Append file name to list 
-            allFilesinMD5.append(fileNameWithPath)            
+            allFilesinChecksumFile.append(fileNameWithPath)            
             
-        # Check if any files in directory are missing from MD5 file
+        # Check if any files in directory are missing
         for f in otherFiles:
-            if f not in allFilesinMD5:
+            if f not in allFilesinChecksumFile:
                 logging.error("jobID " + carrier.jobID + ": file '" + f + \
                 "' not referenced in '" + \
-                MD5Files[0] + "'")
+                checksumFiles[0] + "'")
                 config.errors += 1
                 config.failedPPNs.append(carrier.PPN)
         
@@ -345,17 +331,17 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
             # Copy files to SIP Volume directory
             logging.info("copying files to carrier directory")
             
-            # Get file names from MD5 file, as this is the easiest way to make
+            # Get file names from checksum file, as this is the easiest way to make
             # post-copy checksum verification work. Filter out log files first!
             
-            filesToCopy = [i for i in MD5FromFile if not i[1].endswith('.log')]
+            filesToCopy = [i for i in checksumCalculated if not i[1].endswith('.log')]
             
             # Set up list that will hold techMD elements
             listTechMD = []
             
             for entry in filesToCopy:
 
-                md5Sum = entry[0]
+                checksum = entry[0]
                 fileName = entry[1]
                 fileSize = entry[2]
                 # Generate unique file ID (used in structMap)
@@ -375,16 +361,13 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                     config.errors += 1
                     errorExit(config.errors, config.warnings)
             
-                # Calculate MD5 hash of copied file, and verify against known value
-                md5SumCalculated = generate_file_md5(fSIP)                               
-                if md5SumCalculated != md5Sum:
+                # Calculate hash of copied file, and verify against known value
+                checksumCalculated = generate_file_sha512(fSIP)                               
+                if checksumCalculated != checksum:
                     logging.error("jobID " + carrier.jobID + ": checksum mismatch for file '" + \
                     fSIP + "'")
                     config.errors += 1
                     config.failedPPNs.append(carrier.PPN)
-                    
-                # Calculate Sha512 checksum
-                sha512Sum = generate_file_sha512(fSIP)
                
                 # Create METS file and FLocat elements
                 fileElt = etree.SubElement(fileGrp, "{%s}file" %(config.mets_ns))
@@ -410,7 +393,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                 else:
                     mimeType = "application/octet-stream"   
                 fileElt.attrib["MIMETYPE"] = mimeType
-                fileElt.attrib["CHECKSUM"] = sha512Sum
+                fileElt.attrib["CHECKSUM"] = checksum
                 fileElt.attrib["CHECKSUMTYPE"] = "SHA-512"
                 
                 # TODO: check if mimeType values matches carrierType (e.g. no audio/x-wav if cd-rom, etc.)
@@ -435,7 +418,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                 mdWrapObjectPremis.attrib["MDTYPEVERSION"] = "3.0"
                 xmlDataObjectPremis = etree.SubElement(mdWrapObjectPremis, "{%s}xmlData" %(config.mets_ns)) 
                                
-                premisObjectInfo = addObjectInstance(fSIP, fileSize, mimeType, sha512Sum, md5Sum)
+                premisObjectInfo = addObjectInstance(fSIP, fileSize, mimeType, checksum)
                 xmlDataObjectPremis.append(premisObjectInfo)
                 listTechMD.append(techMDPremis)
                 
@@ -1105,11 +1088,11 @@ def main():
                             + fileIn + "' to '" + fileErr + "'")
                             config.errors += 1
                         
-                        # Verify MD5 checksum
-                        md5SumIn = generate_file_md5(fileIn)
-                        md5SumErr = generate_file_md5(fileErr)
+                        # Verify checksum
+                        checksumIn = generate_file_sha512(fileIn)
+                        checksumErr = generate_file_sha512(fileErr)
                         
-                        if md5SumIn != md5SumErr:
+                        if checksumIn != checksumErr:
                             logging.error("jobID " + jobID + ": checksum of '"\
                             + fileIn + "' does not match '" + fileErr + "'")
                             config.errors += 1
