@@ -468,7 +468,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                 premisCreationEvents.append(premisEvent)
         else:
             # We end up here if config.createSIPs == False
-             Dummy values (not used)
+            # Dummy values (not used)
             premisCreationEvents = []
             listTechMD = []
 
