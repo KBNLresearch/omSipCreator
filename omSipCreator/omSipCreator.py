@@ -123,7 +123,7 @@ def readChecksums(fileIn):
         for row in f:
             rowSplit = row.split(' ', 1)
             # Second col contains file name. Strip away any path components if they are present
-            fileName = rowSplit[1].strip() # Raises IndexError if entry only 1 col (malformed MD5 file)!
+            fileName = rowSplit[1].strip() # Raises IndexError if entry only 1 col (malformed checksum file)!
             rowSplit[1] = os.path.basename(fileName) 
             data.append(rowSplit)    
         f.close()
@@ -466,12 +466,19 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
             if dBpowerampLogs != []:
                 premisEvent = addCreationEvent(dBpowerampLogs[0])
                 premisCreationEvents.append(premisEvent)
+        else:
+            # We end up here if config.createSIPs == False
+             Dummy values (not used)
+            premisCreationEvents = []
+            listTechMD = []
 
     else:
-        # Dummy values not used
+        # We end up here if skipChecksumVerification == True
+        # Dummy values (not used)
         divDisc = etree.Element('rubbish')
-        premisEvents = []
-        
+        premisCreationEvents = []
+        listTechMD = []
+                
     return(fileGrp, divDisc, premisCreationEvents, listTechMD, sipFileCounter, counterTechMD)             
 
     
