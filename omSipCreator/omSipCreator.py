@@ -334,7 +334,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
             # Get file names from checksum file, as this is the easiest way to make
             # post-copy checksum verification work. Filter out log files first!
             
-            filesToCopy = [i for i in checksumCalculated if not i[1].endswith('.log')]
+            filesToCopy = [i for i in checksumsFromFile if not i[1].endswith('.log')]
             
             # Set up list that will hold techMD elements
             listTechMD = []
