@@ -1,14 +1,17 @@
 #! /usr/bin/env python
 
+"""
+Various shared functions
+"""
+
 import os
 import subprocess as sub
 import string
 from random import choice
-from . import config
 
 
 def launchSubProcess(args):
-    # Launch subprocess and return exit code, stdout and stderr
+    """Launch subprocess and return exit code, stdout and stderr"""
     try:
         # Execute command line; stdout + stderr redirected to objects
         # 'output' and 'errors'.
@@ -33,8 +36,8 @@ def launchSubProcess(args):
 
 
 def randomString(length):
-    # Generate text string with random characters (a-z;A-Z;0-9)
-    return(''.join(choice(string.ascii_letters + string.digits) for i in range(length)))
+    """Generate text string with random characters (a-z;A-Z;0-9)"""
+    return ''.join(choice(string.ascii_letters + string.digits) for i in range(length))
 
 
 def index_startswith_substring(the_list, substring):
@@ -46,7 +49,8 @@ def index_startswith_substring(the_list, substring):
 
 class cd:
     """Context manager for changing the current working directory
-    Source: http://stackoverflow.com/a/13197763"""
+    Source: http://stackoverflow.com/a/13197763
+    """
 
     def __init__(self, newPath):
         self.newPath = os.path.expanduser(newPath)
