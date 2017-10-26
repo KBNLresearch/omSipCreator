@@ -1,15 +1,19 @@
 #! /usr/bin/env python
+
+"""
+Module for writing MODS metadata
+"""
+import logging
 from lxml import etree
 from . import config
 from .kbapi import sru
 
-# Module for writing MODS metadata
-
 
 def createMODS(PPNGroup):
-    # Create MODS metadata based on records in GGC
-    # Dublin Core to MODS mapping follows http://www.loc.gov/standards/mods/dcsimple-mods.html
-    # General structure: bibliographic md is wrapped in relatedItem / type = host element
+    """Create MODS metadata based on GGC records in KBMDO
+    Dublin Core to MODS mapping follows http://www.loc.gov/standards/mods/dcsimple-mods.html
+    General structure: bibliographic md is wrapped in relatedItem / type = host element
+    """
 
     # Dictionary maps carrier types  to MODS resource types
     resourceTypeMap = {
@@ -30,7 +34,7 @@ def createMODS(PPNGroup):
     sruSearchString = '"PPN=' + PPN + '"'
     response = sru.search(sruSearchString, "GGC")
 
-    if response == False:
+    if not response:
         # Sru.search returns False if no match was found
         noGGCRecords = 0
     else:
@@ -39,10 +43,10 @@ def createMODS(PPNGroup):
     # This should return exactly one record. Return error if this is not the case
     noGGCRecords = response.sru.nr_of_records
     if noGGCRecords != 1:
-        logging.error("PPN " + PPN + ": search for PPN=" + PPNParent + " returned " +
+        logging.error("PPN " + PPN + ": search for PPN=" + PPN + " returned " +
                       str(noGGCRecords) + " catalogue records (expected 1)")
-        errors += 1
-        failedPPNs.append(PPN)
+        config.errors += 1
+        config.failedPPNs.append(PPN)
 
     # Select first record
     try:
@@ -161,12 +165,6 @@ def createMODS(PPNGroup):
             modsRelatedItem, "{%s}identifier" % (config.mods_ns))
         modsIdentifierURI.attrib["type"] = "uri"
         modsIdentifierURI.text = identifierURI
-    """
-    for recordIdentifierURI in recordIdentifiersURI:
-        modsIdentifierURI = etree.SubElement(modsRelatedItem, "{%s}identifier" %(config.mods_ns))
-        modsIdentifierURI.attrib["type"] = "uri"
-        modsIdentifierURI.text = recordIdentifierURI
-    """
 
     for identifierISBN in identifiersISBN:
         modsIdentifierISBN = etree.SubElement(
@@ -183,4 +181,4 @@ def createMODS(PPNGroup):
         " v. " + config.__version__ + " from records in KB Catalogue."
     modsRecordOrigin.text = originText
 
-    return(mods)
+    return mods
