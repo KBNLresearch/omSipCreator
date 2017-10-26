@@ -188,6 +188,11 @@ def parseCommandLine():
                               action="store",
                               type=str,
                               help="output directory where SIPs are written")
+    parser_write.add_argument('--suppressAudioMDExtraction', "-s",
+                              action="store_true",
+                              dest="suppressAudioMDExtractionFlag",
+                              default=False,
+                              help="Suppress extraction of metadata from audio files")
     # Parse arguments
     args = parser.parse_args()
 
@@ -469,13 +474,14 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                     mdWrapEBUCore.attrib["MDTYPEVERSION"] = "1.6"
                     xmlDataEBUCore = etree.SubElement(
                         mdWrapEBUCore, "{%s}xmlData" % (config.mets_ns))
-                    audioMDOut = getAudioMetadata(fSIP)
-                    audioMD = audioMDOut["outElt"]
-                    xmlDataEBUCore.append(audioMD)
-                    listTechMD.append(techMDAudio)
+                    if not config.suppressAudioMDExtractionFlag:
+                        audioMDOut = getAudioMetadata(fSIP)
+                        audioMD = audioMDOut["outElt"]
+                        xmlDataEBUCore.append(audioMD)
+                        listTechMD.append(techMDAudio)
 
-                    # Update TechMDIDs
-                    techMDIDs = techMDIDs + " " + techMDAudioID
+                        # Update TechMDIDs
+                        techMDIDs = techMDIDs + " " + techMDAudioID
 
                 # Add techMDIDs to fileElt
                 fileElt.attrib["ADMID"] = techMDIDs
@@ -793,11 +799,6 @@ def main():
     # Tools directory
     toolsDirUser = os.path.join(configDirUser, 'tools')
 
-    # Path to MediaInfo
-    config.mediaInfoExe = os.path.join(
-        toolsDirUser, 'mediainfo', 'MediaInfo.exe')
-    checkFileExists(config.mediaInfoExe)
-
     # Batch manifest file - basic capture-level metadata about carriers
     fileBatchManifest = "manifest.csv"
     fileBatchLog = "batch.log"
@@ -875,6 +876,16 @@ def main():
     else:
         # Dummy value
         dirOut = None
+
+    # Flag that, if True, tells omSipCreator not to extract metadata
+    # from audio files    
+    config.suppressAudioMDExtractionFlag = args.suppressAudioMDExtractionFlag
+
+    # Path to MediaInfo
+    config.mediaInfoExe = os.path.join(
+        toolsDirUser, 'mediainfo', 'MediaInfo.exe')
+    if not config.suppressAudioMDExtractionFlag:
+        checkFileExists(config.mediaInfoExe)
 
     # Check if batch dir exists
     if not os.path.isdir(batchIn):
