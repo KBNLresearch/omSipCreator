@@ -74,8 +74,8 @@ class PPNGroup:
 
 def main_is_frozen():
     return (hasattr(sys, "frozen") or  # new py2exe
-            hasattr(sys, "importers")  # old py2exe
-            or imp.is_frozen("__main__"))  # tools/freeze
+            hasattr(sys, "importers") or  # old py2exe
+            imp.is_frozen("__main__"))  # tools/freeze
 
 
 def get_main_dir():
@@ -92,7 +92,7 @@ def errorExit(errors, warnings):
 
 def checkFileExists(fileIn):
     # Check if file exists and exit if not
-    if os.path.isfile(fileIn) == False:
+    if not os.path.isfile(fileIn):
         msg = "file " + fileIn + " does not exist!"
         sys.stderr.write("Error: " + msg + "\n")
         sys.exit()
@@ -108,7 +108,7 @@ def get_immediate_subdirectories(a_dir, ignoreDirs):
             for ignoreDir in ignoreDirs:
                 if dir.endswith(ignoreDir):
                     ignore = True
-            if ignore == False:
+            if not ignore:
                 subDirs.append(os.path.abspath(os.path.join(root, dir)))
 
     return subDirs
@@ -234,8 +234,9 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
     noChecksumFiles = len(checksumFiles)
 
     if noChecksumFiles != 1:
-        logging.error("jobID " + carrier.jobID + ": found " + str(noChecksumFiles) + " checksum files in directory '"
-                      + carrier.imagePathFull + "', expected 1")
+        logging.error("jobID " + carrier.jobID + ": found " + str(noChecksumFiles) +
+                      " checksum files in directory '" +
+                      carrier.imagePathFull + "', expected 1")
         config.errors += 1
         # If we end up here, checksum file either does not exist, or it is ambiguous
         # which file should be used. No point in doing the checksum verification in that case.
@@ -252,8 +253,8 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
     noOtherFiles = len(otherFiles)
 
     if noOtherFiles == 0:
-        logging.error("jobID " + carrier.jobID + ": found no files in directory '"
-                      + carrier.imagePathFull)
+        logging.error("jobID " + carrier.jobID + ": found no files in directory '" +
+                      carrier.imagePathFull)
         config.errors += 1
         config.failedPPNs.append(carrier.PPN)
 
@@ -266,18 +267,22 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
     noAudioFiles = len(audioFiles)
 
     if noIsoFiles > 0 and noIsobusterLogs != 1:
-        logging.error("jobID " + carrier.jobID + " : expected 1 file 'isobuster.log' in directory '"
-                      + carrier.imagePathFull + " , found " + str(noIsobusterLogs))
+        logging.error("jobID " + carrier.jobID +
+                      " : expected 1 file 'isobuster.log' in directory '" +
+                      carrier.imagePathFull +
+                      " , found " + str(noIsobusterLogs))
         config.errors += 1
         config.failedPPNs.append(carrier.PPN)
 
     if noAudioFiles > 0 and noDbpowerampLogs != 1:
-        logging.error("jobID " + carrier.jobID + " : expected 1 file 'dbpoweramp.log' in directory '"
-                      + carrier.imagePathFull + " , found " + str(noDbpowerampLogs))
+        logging.error("jobID " + carrier.jobID +
+                      " : expected 1 file 'dbpoweramp.log' in directory '" +
+                      carrier.imagePathFull + " , found " +
+                      str(noDbpowerampLogs))
         config.errors += 1
         config.failedPPNs.append(carrier.PPN)
 
-    if skipChecksumVerification == False:
+    if not skipChecksumVerification:
         # Read contents of checksum file to list
         checksumsFromFile = readChecksums(checksumFiles[0])
 
@@ -303,7 +308,8 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                 config.errors += 1
                 config.failedPPNs.append(carrier.PPN)
 
-            # Get file size and append to allFilesinChecksumFile list (needed later for METS file entry)
+            # Get file size and append to allFilesinChecksumFile list
+            # (needed later for METS file entry)
             entry.append(str(os.path.getsize(fileNameWithPath)))
 
             # Append file name to list
@@ -324,7 +330,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
         divDisc.attrib["TYPE"] = carrier.carrierType
         divDisc.attrib["ORDER"] = carrier.volumeNumber
 
-        if config.createSIPs == True:
+        if config.createSIPs:
 
             # Create Volume directory
             logging.info("creating carrier directory")
@@ -357,7 +363,6 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                 fileSize = entry[2]
                 # Generate unique file ID (used in structMap)
                 fileID = "file_" + str(sipFileCounter)
-                # admID = "file_" + str(sipFileCounter).zfill(3) # TODO WRONG, should be sequence of ID values of techMD sections that describe this file!!
                 # Construct path relative to carrier directory
                 fIn = os.path.join(carrier.imagePathFull, fileName)
 
@@ -367,8 +372,9 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                     # Copy to volume dir
                     shutil.copy2(fIn, fSIP)
                 except OSError:
-                    logging.fatal("jobID " + carrier.jobID + ": cannot copy '"
-                                  + fileName + "' to '" + fSIP + "'")
+                    logging.fatal("jobID " + carrier.jobID +
+                                  ": cannot copy '" +
+                                  fileName + "' to '" + fSIP + "'")
                     config.errors += 1
                     errorExit(config.errors, config.warnings)
 
@@ -384,7 +390,6 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                 fileElt = etree.SubElement(
                     fileGrp, "{%s}file" % (config.mets_ns))
                 fileElt.attrib["ID"] = fileID
-                # fileElt.attrib["ADMID"] = techMDID # TODO change to sequence of all techMDIDs that are associated with this file
                 fileElt.attrib["SIZE"] = fileSize
                 # TODO: add SEQ and CREATED, DMDID attributes as well
 
@@ -410,7 +415,8 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                 fileElt.attrib["CHECKSUM"] = checksum
                 fileElt.attrib["CHECKSUMTYPE"] = "SHA-512"
 
-                # TODO: check if mimeType values matches carrierType (e.g. no audio/x-wav if cd-rom, etc.)
+                # TODO: check if mimeType values matches carrierType
+                # (e.g. no audio/x-wav if cd-rom, etc.)
 
                 # Create track divisor element for structmap
                 divFile = etree.SubElement(
@@ -504,7 +510,8 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
     return fileGrp, divDisc, premisCreationEvents, listTechMD, sipFileCounter, counterTechMD
 
 
-def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarriers, carrierTypeAllowedValues):
+def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
+               dirsInMetaCarriers, carrierTypeAllowedValues):
 
     # PPN is PPN identifier (by which we grouped data)
     # carriers is another iterator that contains individual carrier records
@@ -555,7 +562,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     # Dummy value for dirSIP (needed if createSIPs = False)
     dirSIP = "rubbish"
 
-    if config.createSIPs == True:
+    if config.createSIPs:
         logging.info("creating SIP directory")
         # Create SIP directory
         dirSIP = os.path.join(dirOut, PPN)
@@ -607,7 +614,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
             # Append absolute path to list (used later for completeness check)
             dirsInMetaCarriers.append(imagePathAbs)
 
-            if os.path.isdir(imagePathFull) == False:
+            if not os.path.isdir(imagePathFull):
                 logging.error("jobID " + jobID + ": '" + imagePathFull +
                               "' is not a directory")
                 config.errors += 1
@@ -619,8 +626,8 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
             fileGrp, divDisc, premisEventsCarrier, listTechMD, fileCounter, counterTechMD = processCarrier(
                 thisCarrier, fileGrp, dirSIP, fileCounterStart, counterTechMD)
             # NOTE
-            # listTechMD: list of techMD elements, each of which represent one file. Wraps EbuCore audio metdata + possibly other tech
-            # metadata
+            # listTechMD: list of techMD elements, each of which represent one file.
+            # Wraps EbuCore audio metdata + possibly other tech metadata
             # NOTE
 
             # Construct unique identifier for digiProvMD (see below) and add to divDisc as ADMID
@@ -715,7 +722,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
     for digiProvMDElt in digiProvElementsPPN:
         amdSec.append(digiProvMDElt)
 
-    if config.createSIPs == True:
+    if config.createSIPs:
         logging.info("writing METS file")
 
         if sys.version.startswith('3'):
@@ -753,14 +760,16 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
         # Report warning if lower value of volumeNumber not equal to '1'
         volumeNumbersTypeGroup.sort()
         if volumeNumbersTypeGroup[0] != 1:
-            logging.warning("PPN " + PPN + " (" + carrierType + "): expected '1' as lower value for 'volumeNumber', found '" +
+            logging.warning("PPN " + PPN + " (" + carrierType +
+                            "): expected '1' as lower value for 'volumeNumber', found '" +
                             str(volumeNumbersTypeGroup[0]) + "'")
             config.warnings += 1
 
-        # Report warning if volumeNumber does not contain consecutive numbers (indicates either missing
-        # volumes or data entry error)
+        # Report warning if volumeNumber does not contain consecutive numbers
+        # (indicates either missing volumes or data entry error)
 
-        if sorted(volumeNumbersTypeGroup) != list(range(min(volumeNumbersTypeGroup), max(volumeNumbersTypeGroup) + 1)):
+        if sorted(volumeNumbersTypeGroup) != list(range(min(volumeNumbersTypeGroup),
+                                                  max(volumeNumbersTypeGroup) + 1)):
             logging.warning("PPN " + PPN + " (" + carrierType +
                             "): values for 'volumeNumber' are not consecutive")
             config.warnings += 1
@@ -850,7 +859,7 @@ def main():
     # Get input from command line
     args = parseCommandLine()
     action = args.subcommand
-    if action == None:
+    if action is None:
         # Exit and print help message if command line is empty
         printHelpAndExit()
 
@@ -868,7 +877,7 @@ def main():
         dirOut = None
 
     # Check if batch dir exists
-    if os.path.isdir(batchIn) == False:
+    if not os.path.isdir(batchIn):
         logging.fatal("input batch directory does not exist")
         config.errors += 1
         errorExit(config.errors, config.warnings)
@@ -887,7 +896,7 @@ def main():
 
     # Check if batch manifest exists
     batchManifest = os.path.join(batchIn, fileBatchManifest)
-    if os.path.isfile(batchManifest) == False:
+    if not os.path.isfile(batchManifest):
         logging.fatal("file " + batchManifest + " does not exist")
         config.errors += 1
         errorExit(config.errors, config.warnings)
@@ -934,10 +943,10 @@ def main():
             errorExit(config.errors, config.warnings)
 
     # Create output directory if in SIP creation mode
-    if config.createSIPs == True:
+    if config.createSIPs:
         # Remove output dir tree if it exists already
         # Potentially dangerous, so ask for user confirmation
-        if os.path.isdir(dirOut) == True:
+        if os.path.isdir(dirOut):
 
             out.write("This will overwrite existing directory '" + dirOut +
                       "' and remove its contents!\nDo you really want to proceed (Y/N)? > ")
@@ -968,8 +977,8 @@ def main():
     for requiredCol in requiredColsBatchManifest:
         occurs = headerBatchManifest.count(requiredCol)
         if occurs != 1:
-            logging.fatal("found " + str(occurs) + " occurrences of column '" + requiredCol + "' in " +
-                          batchManifest + " (expected 1)")
+            logging.fatal("found " + str(occurs) + " occurrences of column '" +
+                          requiredCol + "' in " + batchManifest + " (expected 1)")
             config.errors += 1
             # No point in continuing if we end up here ...
             errorExit(config.errors, config.warnings)
@@ -1006,8 +1015,8 @@ def main():
     # Report each item in list as an error
 
     for directory in diffDirs:
-        logging.error("PPN " + PPN + ": directory '" + directory + "' not referenced in '"
-                      + batchManifest + "'")
+        logging.error("PPN " + PPN + ": directory '" + directory +
+                      "' not referenced in '" + batchManifest + "'")
         config.errors += 1
         config.failedPPNs.append(PPN)
 
@@ -1022,14 +1031,14 @@ def main():
     # Get all unique values in failedPPNs by converting to a set (and then back to a list)
     config.failedPPNs = (list(set(config.failedPPNs)))
 
-    if config.pruneBatch == True and config.failedPPNs != []:
+    if config.pruneBatch and config.failedPPNs != []:
 
         logging.info("Start pruning")
 
         # Check if batchErr is an existing directory. If yes,
         # prompt user to confirm that it will be overwritten
 
-        if os.path.isdir(batchErr) == True:
+        if os.path.isdir(batchErr):
 
             out.write("\nThis will overwrite existing directory '" + batchErr +
                       "' and remove its contents!\nDo you really want to proceed (Y/N)? > ")
@@ -1105,14 +1114,15 @@ def main():
                 imagePathInAbs = os.path.abspath(imagePathIn)
                 imagePathErrAbs = os.path.abspath(imagePathErr)
 
-                if os.path.isdir(imagePathInAbs) == True:
+                if os.path.isdir(imagePathInAbs):
 
                     # Create directory in error batch
                     try:
                         os.makedirs(imagePathErrAbs)
                     except OSError or IOError:
-                        logging.error("jobID " + jobID + ": could not create directory '"
-                                      + imagePathErrAbs)
+                        logging.error("jobID " + jobID +
+                                      ": could not create directory '" +
+                                      imagePathErrAbs)
                         config.errors += 1
 
                     # All files in directory
@@ -1132,8 +1142,8 @@ def main():
                         try:
                             shutil.copy2(fileIn, fileErr)
                         except IOError or OSError:
-                            logging.error("jobID " + jobID + ": cannot copy '"
-                                          + fileIn + "' to '" + fileErr + "'")
+                            logging.error("jobID " + jobID + ": cannot copy '" +
+                                          fileIn + "' to '" + fileErr + "'")
                             config.errors += 1
 
                         # Verify checksum
@@ -1141,8 +1151,8 @@ def main():
                         checksumErr = generate_file_sha512(fileErr)
 
                         if checksumIn != checksumErr:
-                            logging.error("jobID " + jobID + ": checksum of '"
-                                          + fileIn + "' does not match '" + fileErr + "'")
+                            logging.error("jobID " + jobID + ": checksum of '" +
+                                          fileIn + "' does not match '" + fileErr + "'")
                             config.errors += 1
 
                 # Write row to error batch manifest
@@ -1150,7 +1160,7 @@ def main():
                 csvErr.writerow(row)
 
                 # Remove directory from input batch
-                if os.path.isdir(imagePathInAbs) == True:
+                if os.path.isdir(imagePathInAbs):
                     logging.info("Removing  directory '" +
                                  imagePathInAbs + "' from batchIn")
                     try:
