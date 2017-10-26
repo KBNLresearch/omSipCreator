@@ -1,13 +1,8 @@
 #! /usr/bin/env python
 from lxml import etree
+from . import config
+from .kbapi import sru
 
-if __package__ == 'omSipCreator':
-    from . import config
-    from .kbapi import sru
-else:
-    import config
-    from kbapi import sru
-    
 # Module for writing MODS metadata
 
 def createMODS(PPNGroup):

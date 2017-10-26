@@ -4,12 +4,8 @@ import io
 from datetime import datetime
 from lxml import etree
 import uuid
+from . import config
 
-if __package__ == 'omSipCreator':
-    from . import config
-else:
-    import config
-    
 # Module for writing PREMIS metadata
 
 def addCreationEvent(log):

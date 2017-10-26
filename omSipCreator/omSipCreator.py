@@ -13,18 +13,11 @@ import logging
 from operator import itemgetter
 from itertools import groupby
 from lxml import etree
-if __package__ == 'omSipCreator':
-    from . import config
-    from .mods import createMODS
-    from .premis import addCreationEvent
-    from .premis import addObjectInstance
-    from .mdaudio import getAudioMetadata
-else:
-    import config
-    from mods import createMODS
-    from premis import addCreationEvent
-    from premis import addObjectInstance
-    from mdaudio import getAudioMetadata
+from . import config
+from .mods import createMODS
+from .premis import addCreationEvent
+from .premis import addObjectInstance
+from .mdaudio import getAudioMetadata
 
 # Bind raw_input (Python 3) to input (Python 2)
 # Source: http://stackoverflow.com/a/21731110/1209004

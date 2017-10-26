@@ -1,14 +1,9 @@
 #! /usr/bin/env python
 from lxml import etree
 import io
+from . import config
+from . import shared
 
-if __package__ == 'omSipCreator':
-    from . import config
-    from . import shared
-else:
-    import config
-    import shared
-    
 # Wrapper module for mediainfo
 
 def getAudioMetadata(fileRef):
