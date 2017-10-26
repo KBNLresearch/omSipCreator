@@ -188,7 +188,7 @@ def parseCommandLine():
                               action="store",
                               type=str,
                               help="output directory where SIPs are written")
-    parser_write.add_argument('--suppressAudioMDExtraction', "-s",
+    parser.add_argument('--suppressAudioMDExtraction', "-s",
                               action="store_true",
                               dest="suppressAudioMDExtractionFlag",
                               default=False,
