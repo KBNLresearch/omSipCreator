@@ -1,13 +1,16 @@
 #! /usr/bin/env python
+
+"""
+Wrapper module for mediainfo
+"""
+
 from lxml import etree
-import io
 from . import config
 from . import shared
 
-# Wrapper module for mediainfo
-
 
 def getAudioMetadata(fileRef):
+    """Extract metadata for audio file"""
     args = [config.mediaInfoExe]
     args.append("--Output=EBUCore")
     args.append(fileRef)
@@ -21,7 +24,6 @@ def getAudioMetadata(fileRef):
     parser = etree.XMLParser(remove_blank_text=True)
 
     # Parse string to element
-    #outElt = etree.fromstring(out.encode('utf-8'))
     outElt = etree.XML(out.encode('utf-8'), parser=parser)
 
     # Main results to dictionary
@@ -31,4 +33,4 @@ def getAudioMetadata(fileRef):
     dictOut["outElt"] = outElt
     dictOut["stderr"] = err
 
-    return(dictOut)
+    return dictOut
