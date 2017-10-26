@@ -1,4 +1,8 @@
-import sys
+#! /usr/bin/env python
+
+"""
+Variables that are shared between modules
+"""
 
 __version__ = ""
 scriptPath = ""
@@ -19,5 +23,3 @@ warnings = 0
 createSIPs = False
 pruneBatch = False
 suppressAudioMDExtractionFlag = False
-
-
