@@ -1,15 +1,20 @@
 #! /usr/bin/env python
+
+"""
+Module for writing PREMIS metadata
+"""
+
 import os
 import io
+import uuid
 from datetime import datetime
 from lxml import etree
-import uuid
 from . import config
-
-# Module for writing PREMIS metadata
 
 
 def addCreationEvent(log):
+
+    """Generate creation event using info from log file of creation application"""
 
     # Read contents of log to a text string
     with io.open(log, "r", encoding="utf-8") as fLog:
@@ -73,7 +78,17 @@ def addCreationEvent(log):
 
     eventOutcomeDetailNote.text = logContents
 
-    isoBusterComment = "Isobuster error values:\n0       No Error (success)\n1       No Tracks / Sessions found\n2       Track Index provided but this track is not available\n3       Session Index provided but this Session is not available\n4       No File-system track found\n5       No (or not a matching) File-system found\n6       Folder name is already in use as filename\n7       Not a matching file or folder found\n10xx  Extraction aborted by user"
+    isoBusterComment = "Isobuster error values:\n \
+        0       No Error (success)\n \
+        1       No Tracks / Sessions found\n \
+        2       Track Index provided but this track is not available\n \
+        3       Session Index provided but this Session is not available\n \
+        4       No File-system track found\n \
+        5       No (or not a matching) File-system found\n \
+        6       Folder name is already in use as filename\n \
+        7       Not a matching file or folder found\n \
+        10xx  Extraction aborted by user"
+
     comment = etree.Comment(isoBusterComment)
 
     if logName == "isobuster.log":
@@ -86,15 +101,18 @@ def addCreationEvent(log):
         eventDetail.text = "Audio ripped with dBpoweramp"
         # URI to dBpoweramp Wikidata page
         linkingAgentIdentifierValue.text = "https://www.wikidata.org/wiki/Q1152133"
-    return(event)
+    return event
 
 
 def addAgent(softwareName):
 
+    """Generate agent instance for creation software"""
+    # TODO: do we need this function?
+
     # Create PREMIS agent instance
     agentName = etree.QName(config.premis_ns, "agent")
     agent = etree.Element(agentName, nsmap=config.NSMAP)
-    agent = etree.SubElement(event, "{%s}agent" % (config.premis_ns))
+    agent = etree.SubElement(event, "{%s}agent" % (config.premis_ns))  # TODO event undefined!
     agentIdentifier = etree.SubElement(
         agent, "{%s}agentIdentifier" % (config.premis_ns))
     agentIdentifierType = etree.SubElement(
@@ -117,10 +135,12 @@ def addAgent(softwareName):
         agentIdentifierValue.text = "https://www.wikidata.org/wiki/Q1152133"
         agentName.text = "dBpoweramp"
 
-    return(agent)
+    return agent
 
 
 def addObjectInstance(fileName, fileSize, mimeType, sha512Sum):
+
+    """Generate object instance for file"""
 
     # Dictionary that links formatName values to mimeTypes
     formatNames = {
@@ -137,12 +157,12 @@ def addObjectInstance(fileName, fileSize, mimeType, sha512Sum):
     }
     # Create PREMIS object instance
     objectName = etree.QName(config.premis_ns, "object")
-    object = etree.Element(objectName, nsmap=config.NSMAP)
-    object.attrib["{%s}type" % config.xsi_ns] = "premis:file"
+    pObject = etree.Element(objectName, nsmap=config.NSMAP)
+    pObject.attrib["{%s}type" % config.xsi_ns] = "premis:file"
 
     # Object identifier
     objectIdentifier = etree.SubElement(
-        object, "{%s}objectIdentifier" % (config.premis_ns))
+        pObject, "{%s}objectIdentifier" % (config.premis_ns))
     objectIdentifierType = etree.SubElement(
         objectIdentifier, "{%s}objectIdentifierType" % (config.premis_ns))
     objectIdentifierType.text = "UUID"
@@ -152,7 +172,7 @@ def addObjectInstance(fileName, fileSize, mimeType, sha512Sum):
 
     # Object characteristics
     objectCharacteristics = etree.SubElement(
-        object, "{%s}objectCharacteristics" % (config.premis_ns))
+        pObject, "{%s}objectCharacteristics" % (config.premis_ns))
     compositionLevel = etree.SubElement(
         objectCharacteristics, "{%s}compositionLevel" % (config.premis_ns))
     compositionLevel.text = "0"
@@ -177,10 +197,10 @@ def addObjectInstance(fileName, fileSize, mimeType, sha512Sum):
     size.text = fileSize
 
     # Format
-    format = etree.SubElement(objectCharacteristics,
-                              "{%s}format" % (config.premis_ns))
+    pFormat = etree.SubElement(objectCharacteristics,
+                               "{%s}format" % (config.premis_ns))
     formatDesignation = etree.SubElement(
-        format, "{%s}formatDesignation" % (config.premis_ns))
+        pFormat, "{%s}formatDesignation" % (config.premis_ns))
     formatName = etree.SubElement(
         formatDesignation, "{%s}formatName" % (config.premis_ns))
 
@@ -191,7 +211,7 @@ def addObjectInstance(fileName, fileSize, mimeType, sha512Sum):
     # TODO FLAC and ISO Image fmts have no fileTypeID values. These either have to be added to the
     # DIAS filetypes list or the formatRegistry element should be omitted altogether
     formatRegistry = etree.SubElement(
-        format, "{%s}formatRegistry" % (config.premis_ns))
+        pFormat, "{%s}formatRegistry" % (config.premis_ns))
     formatRegistryName = etree.SubElement(
         formatRegistry, "{%s}formatRegistryName" % (config.premis_ns))
     formatRegistryName.text = "DIAS"
@@ -201,7 +221,7 @@ def addObjectInstance(fileName, fileSize, mimeType, sha512Sum):
 
     # originalName
     originalName = etree.SubElement(
-        object, "{%s}originalName" % (config.premis_ns))
+        pObject, "{%s}originalName" % (config.premis_ns))
     originalName.text = os.path.basename(fileName)
 
-    return(object)
+    return pObject

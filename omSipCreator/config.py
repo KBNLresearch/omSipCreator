@@ -1,3 +1,23 @@
 import sys
 
+__version__ = ""
+scriptPath = ""
+scriptName = ""
 mediaInfoExe = ""
+mets_ns = ""
+mods_ns = ""
+premis_ns = ""
+xlink_ns = ""
+xsi_ns = ""
+metsSchema = ""
+modsSchema = ""
+premisSchema = ""
+NSMAP = {}
+failedPPNs = []
+errors = 0
+warnings = 0
+createSIPs = False
+pruneBatch = False
+suppressAudioMDExtractionFlag = False
+
+
