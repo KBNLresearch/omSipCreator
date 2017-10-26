@@ -1,4 +1,7 @@
 #! /usr/bin/env python
+"""
+SIP Creator for Offline Media Images.
+"""
 
 import sys
 import os
@@ -26,11 +29,6 @@ try:
 except NameError:
    pass
 
-"""
-
-SIP Creator for Offline Media images.
-
- """
 
 # Script name
 config.scriptPath, config.scriptName = os.path.split(sys.argv[0])
@@ -43,7 +41,7 @@ config.__version__ = "0.4.9"
 
 # Create parser
 parser = argparse.ArgumentParser(
-    description="SIP creation tool for optical media images")
+    description = "SIP Creator for Offline Media Images")
 
 # Classes for Carrier and IP entries
 class Carrier:
@@ -54,6 +52,7 @@ class Carrier:
         self.imagePathFull = imagePathFull
         self.volumeNumber = volumeNumber
         self.carrierType = carrierType
+
 
 class PPNGroup:
 
@@ -70,19 +69,23 @@ class PPNGroup:
         self.PPN = carrier.PPN
         self.carrierType = carrier.carrierType
 
+
 def main_is_frozen():
     return (hasattr(sys, "frozen") or  # new py2exe
             hasattr(sys, "importers")  # old py2exe
             or imp.is_frozen("__main__"))  # tools/freeze
 
+
 def get_main_dir():
     if main_is_frozen():
         return os.path.dirname(sys.executable)
     return os.path.dirname(sys.argv[0])
+
  
 def errorExit(errors, warnings):
     logging.info("Batch verification yielded " + str(errors) + " errors and " + str(warnings) + " warnings")
     sys.exit()
+
 
 def checkFileExists(fileIn):
     # Check if file exists and exit if not
@@ -90,7 +93,8 @@ def checkFileExists(fileIn):
         msg = "file " + fileIn + " does not exist!"
         sys.stderr.write("Error: " + msg + "\n")
         sys.exit()
-    
+
+
 def get_immediate_subdirectories(a_dir, ignoreDirs):
     # Returns list of immediate subdirectories
     # Directories that end with suffixes defined by ignoreDirs are ignored
@@ -104,7 +108,8 @@ def get_immediate_subdirectories(a_dir, ignoreDirs):
             if ignore == False:
                 subDirs.append(os.path.abspath(os.path.join(root, dir)))
 
-    return(subDirs)
+    return subDirs
+
 
 def readChecksums(fileIn):
     # Read checksum file, return contents as nested list
@@ -120,7 +125,7 @@ def readChecksums(fileIn):
             rowSplit[1] = os.path.basename(fileName) 
             data.append(rowSplit)    
         f.close()
-        return(data)
+        return data
     except IOError:
         logging.fatal("cannot read '" + fileIn + "'")
         config.errors += 1
@@ -141,6 +146,7 @@ def generate_file_sha512(fileIn):
                 break
             m.update(buf)
     return m.hexdigest()
+
     
 def parseCommandLine():
     # Add arguments
@@ -181,12 +187,14 @@ def parseCommandLine():
     # Parse arguments
     args = parser.parse_args()
 
-    return(args)
+    return args
+
 
 def printHelpAndExit():
     print('')
     parser.print_help()
     sys.exit()
+
            
 def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMDStart):
     # Process contents of imagepath directory
@@ -472,7 +480,8 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
         premisCreationEvents = []
         listTechMD = []
                 
-    return(fileGrp, divDisc, premisCreationEvents, listTechMD, sipFileCounter, counterTechMD)             
+    return fileGrp, divDisc, premisCreationEvents, listTechMD, sipFileCounter, counterTechMD             
+
 
     
 def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarriers, carrierTypeAllowedValues):
@@ -723,9 +732,10 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn, dirsInMetaCarr
         if sorted(volumeNumbersTypeGroup) != list(range(min(volumeNumbersTypeGroup), max(volumeNumbersTypeGroup) + 1)):
             logging.warning("PPN " + PPN + " (" + carrierType + "): values for 'volumeNumber' are not consecutive")
             config.warnings += 1
+
     
 def main():
-    
+
     # Set up logger
     logFile = "omsipcreator.log"
     logFormatter = logging.Formatter('%(levelname)s - %(message)s')
@@ -1134,6 +1144,7 @@ def main():
         
         # Summarise no. of additional warnings / errors during pruning
         logging.info("Pruning resulted in additional " + str(config.errors) + " errors and " + str(config.warnings) + " warnings")
-    
+
+
 if __name__ == "__main__":
     main()
