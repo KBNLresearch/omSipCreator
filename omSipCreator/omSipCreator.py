@@ -47,8 +47,9 @@ parser = argparse.ArgumentParser(
 
 
 class Carrier:
-
+    """Carrier class"""
     def __init__(self, jobID, PPN, imagePathFull, volumeNumber, carrierType):
+        """Initialise Carrier class instance"""
         self.jobID = jobID
         self.PPN = PPN
         self.imagePathFull = imagePathFull
@@ -57,41 +58,49 @@ class Carrier:
 
 
 class PPNGroup:
-
+    """PPNGroup class"""
     def __init__(self):
+        """initialise PPNGroup class instance"""
         self.carriers = []
         self.PPN = ""
         self.carrierType = ""
 
     def append(self, carrier):
-        # Result of this is that below PPN-level properties are inherited from last
-        # appended carrier (values should be identical for all carriers within PPN,
-        # but important to do proper QA on this as results may be unexpected otherwise)
+        """Append a carrier. Result of this is that below PPN-level properties
+        are inherited from last appended carrier (values should be identical
+        for all carriers within PPN, but important to do proper QA on this as
+        results may be unexpected otherwise)
+        """
         self.carriers.append(carrier)
         self.PPN = carrier.PPN
         self.carrierType = carrier.carrierType
 
 
 def main_is_frozen():
+    """Returns True if maijn function is frozen
+    (e.g. PyInstaller/Py2Exe executable)
+    """
     return (hasattr(sys, "frozen") or  # new py2exe
             hasattr(sys, "importers") or  # old py2exe
             imp.is_frozen("__main__"))  # tools/freeze
 
 
 def get_main_dir():
+    """Reurns installation directory"""
     if main_is_frozen():
         return os.path.dirname(sys.executable)
     return os.path.dirname(sys.argv[0])
 
 
 def errorExit(errors, warnings):
+    """Print errors and exit"""
     logging.info("Batch verification yielded " + str(errors) +
                  " errors and " + str(warnings) + " warnings")
     sys.exit()
 
 
 def checkFileExists(fileIn):
-    # Check if file exists and exit if not
+    """Check if file exists and exit if not"""
     if not os.path.isfile(fileIn):
         msg = "file " + fileIn + " does not exist!"
         sys.stderr.write("Error: " + msg + "\n")
@@ -99,24 +108,26 @@ def checkFileExists(fileIn):
 
 
 def get_immediate_subdirectories(a_dir, ignoreDirs):
-    # Returns list of immediate subdirectories
-    # Directories that end with suffixes defined by ignoreDirs are ignored
+    """Returns list of immediate subdirectories
+    Directories that end with suffixes defined by ignoreDirs are ignored
+    """
     subDirs = []
     for root, dirs, files in os.walk(a_dir):
-        for dir in dirs:
+        for myDir in dirs:
             ignore = False
             for ignoreDir in ignoreDirs:
-                if dir.endswith(ignoreDir):
+                if myDir.endswith(ignoreDir):
                     ignore = True
             if not ignore:
-                subDirs.append(os.path.abspath(os.path.join(root, dir)))
+                subDirs.append(os.path.abspath(os.path.join(root, myDir)))
 
     return subDirs
 
 
 def readChecksums(fileIn):
-    # Read checksum file, return contents as nested list
-    # Also strip away any file paths if they exist (return names only)
+    """Read checksum file, return contents as nested list
+    Also strip away any file paths if they exist (return names only)
+    """
 
     try:
         data = []
@@ -137,9 +148,10 @@ def readChecksums(fileIn):
 
 
 def generate_file_sha512(fileIn):
-    # Generate sha512 hash of file
-    # fileIn is read in chunks to ensure it will work with (very) large files as well
-    # Adapted from: http://stackoverflow.com/a/1131255/1209004
+    """Generate sha512 hash of file
+    fileIn is read in chunks to ensure it will work with (very) large files as well
+    Adapted from: http://stackoverflow.com/a/1131255/1209004
+    """
 
     blocksize = 2**20
     m = hashlib.sha512()
@@ -153,7 +165,7 @@ def generate_file_sha512(fileIn):
 
 
 def parseCommandLine():
-    # Add arguments
+    """Parse command-line arguments"""
 
     # Sub-parsers for check and write commands
 
@@ -166,9 +178,9 @@ def parseCommandLine():
                                type=str,
                                help="input batch")
     parser_prune = subparsers.add_parser('prune',
-                                         help="verify input batch, then write 'pruned' version of batch \
-                        that omits all PPNs that have errors. Write PPNs with errors to \
-                        a separate batch.")
+                                         help="verify input batch, then write 'pruned' version \
+                         of batch that omits all PPNs that have errors. Write PPNs with \
+                         errors to a separate batch.")
     parser_prune.add_argument('batchIn',
                               action="store",
                               type=str,
@@ -178,8 +190,8 @@ def parseCommandLine():
                               type=str,
                               help="name of batch that will contain all PPNs with errors")
     parser_write = subparsers.add_parser('write',
-                                         help="verify input batch and write SIPs. Before using 'write' first \
-                        run the 'verify' command and fix any reported errors.")
+                                         help="verify input batch and write SIPs. Before using \
+                         'write' first run the 'verify' command and fix any reported errors.")
     parser_write.add_argument('batchIn',
                               action="store",
                               type=str,
@@ -189,10 +201,10 @@ def parseCommandLine():
                               type=str,
                               help="output directory where SIPs are written")
     parser.add_argument('--suppressAudioMDExtraction', "-s",
-                              action="store_true",
-                              dest="suppressAudioMDExtractionFlag",
-                              default=False,
-                              help="Suppress extraction of metadata from audio files")
+                        action="store_true",
+                        dest="suppressAudioMDExtractionFlag",
+                        default=False,
+                        help="Suppress extraction of metadata from audio files")
     # Parse arguments
     args = parser.parse_args()
 
@@ -200,13 +212,14 @@ def parseCommandLine():
 
 
 def printHelpAndExit():
+    """Print usage message and exit"""
     print('')
     parser.print_help()
     sys.exit()
 
 
 def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMDStart):
-    # Process contents of imagepath directory
+    """Process contents of imagepath directory"""
     # TODO: * check file type / extension matches carrierType!
     # TODO: currently lots of file path manipulations which make things hard to read,
     # could be better structured with more understandable naming conventions.
@@ -519,6 +532,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
 def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
                dirsInMetaCarriers, carrierTypeAllowedValues):
 
+    """Process a PPN"""
     # PPN is PPN identifier (by which we grouped data)
     # carriers is another iterator that contains individual carrier records
 
@@ -775,13 +789,14 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
         # (indicates either missing volumes or data entry error)
 
         if sorted(volumeNumbersTypeGroup) != list(range(min(volumeNumbersTypeGroup),
-                                                  max(volumeNumbersTypeGroup) + 1)):
+                                                        max(volumeNumbersTypeGroup) + 1)):
             logging.warning("PPN " + PPN + " (" + carrierType +
                             "): values for 'volumeNumber' are not consecutive")
             config.warnings += 1
 
 
 def main():
+    """Main CLI function"""
 
     # Set up logger
     logFile = "omsipcreator.log"
@@ -878,7 +893,7 @@ def main():
         dirOut = None
 
     # Flag that, if True, tells omSipCreator not to extract metadata
-    # from audio files    
+    # from audio files
     config.suppressAudioMDExtractionFlag = args.suppressAudioMDExtractionFlag
 
     # Path to MediaInfo
