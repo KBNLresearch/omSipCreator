@@ -11,7 +11,7 @@ Also, the (bibliographic) metadata component is specific to the situation and in
 
 ## Dependencies
 
-OmSipCreator was developed and tested under Python 3.6. It may (but is not guaranteed to) work under Python 2.7 as well.
+OmSipCreator was developed and tested under Python 3.6. It may (but is not guaranteed to) work under Python 2.7 as well. If you run it under Linux you need to install (a recent version of) [*MediaInfo*](https://mediaarea.net/en/MediaInfo). Installation instructions can be found [here](https://mediaarea.net/en/MediaInfo/Download/Ubuntu). OmSipCreator expects that the *mediainfo* binary is located under *usr/bin* (which is the default installation location when installing from a Debian package). A Windows version of *MediaInfo* is already included with OmSipCreator.
 
 ## Installation
 
@@ -271,3 +271,8 @@ Both situations may indicate a data entry error, but they may also reflect that 
 
 Written by Johan van der Knijff, except *sru.py* which was adapted from the [KB Python API](https://github.com/KBNLresearch/KB-python-API) which is written by WillemJan Faber. The KB Python API is released under the GNU GENERAL PUBLIC LICENSE.
 
+
+## License
+
+OmSipCreator is released under the Apache License 2.0. The KB Python API is released under the GNU GENERAL PUBLIC LICENSE. MediaInfo is released under the BSD 2-Clause License; Copyright (c) 2002-2017, MediaArea.net SARL. All rights reserved. See the `tools/mediainfo` directory for the license statement of MediaInfo. 
+MediaInfo: 
