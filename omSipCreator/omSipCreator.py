@@ -895,8 +895,11 @@ def main():
     config.suppressAudioMDExtractionFlag = args.suppressAudioMDExtractionFlag
 
     # Path to MediaInfo
-    config.mediaInfoExe = os.path.join(
-        toolsDirUser, 'mediainfo', 'MediaInfo.exe')
+    if sys.platform is "win32":    
+        config.mediaInfoExe = os.path.join(
+            toolsDirUser, 'mediainfo', 'MediaInfo.exe')
+    elif sys.platform in ["linux", "linux2"]:
+        config.mediaInfoExe = "/usr/bin/mediainfo"
     if not config.suppressAudioMDExtractionFlag:
         checkFileExists(config.mediaInfoExe)
 
