@@ -10,6 +10,7 @@ import uuid
 from datetime import datetime
 from lxml import etree
 from . import config
+from .mdaudio import getAudioMetadata
 
 
 def addCreationEvent(log):
@@ -218,6 +219,16 @@ def addObjectInstance(fileName, fileSize, mimeType, sha512Sum):
     formatRegistryKey = etree.SubElement(
         formatRegistry, "{%s}formatRegistryKey" % (config.premis_ns))
     formatRegistryKey.text = fileTypeIDs.get(mimeType)
+
+    # objectCharacteristicsExtension - EBUCore, isolyzer
+    objectCharacteristicsExtension = etree.SubElement(
+        objectCharacteristics, "{%s}objectCharacteristicsExtension" % (config.premis_ns))
+
+    if fileName.endswith(('.wav', '.WAV', 'flac', 'FLAC')):
+        objectCharacteristicsExtension.attrib["namespace"] = config.ebucore_ns
+        audioMDOut = getAudioMetadata(fileName)
+        audioMD = audioMDOut["outElt"]
+        objectCharacteristicsExtension.append(audioMD)
 
     # originalName
     originalName = etree.SubElement(

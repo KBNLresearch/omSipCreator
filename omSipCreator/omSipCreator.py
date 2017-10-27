@@ -20,7 +20,6 @@ from . import config
 from .mods import createMODS
 from .premis import addCreationEvent
 from .premis import addObjectInstance
-from .mdaudio import getAudioMetadata
 
 # Bind raw_input (Python 3) to input (Python 2)
 # Source: http://stackoverflow.com/a/21731110/1209004
@@ -200,11 +199,6 @@ def parseCommandLine():
                               action="store",
                               type=str,
                               help="output directory where SIPs are written")
-    parser.add_argument('--suppressAudioMDExtraction', "-s",
-                        action="store_true",
-                        dest="suppressAudioMDExtractionFlag",
-                        default=False,
-                        help="suppress extraction of metadata from audio files")
     parser.add_argument('--version', '-v',
                         action='version',
                         version=__version__)
@@ -471,34 +465,6 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
 
                 # String of techMD identifiers that are used as ADMID attribute of fileElt
                 techMDIDs = techMDPremisID
-
-                # If file is an audio file extract technical metadata in EBUCore format. This is
-                # wrapped in a separate techMD element
-                if fSIP.endswith(('.wav', '.WAV', 'flac', 'FLAC')):
-                    counterTechMD += 1
-                    techMDAudioName = etree.QName(config.mets_ns, "techMD")
-                    techMDAudio = etree.Element(
-                        techMDAudioName, nsmap=config.NSMAP)
-                    techMDAudioID = "techMD_" + str(counterTechMD)
-                    techMDAudio.attrib["ID"] = techMDAudioID
-                    # Add wrapper element for audio metadata
-                    mdWrapEBUCore = etree.SubElement(
-                        techMDAudio, "{%s}mdWrap" % (config.mets_ns))
-                    mdWrapEBUCore.attrib["MIMETYPE"] = "text/xml"
-                    # EBUCore has no registered METS MDTYPE, so need to use OTHER
-                    mdWrapEBUCore.attrib["MDTYPE"] = "OTHER"
-                    mdWrapEBUCore.attrib["OTHERMDTYPE"] = "EBUCore"
-                    mdWrapEBUCore.attrib["MDTYPEVERSION"] = "1.6"
-                    xmlDataEBUCore = etree.SubElement(
-                        mdWrapEBUCore, "{%s}xmlData" % (config.mets_ns))
-                    if not config.suppressAudioMDExtractionFlag:
-                        audioMDOut = getAudioMetadata(fSIP)
-                        audioMD = audioMDOut["outElt"]
-                        xmlDataEBUCore.append(audioMD)
-                        listTechMD.append(techMDAudio)
-
-                        # Update TechMDIDs
-                        techMDIDs = techMDIDs + " " + techMDAudioID
 
                 # Add techMDIDs to fileElt
                 fileElt.attrib["ADMID"] = techMDIDs
@@ -841,15 +807,18 @@ def main():
     config.mets_ns = 'http://www.loc.gov/METS/'
     config.mods_ns = 'http://www.loc.gov/mods/v3'
     config.premis_ns = 'http://www.loc.gov/premis/v3'
+    config.ebucore_ns = 'urn:ebu:metadata-schema:ebuCore_2017'
     config.xlink_ns = 'http://www.w3.org/1999/xlink'
     config.xsi_ns = 'http://www.w3.org/2001/XMLSchema-instance'
     config.metsSchema = 'http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd'
     config.modsSchema = 'http://www.loc.gov/mods/v3 https://www.loc.gov/standards/mods/v3/mods-3-4.xsd'
     config.premisSchema = 'http://www.loc.gov/premis/v3 https://www.loc.gov/standards/premis/premis.xsd'
+    config.ebucoreSchema = 'https://raw.githubusercontent.com/ebu/ebucore/master/ebucore.xsd'
 
     config.NSMAP = {"mets": config.mets_ns,
                     "mods": config.mods_ns,
                     "premis": config.premis_ns,
+                    "ebucore": config.ebucore_ns,
                     "xlink": config.xlink_ns,
                     "xsi": config.xsi_ns}
 
@@ -894,18 +863,13 @@ def main():
         # Dummy value
         dirOut = None
 
-    # Flag that, if True, tells omSipCreator not to extract metadata
-    # from audio files
-    config.suppressAudioMDExtractionFlag = args.suppressAudioMDExtractionFlag
-
     # Path to MediaInfo
     if sys.platform is "win32":    
         config.mediaInfoExe = os.path.join(
             toolsDirUser, 'mediainfo', 'MediaInfo.exe')
     elif sys.platform in ["linux", "linux2"]:
         config.mediaInfoExe = "/usr/bin/mediainfo"
-    if not config.suppressAudioMDExtractionFlag:
-        checkFileExists(config.mediaInfoExe)
+    checkFileExists(config.mediaInfoExe)
 
     # Check if batch dir exists
     if not os.path.isdir(batchIn):
