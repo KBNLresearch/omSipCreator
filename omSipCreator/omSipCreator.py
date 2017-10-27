@@ -204,7 +204,7 @@ def parseCommandLine():
                         action="store_true",
                         dest="suppressAudioMDExtractionFlag",
                         default=False,
-                        help="Suppress extraction of metadata from audio files")
+                        help="suppress extraction of metadata from audio files")
     parser.add_argument('--version', '-v',
                         action='version',
                         version=__version__)
