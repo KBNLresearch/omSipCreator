@@ -52,7 +52,13 @@ def createMODS(PPNGroup):
     try:
         record = next(response.records)
         # Extract metadata
+        # Title  info can be in either titles element OR in titles element
+        # with maintitle attribute
+        titlesMain = record.titlesMain
         titles = record.titles
+        # Use titlesMain if it exists
+        if titlesMain != []:
+            titles = titlesMain
         creators = record.creators
         contributors = record.contributors
         publishers = record.publishers
