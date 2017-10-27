@@ -274,5 +274,4 @@ Written by Johan van der Knijff, except *sru.py* which was adapted from the [KB 
 
 ## License
 
-OmSipCreator is released under the Apache License 2.0. The KB Python API is released under the GNU GENERAL PUBLIC LICENSE. MediaInfo is released under the BSD 2-Clause License; Copyright (c) 2002-2017, MediaArea.net SARL. All rights reserved. See the `tools/mediainfo` directory for the license statement of MediaInfo. 
-MediaInfo: 
+OmSipCreator is released under the Apache License 2.0. The KB Python API is released under the GNU GENERAL PUBLIC LICENSE. MediaInfo is released under the BSD 2-Clause License; Copyright (c) 2002-2017, MediaArea.net SARL. All rights reserved. See the `tools/mediainfo` directory for the license statement of MediaInfo.
