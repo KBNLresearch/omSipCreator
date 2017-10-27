@@ -225,10 +225,12 @@ def addObjectInstance(fileName, fileSize, mimeType, sha512Sum):
         objectCharacteristics, "{%s}objectCharacteristicsExtension" % (config.premis_ns))
 
     if fileName.endswith(('.wav', '.WAV', 'flac', 'FLAC')):
-        objectCharacteristicsExtension.attrib["namespace"] = config.ebucore_ns
+        #objectCharacteristicsExtension.attrib["namespace"] = config.ebucore_ns
         audioMDOut = getAudioMetadata(fileName)
         audioMD = audioMDOut["outElt"]
         objectCharacteristicsExtension.append(audioMD)
+    elif fileName.endswith(('.iso', '.ISO')):
+        # TODO insert Isolyzer output
 
     # originalName
     originalName = etree.SubElement(
