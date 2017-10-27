@@ -180,6 +180,7 @@ The *mods* element contains the actual metadata elements. Most of these are impo
 
 |MODS|Source|
 |:--|:--|
+|`titleInfo/title`|`dc:title@xsi:type="dcx:maintitle"` (catalogue)|
 |`titleInfo/title`|`dc:title` (catalogue)|
 |`name/namePart`; `name/role/roleTerm/@type="creator"`|`dc:creator` (catalogue)|
 |`name/namePart`; `name/role/roleTerm/@type="contributor"`|`dc:contributor` (catalogue)|
@@ -197,7 +198,8 @@ The *mods* element contains the actual metadata elements. Most of these are impo
 Some additional notes to the above:
 
 - Some of these elements (e.g. *creator* and *contributor*) may be repeatable.
-- The *relatedItem* element (with attribute *type* set to *host*) describes the relation of the intellectual entity with its (physical) parent item. It does this by referring to its identifiers in the KB catalogue. 
+- Title info in KB catalogue can either be in `dc:title@xsi:type="dcx:maintitle"`, `dc:title`, or both. If available,  `dc:title@xsi:type="dcx:maintitle"` is used as the mapping  source; otherwise  `dc:title` is used.
+- The *relatedItem* element (with attribute *type* set to *host*) describes the relation of the intellectual entity with its (physical) parent item. It does this by referring to its identifiers in the KB catalogue.
 
 ### fileSec
 
