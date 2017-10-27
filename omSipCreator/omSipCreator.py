@@ -807,12 +807,10 @@ def main():
     consoleHandler.setFormatter(logFormatter)
     logger.addHandler(consoleHandler)
 
-    # Locate Windows user directory
-    userDir = os.path.expanduser('~')
-    # Config directory
-    configDirUser = os.path.join(userDir, 'omSipCreator')
+    # Locate package directory
+    packageDir = os.path.dirname(os.path.abspath(__file__))
     # Tools directory
-    toolsDirUser = os.path.join(configDirUser, 'tools')
+    toolsDirUser = os.path.join(packageDir, 'tools')
 
     # Batch manifest file - basic capture-level metadata about carriers
     fileBatchManifest = "manifest.csv"
