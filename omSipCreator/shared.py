@@ -5,9 +5,75 @@ Various shared functions
 """
 
 import os
+import sys
 import subprocess as sub
 import string
 from random import choice
+from . import byteconv as bc
+
+
+def makeHumanReadable(element, remapTable={}):
+    """Takes element object, and returns a modified version in which all
+    non-printable 'text' fields (which may contain numeric data or binary strings)
+    are replaced by printable strings
+    Property values in original tree may be mapped to alternative (more user-friendly)
+    reportable values using a remapTable, which is a nested dictionary.
+    TODO: add to separate module
+    """
+
+    for elt in element.iter():
+        # Text field of this element
+        textIn = elt.text
+
+        # Tag name
+        tag = elt.tag
+
+        # Step 1: replace property values by values defined in enumerationsMap,
+        # if applicable
+        try:
+            # If tag is in enumerationsMap, replace property values
+            parameterMap = remapTable[tag]
+            try:
+                # Map original property values to values in dictionary
+                remappedValue = parameterMap[textIn]
+            except KeyError:
+                # If value doesn't match any key: use original value
+                # instead
+                remappedValue = textIn
+        except KeyError:
+            # If tag doesn't match any key in enumerationsMap, use original
+            # value
+            remappedValue = textIn
+
+        # Step 2: convert all values to text strings.
+
+        # First set up list of all numeric data types,
+        # which is dependent on the Python version used
+
+        if sys.version.startswith("2"):
+            # Python 2.x
+            numericTypes = [int, long, float, bool]
+            # Long type is deprecated in Python 3.x!
+        else:
+            numericTypes = [int, float, bool]
+
+        # Convert
+
+        if remappedValue is not None:
+            # Data type
+            textType = type(remappedValue)
+
+            # Convert text field, depending on type
+            if textType == bytes:
+                textOut = bc.bytesToText(remappedValue)
+            elif textType in numericTypes:
+                textOut = str(remappedValue)
+            else:
+                # Remove control chars and strip leading/ trailing whitespaces
+                textOut = bc.removeControlCharacters(remappedValue).strip()
+
+            # Update output tree
+            elt.text = textOut
 
 
 def launchSubProcess(args):

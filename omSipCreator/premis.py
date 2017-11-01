@@ -8,9 +8,12 @@ import os
 import io
 import uuid
 from datetime import datetime
+import xml.etree.ElementTree as ET
 from lxml import etree
+from isolyzer import isolyzer
 from . import config
 from .mdaudio import getAudioMetadata
+from .shared import makeHumanReadable
 
 
 def addCreationEvent(log):
@@ -231,7 +234,22 @@ def addObjectInstance(fileName, fileSize, mimeType, sha512Sum):
         objectCharacteristicsExtension.append(audioMD)
     elif fileName.endswith(('.iso', '.ISO')):
         # TODO insert Isolyzer output
-        isoMDOut = etree.Element("bullsh", nsmap=config.NSMAP)
+        sectorOffset = 0
+        #isoMDOut = etree.Element("bullsh", nsmap=config.NSMAP)
+        # Analyze ISO image with isolyzer
+        isolyzerOut = isolyzer.processImage(fileName, sectorOffset)
+        # Isolyzer output is Elementtree element, which must be converted
+        # to lxml element
+        makeHumanReadable(isolyzerOut)
+        isolyzerOutAsXML = ET.tostring(isolyzerOut, 'UTF-8', 'xml')
+        isolyzerOutLXML = etree.fromstring(isolyzerOutAsXML)
+        isoMDOut = etree.Element("isolyzer", nsmap=config.NSMAP)
+        toolInfo = etree.SubElement(isoMDOut, "toolInfo")
+        toolName = etree.SubElement(toolInfo, "toolName")
+        toolVersion = etree.SubElement(toolInfo, "toolVersion")
+        toolName.text = "isolyzer"
+        toolVersion.text = isolyzer.__version__
+        isoMDOut.append(isolyzerOutLXML)
         objectCharacteristicsExtension.append(isoMDOut)
 
     # originalName
