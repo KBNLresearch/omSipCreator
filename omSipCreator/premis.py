@@ -231,7 +231,8 @@ def addObjectInstance(fileName, fileSize, mimeType, sha512Sum):
         objectCharacteristicsExtension.append(audioMD)
     elif fileName.endswith(('.iso', '.ISO')):
         # TODO insert Isolyzer output
-        pass
+        isoMDOut = etree.Element("bullsh", nsmap=config.NSMAP)
+        objectCharacteristicsExtension.append(isoMDOut)
 
     # originalName
     originalName = etree.SubElement(
