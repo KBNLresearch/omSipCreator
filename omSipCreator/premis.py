@@ -14,6 +14,7 @@ from isolyzer import isolyzer
 from . import config
 from .mdaudio import getAudioMetadata
 from .shared import makeHumanReadable
+from .shared import add_ns_prefix
 
 
 def addCreationEvent(log):
@@ -243,10 +244,11 @@ def addObjectInstance(fileName, fileSize, mimeType, sha512Sum):
         makeHumanReadable(isolyzerOut)
         isolyzerOutAsXML = ET.tostring(isolyzerOut, 'UTF-8', 'xml')
         isolyzerOutLXML = etree.fromstring(isolyzerOutAsXML)
-        isoMDOut = etree.Element("isolyzer", nsmap=config.NSMAP)
-        toolInfo = etree.SubElement(isoMDOut, "toolInfo")
-        toolName = etree.SubElement(toolInfo, "toolName")
-        toolVersion = etree.SubElement(toolInfo, "toolVersion")
+        isolyzerOutLXML = add_ns_prefix(isolyzerOutLXML, config.isolyzer_ns)
+        isoMDOut = etree.Element("{%s}isolyzer" % (config.isolyzer_ns), nsmap=config.NSMAP)
+        toolInfo = etree.SubElement(isoMDOut, "{%s}toolInfo" % (config.isolyzer_ns))
+        toolName = etree.SubElement(toolInfo, "{%s}toolName" % (config.isolyzer_ns))
+        toolVersion = etree.SubElement(toolInfo, "{%s}toolVersion" % (config.isolyzer_ns))
         toolName.text = "isolyzer"
         toolVersion.text = isolyzer.__version__
         isoMDOut.append(isolyzerOutLXML)

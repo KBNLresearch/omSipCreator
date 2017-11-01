@@ -8,9 +8,10 @@ import os
 import sys
 import subprocess as sub
 import string
+from lxml import etree
 from random import choice
 from . import byteconv as bc
-
+from . import config
 
 def makeHumanReadable(element, remapTable={}):
     """Takes element object, and returns a modified version in which all
@@ -75,6 +76,19 @@ def makeHumanReadable(element, remapTable={}):
             # Update output tree
             elt.text = textOut
 
+def add_ns_prefix(tree, ns):
+    """Iterates over element tree and adds prefix to all elements
+    Adapted from https://stackoverflow.com/a/30233635/1209004
+    """
+    # Iterate through only element nodes (skip comment node, text node, etc) :
+    for element in tree.xpath('descendant-or-self::*'):
+        # if element has no prefix...
+        if not element.prefix:
+            tagIn = etree.QName(element).localname
+            tagOut = "{" + ns + "}" + tagIn
+            #element.tag = etree.QName(element).localname
+            element.tag = tagOut
+    return tree
 
 def launchSubProcess(args):
     """Launch subprocess and return exit code, stdout and stderr"""

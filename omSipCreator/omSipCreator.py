@@ -808,6 +808,7 @@ def main():
     config.mods_ns = 'http://www.loc.gov/mods/v3'
     config.premis_ns = 'http://www.loc.gov/premis/v3'
     config.ebucore_ns = 'urn:ebu:metadata-schema:ebuCore_2017'
+    config.isolyzer_ns = 'https://github.com/KBNLresearch/isolyzer'
     config.xlink_ns = 'http://www.w3.org/1999/xlink'
     config.xsi_ns = 'http://www.w3.org/2001/XMLSchema-instance'
     config.metsSchema = 'http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd'
@@ -819,6 +820,7 @@ def main():
                     "mods": config.mods_ns,
                     "premis": config.premis_ns,
                     "ebucore": config.ebucore_ns,
+                    "isolyzer": config.isolyzer_ns,
                     "xlink": config.xlink_ns,
                     "xsi": config.xsi_ns}
 
