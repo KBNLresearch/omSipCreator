@@ -589,6 +589,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
             success = carrier[colsBatchManifest["success"]]
             containsAudio = carrier[colsBatchManifest["containsAudio"]]
             containsData = carrier[colsBatchManifest["containsData"]]
+            cdExtra = carrier[colsBatchManifest["cdExtra"]]
 
             # Update jobIDs list
             jobIDs.append(jobID)
@@ -795,7 +796,8 @@ def main():
                                  'volumeID',
                                  'success',
                                  'containsAudio',
-                                 'containsData']
+                                 'containsData',
+                                 'cdExtra']
 
     # Controlled vocabulary for 'carrierType' field
     carrierTypeAllowedValues = ['cd-rom',
