@@ -258,9 +258,11 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
         # which file should be used. No point in doing the checksum verification in that case.
         skipChecksumVerification = True
 
-    # Find logfiles (by name extension)
+    # Find logfiles and reports (by name extension)
     isobusterLogs = [i for i in allFiles if i.endswith('isobuster.log')]
     noIsobusterLogs = len(isobusterLogs)
+    isobusterReports = [i for i in allFiles if i.endswith('isobuster-report.xml')]
+    noIsobusterReports = len(isobusterReports)
     dBpowerampLogs = [i for i in allFiles if i.endswith('dbpoweramp.log')]
     noDbpowerampLogs = len(dBpowerampLogs)
 
@@ -287,6 +289,14 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                       " : expected 1 file 'isobuster.log' in directory '" +
                       carrier.imagePathFull +
                       " , found " + str(noIsobusterLogs))
+        config.errors += 1
+        config.failedPPNs.append(carrier.PPN)
+
+    if noIsoFiles > 0 and noIsobusterReports != 1:
+        logging.error("jobID " + carrier.jobID +
+                      " : expected 1 file 'isobuster-report.xml' in directory '" +
+                      carrier.imagePathFull +
+                      " , found " + str(noIsobusterReports))
         config.errors += 1
         config.failedPPNs.append(carrier.PPN)
 
@@ -367,7 +377,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
             # post-copy checksum verification work. Filter out log files first!
 
             filesToCopy = [
-                i for i in checksumsFromFile if not i[1].endswith('.log')]
+                i for i in checksumsFromFile if not i[1].endswith(('.log', '.xml'))]
 
             # Set up list that will hold techMD elements
             listTechMD = []
