@@ -4,7 +4,7 @@
 Variables that are shared between modules
 """
 
-__version__ = ""
+version = ""
 scriptPath = ""
 scriptName = ""
 mediaInfoExe = ""
