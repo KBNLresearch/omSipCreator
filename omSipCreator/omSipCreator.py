@@ -771,6 +771,8 @@ def main():
 
     # Set up logger
     logFile = "omsipcreator.log"
+    # Suppress info messages from requests module
+    logging.getLogger("requests").setLevel(logging.WARNING)
     logFormatter = logging.Formatter('%(levelname)s - %(message)s')
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
