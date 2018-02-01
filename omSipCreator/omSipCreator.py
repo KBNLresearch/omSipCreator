@@ -327,7 +327,15 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                 carrier.imagePathFull + "/" + fileName)
 
             # Calculate SHA-512 hash of actual file
-            checksumCalculated = generate_file_sha512(fileNameWithPath)
+            if os.path.isfile(fileNameWithPath):
+                checksumCalculated = generate_file_sha512(fileNameWithPath)
+            else:
+                logging.fatal("jobID " + carrier.jobID + ": file '" +
+                              fileNameWithPath + "' is referenced in '" + checksumFiles[0] +
+                              "', but does not exist")
+                config.errors += 1
+                config.failedPPNs.append(carrier.PPN)
+                errorExit(config.errors, config.warnings)
 
             if checksumCalculated != checksum:
                 logging.error("jobID " + carrier.jobID + ": checksum mismatch for file '" +
