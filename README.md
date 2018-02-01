@@ -1,7 +1,7 @@
 
 ## About
 
-OmSipCreator is a tool for converting batches of disk images (e.g. ISO 9660 CD-ROM images, raw floppy disk images, but also ripped audio files)  into SIPs that are ready for ingest in an archival system. This includes automatic generation of METS metadata files with structural and bibliographic metadata. Bibliographic metadata are extracted from the KB general catalogue (GGC), and converted to MODS format. OmSipCreator also performs various quality checks on the input batches. Finally, it can be used to remove erroneous entries from a batch. 
+OmSipCreator is a tool for converting batches of disk images (e.g. ISO 9660 CD-ROM images, raw floppy disk images, but also ripped audio files)  into SIPs that are ready for ingest in an archival system. This includes automatic generation of METS metadata files with structural and bibliographic metadata. Bibliographic metadata are extracted from the KB general catalogue (GGC), and converted to MODS format. OmSipCreator also performs various quality checks on the input batches. Finally, it can be used to remove erroneous entries from a batch.
 
 ## Notes and warnings
 
@@ -40,10 +40,10 @@ Here *batchIn* is the batch directory.
 Here *batchErr* is the name of the batch that will contain all PPNs that have problems. If *batchErr* is an existing directory, *all* of its contents will be overwritten! OmSipCreator will prompt you for confirmation if this happens:
 
     This will overwrite existing directory 'failed' and remove its contents!
-    Do you really want to proceed (Y/N)? > 
+    Do you really want to proceed (Y/N)? >
 
 ### Verify a batch and write SIPs
- 
+
     omSipCreator write batchIn dirOut
 
 Here *dirOut* is the directory where the SIPs will be created. If *dirOut* is an existing directory, *all* of its contents will be overwritten! OmSipCreator will prompt you for confirmation if this happens:
@@ -77,40 +77,46 @@ The input batch is simply a directory that contains a number of subdirectories, 
     │   ├── ...
     │   ├── ...
     │   ├── track13.cdda.wav
-    │   └── tracks.md5
+    │   └── checksums.sha512
     ├── 29c586b4-edeb-11e6-9a83-00237d497a29
     │   ├── image1.iso
-    │   └── image1.iso.md5
+    │   └── checksums.sha512
     └── ceaf9bf6-edfb-11e6-9c13-00237d497a29
         ├── image2.iso
-        └── image2.iso.md5
+        └── checksums.sha512
 
 ## Carrier directory structure
 
 Each carrier directory contains:
 
 1. One or more files that represent the data carrier. This is typically an ISO 9660 image, but for an audio CD with multiple tracks this can also be multiple audio (e.g. WAV) files. In the latter case, it is important that the original playing order can be inferred from the file names. In other words, sorting the file names in ascending order should reproduce the original playing order. Note that (nearly?) all audio CD ripping software does this by default.
-2. Exactly one checksum file that contains the MD5 checksums of all files in the directory. The name of the checksum file must end with the extension *.md5* (other than that its name doesn't matter). Each line in the file has the following format:
+2. Exactly one checksum file that contains the SHA-512 checksums of all files in the directory. The name of the checksum file must end with the extension *.sha512* (other than that its name doesn't matter). Each line in the file has the following format:
 
         checksum filename
 
     Both fields are separated by 1 or more spaces. the *filename* field must not include any file path information. Here's an example:
-    
-        67dfc7f5b63df9cd4c6add729fa407fe  track01.cdda.wav
-        27f898419a912d5327188ccf2ad7ccce  track02.cdda.wav
-        4185467fc835b931af18a15c7cc5ffcc  track03.cdda.wav
+
+        6bc4f0a53e9d866b751beff5d465f5b86a8a160d388032c079527a9cb7cabef430617f156abec03ff5a6897474ac2d31c573845d1bb99e2d02ca951da8eb2d01 01.flac
+        ae6d9b5d47ecc34345bdbf5a0c45893e88b5ae4bb2927a8f053debdcd15d035827f8b81a97d3ee4c4ace5257c4cc0cde13b37ac816186e84c17b94c9a04a1608 02.flac
+        ::
+        ::
+        49b0a0d2f40d9ca1d7201cb544e09d69f1162dd8a846c2c3d257e71bc28643c015d7bc458ca693ee69d5db528fb2406021ed0142f26a423c6fb4f115d3fa58e7 20.flac
+        d9fa0b5df358a1ad035a9c5dbb3a882f1286f204ee1f405e9d819862c00590b1d11985c5e80d0004b412901a5068792cd48e341ebb4fe35e360c3eeec33a1f23 cd-info.log
+        fa8898fc1c8fe047c1b45975fd55ef6301cfdfe28d59a1e3f785aa3052795cad7a9eff5ce6658207764c52fa9d5cf16808b0fc1cfe91f8c866586e37f0b47d08 dbpoweramp.log
+        783ae6ac53eba33b8ab04363e1159a71a38d2db2f8004716a1dc6c4e11581b4311145f07834181cd7ec77cd7199377286ceb5c3506f0630939112ae1d55e3d47 ELL2.iso
+        31bca02094eb78126a517b206a88c73cfa9ec6f704c7030d18212cace820f025f00bf0ea68dbf3f3a5436ca63b53bf7bf80ad8d5de7d8359d0b7fed9dbc3ab99 isobuster.log
 
 ## Batch manifest format
 
 The batch manifest is a comma-delimited text file with the name *manifest.csv*. The first line is a header line: 
 
-    jobID,PPN,volumeNo,carrierType,title,volumeID,success,containsAudio,containsData
-    
+    jobID,PPN,volumeNo,carrierType,title,volumeID,success,containsAudio,containsData, cdExtra
+
 Each of the remaining lines represents one carrier, for which it contains the following fields:
 
 1. *jobID* - internal carrier-level identifier (in our case this is generated by our [*iromlab*](https://github.com/KBNLresearch/iromlab) software). The image file(s) of this carrier are stored in an eponymous directory within the batch.
 2. *PPN* - identifier to  physical item in the KB Collection to which this carrier belongs. For the KB case this is the PPN identifier in the KB catalogue (GGC).
-3. *volumeNo* - for intellectual entities that span multiple carriers, this defines the volume number (1 for single-volume items). Values must be unique within each *carrierType* (see below)  
+3. *volumeNo* - for PPNs that span multiple carriers, this defines the volume number (1 for single-volume items). Values must be unique within each *carrierType* (see below)
 4. *carrierType* - code that specifies the carrier type. Currently the following values are permitted:
     - cd-rom
     - dvd-rom
@@ -118,18 +124,18 @@ Each of the remaining lines represents one carrier, for which it contains the fo
     - dvd-video
 5. *title* - text string with the title of the carrier (or the publication is is part of). Not used by omSipCreator.
 6. *volumeID* - text string, extracted from Primary Volume descriptor, empty if cd-audio. Not used by omSipCreator.
-7. *success* - True/False flag that indicates status of *iromlab*'s imaging process. 
-8. *containsAudio* - True/False flag that indicates the carrier contains audio tracks (detected by cd-info)   
+7. *success* - True/False flag that indicates status of *iromlab*'s imaging process.
+8. *containsAudio* - True/False flag that indicates the carrier contains audio tracks (detected by cd-info)
 9. *containsData* - True/False flag that indicates the carrier contains data tracks (detected by cd-info)
- 
+10. *cdExtra* - True/False flag that indicates the carrier is an 'enhanced' CD with both audio and data tracks that are located in separate sessions (detected by cd-info)
 
 Below is a simple example of manifest file:
 
-    jobID,PPN,volumeNo,carrierType,title,volumeID,success,containsAudio,containsData
-    1628c634-edeb-11e6-a9c8-00237d497a29,121274306,cd-audio,(Bijna) alles over bestandsformaten,Handbook,True,True,False
-    29c586b4-edeb-11e6-9a83-00237d497a29,155658050,1,cd-rom,(Bijna) alles over bestandsformaten,Handbook,True,False,True
-    ceaf9bf6-edfb-11e6-9c13-00237d497a29,236599380,1,cd-rom,(Bijna) alles over bestandsformaten,Handbook,True,False,True
-    b97d56f6-edfb-11e6-8311-00237d497a29,308684745,2,cd-rom,(Bijna) alles over bestandsformaten,Handbook,True,False,True
+    jobID,PPN,volumeNo,carrierType,title,volumeID,success,containsAudio,containsData,cdExtra
+    1628c634-edeb-11e6-a9c8-00237d497a29,121274306,cd-audio,(Bijna) alles over bestandsformaten,Handbook,True,True,False,False
+    29c586b4-edeb-11e6-9a83-00237d497a29,155658050,1,cd-rom,(Bijna) alles over bestandsformaten,Handbook,True,False,True,False
+    ceaf9bf6-edfb-11e6-9c13-00237d497a29,236599380,1,cd-rom,(Bijna) alles over bestandsformaten,Handbook,True,False,True,False
+    b97d56f6-edfb-11e6-8311-00237d497a29,308684745,2,cd-rom,(Bijna) alles over bestandsformaten,Handbook,True,False,True,False
 
 In the above example the second and fourth carriers are both part of a 2-volume item. Consequently the *PPN* values of both carriers are identical.
 
@@ -227,7 +233,7 @@ Some additional notes to the above:
     - *TYPE* - describes the nature of the carrier component. Possible values are *disk image* and *audio track*.
     - *ORDER* - describes the order of each component (e.g. for an audio CD that is represented as multiple audio files, it describes the playing order).
 - Finally each of the the above (file-level) *div* elements contains one *fptr*. It contains one *FILEID* attribute, whose value corresponds to the corresponding *ID* attribute in the *file* element (see *FileSec* description above).
-     
+
 ## Quality checks
 
 When run in either *verify* or *write* mode, omSipCreator performs a number checks on the input batch. Each of he following checks will result in an *error* in case of failure:
@@ -236,27 +242,27 @@ When run in either *verify* or *write* mode, omSipCreator performs a number chec
 - Does the batch manifest exist?
 - Can the batch manifest be opened and is it parsable?
 - Does the batch manifest contain exactly 1 instance of each mandatory column?
-- Does each *dirDisc* entry point to an existing directory?
+- Does each *jobID* entry point to an existing directory?
 - Is each *volumeNumber* entry an integer value?
 - Is each *carrierType* entry a permitted value (check against controlled vocabulary)?
 - Is each *carrierType* entry consistent with the values of *containsAudio* and *containsData*?
-- Is the value of the *success* flag 'True'? 
+- Is the value of the *success* flag 'True'?
 - Are all values of *jobID* within the batch manifest unique (no duplicate values)?
 - Are all instances of *volumeNumber* within each *carrierType* group unique?
-- Are all directories within the batch referenced in the batch manifest (by way of *dirDisc*)?
-- Does each carrier directory (i.e. *dirDisc*) contain exactly 1 MD5 checksum file (identified by *.md5* file extension)?
-- Does each carrier directory (i.e. *dirDisc*) contain any files?
-- For each entry in the checksum file, is the MD5 checksum identical to the re-calculated checksum for that file?
+- Are all directories within the batch referenced in the batch manifest (by way of *jobID*)?
+- Does each carrier directory (i.e. *jobID*) contain exactly 1 SHA-512 checksum file (identified by *.sha512* file extension)?
+- Does each carrier directory (i.e. *jobID*) contain any files?
+- For each entry in the checksum file, is the SHA-512 checksum identical to the re-calculated checksum for that file?
 - Does a carrier directory contain any files that are not referenced in the checksum file?
-- Does a search for *PPN* in the GGC catalogue result in exactly 1 matching record? 
+- Does a search for *PPN* in the GGC catalogue result in exactly 1 matching record?
 
 In *write* mode omSipCreator performs the following additional checks:
 
 - Is the output directory a writable location?
 - Could a SIP directory be created for the current PPN?
-- Could a carrier directory be created for the current carrier?  
+- Could a carrier directory be created for the current carrier?
 - Could the image file(s) for the current carrier be copied to its SIP carrier directory?
-- Does the MD5 checksum of each copied image file match the original checksum (post-copy checksum verification)?
+- Does the SHA-512 checksum of each copied image file match the original checksum (post-copy checksum verification)?
 
 Finally, omSipcreator will report a *warning* in the following situations:
 
