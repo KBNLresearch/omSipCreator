@@ -566,6 +566,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
     carrierCounterStart = 1
     carrierCounter = carrierCounterStart
     counterDigiprovMD = 1
+    counterSourceMD = 1
     counterTechMD = 1
 
     # Dummy value for dirSIP (needed if createSIPs = False)
@@ -587,7 +588,9 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
     volumeNumbers = []
     carrierTypes = []
 
-    # Set up list that will is used to collect all digiProv elements for all carriers within PPN
+    # Set up list that will is used to collect all source and digiProv elements
+    # for all carriers within PPN
+    sourceElementsPPN = []
     digiProvElementsPPN = []
 
     # Convert to list (needed because othwerwise we can't sort)
@@ -640,16 +643,28 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
             # Wraps EbuCore audio metdata + possibly other tech metadata
             # NOTE
 
-            # Construct unique identifier for digiProvMD (see below) and add to divDisc as ADMID
+            # Construct unique identifiers for digiProvMD and sourceMD (see below)
+            # and add to divDisc as ADMID
             carrierID = "disc_" + str(carrierCounter).zfill(3)
             digiProvID = "digiprovMD_" + str(counterDigiprovMD)
-            divDisc.attrib["ADMID"] = digiProvID
+            sourceID = "sourceMD_" + str(counterSourceMD)
+            divDisc.attrib["ADMID"] = " ".join([digiProvID, sourceID])
 
             # Append techMD elements to amdSec
             for techMD in listTechMD:
                 amdSec.append(techMD)
 
-            # Create digiprovMD, mdWrap and xmlData child elements
+            # Create sourceMD, digiprovMD, mdWrap and xmlData child elements
+            sourceMDName = etree.QName(config.mets_ns, "sourceMD")
+            sourceMD = etree.Element(sourceMDName, nsmap=config.NSMAP)
+            sourceMD.attrib["ID"] = sourceID
+            mdWrapsource = etree.SubElement(
+                sourceMD, "{%s}mdWrap" % (config.mets_ns))
+            mdWrapsource.attrib["MIMETYPE"] = "text/xml"
+            mdWrapsource.attrib["MDTYPE"] = "PREMIS:OBJECT"
+            mdWrapsource.attrib["MDTYPEVERSION"] = "3.0"
+            xmlDatasource = etree.SubElement(
+                mdWrapsource, "{%s}xmlData" % (config.mets_ns))
 
             digiprovMDName = etree.QName(config.mets_ns, "digiprovMD")
             digiprovMD = etree.Element(digiprovMDName, nsmap=config.NSMAP)
@@ -666,6 +681,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
             for premisEvent in premisEventsCarrier:
                 xmlDatadigiprov.append(premisEvent)
 
+            sourceElementsPPN.append(sourceMD)
             digiProvElementsPPN.append(digiprovMD)
 
             # Add to PPNGroup class instance
@@ -718,6 +734,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
             # Update counters
             carrierCounter += 1
             counterDigiprovMD += 1
+            counterSourceMD += 1
 
         # Add volumeNumbersTypeGroup to volumeNumbers list
         volumeNumbers.append(volumeNumbersTypeGroup)
@@ -728,7 +745,9 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
     # Append metadata to METS
     xmlDataDmd.append(mdMODS)
 
-    # Append digiProvMD elements to amdSec
+    # Append sourceMD and digiProvMD elements to amdSec
+    for sourceMDElt in sourceElementsPPN:
+        amdSec.append(sourceMDElt)
     for digiProvMDElt in digiProvElementsPPN:
         amdSec.append(digiProvMDElt)
 
