@@ -588,9 +588,9 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
     volumeNumbers = []
     carrierTypes = []
 
-    # Set up list that will is used to collect all source and digiProv elements
-    # for all carriers within PPN
-    sourceElementsPPN = []
+    # Set up list that will is used to collect all representation-level techMD and 
+    # digiProv elements for all carriers within PPN
+    techMDRepElements = []
     digiProvElements = []
 
     # Convert to list (needed because othwerwise we can't sort)
@@ -681,7 +681,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
             for premisEvent in premisEventsCarrier:
                 xmlDatadigiprov.append(premisEvent)
 
-            sourceElementsPPN.append(sourceMD)
+            techMDRepElements.append(sourceMD)
             digiProvElements.append(digiprovMD)
 
             # Add to PPNGroup class instance
@@ -746,7 +746,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
     xmlDataDmd.append(mdMODS)
 
     # Append sourceMD and digiProvMD elements to amdSec
-    for sourceMDElt in sourceElementsPPN:
+    for sourceMDElt in techMDRepElements:
         amdSec.append(sourceMDElt)
     for digiProvMDElt in digiProvElements:
         amdSec.append(digiProvMDElt)
