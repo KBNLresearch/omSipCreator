@@ -17,6 +17,7 @@ from operator import itemgetter
 from itertools import groupby
 from lxml import etree
 from . import config
+from .cdinfo import parseCDInfo
 from .mods import createMODS
 from .premis import addCreationEvent
 from .premis import addObjectInstance
@@ -260,6 +261,8 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
         skipChecksumVerification = True
 
     # Find logfiles and reports (by name extension)
+    cdinfoLogs = [i for i in allFiles if i.endswith('cd-info.log')]
+    noCdinfoLogs = len(cdinfoLogs)
     isobusterLogs = [i for i in allFiles if i.endswith('isobuster.log')]
     noIsobusterLogs = len(isobusterLogs)
     isobusterReports = [i for i in allFiles if i.endswith('isobuster-report.xml')]
@@ -270,6 +273,14 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
     # Any other files (ISOs, audio files)
     otherFiles = [i for i in allFiles if not i.endswith(('.sha512', '.log'))]
     noOtherFiles = len(otherFiles)
+
+    if noCdinfoLogs != 1:
+        logging.error("jobID " + carrier.jobID +
+                      " : expected 1 file 'cd-info.log' in directory '" +
+                      carrier.imagePathFull +
+                      " , found " + str(noCdinfoLogs))
+        config.errors += 1
+        config.failedPPNs.append(carrier.PPN)
 
     if noOtherFiles == 0:
         logging.error("jobID " + carrier.jobID + ": found no files in directory '" +
