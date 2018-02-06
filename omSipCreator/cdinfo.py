@@ -2,6 +2,7 @@
 """Wrapper module for reading and parsing cd-info output"""
 
 import io
+from lxml import etree
 from . import shared
 
 def parseCDInfoLog(fileCDInfo):
@@ -27,7 +28,7 @@ def parseCDInfoLog(fileCDInfo):
     # Parse track list and store interesting bits in dictionary
     for i in range(startIndexTrackList + 2, startIndexAnalysisReport - 1, 1):
         thisTrack = outAsList[i]
-        if not thisTrack.startswith("++"):
+        if not thisTrack.startswith("++"): # This gets rid of warning messages, do we want that?
             thisTrack = thisTrack.split(": ")
             trackNumber = int(thisTrack[0].strip())
             trackDetails = thisTrack[1].split()
@@ -56,7 +57,7 @@ def parseCDInfoLog(fileCDInfo):
     # Parse analysis report
     for i in range(startIndexAnalysisReport + 1, len(outAsList), 1):
         thisLine = outAsList[i]
-        if not thisLine.startswith("++"):
+        if not thisLine.startswith("++"): # This gets rid of warning messages, do we want that?
             analysisReport.append(thisLine)
 
     # Flags for CD/Extra / multisession / mixed-mode
@@ -76,5 +77,6 @@ def parseCDInfoLog(fileCDInfo):
     dictOut["containsData"] = containsData
     dictOut["dataTrackLSNStart"] = dataTrackLSNStart
     dictOut["trackList"] = trackList
+    dictOut["analysisReport"] = analysisReport
 
     return dictOut
