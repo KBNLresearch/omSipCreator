@@ -389,7 +389,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                 i for i in checksumsFromFile if not i[1].endswith(('.log', '.xml'))]
 
             # Set up list that will hold file-level techMD elements
-            listTechMDFile = []
+            techMDFileElements = []
 
             for entry in filesToCopy:
 
@@ -480,7 +480,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                 premisObjectInfo = addObjectInstance(
                     fSIP, fileSize, mimeType, checksum)
                 xmlDataObjectPremis.append(premisObjectInfo)
-                listTechMDFile.append(techMDPremis)
+                techMDFileElements.append(techMDPremis)
 
                 # String of techMD identifiers that are used as ADMID attribute of fileElt
                 techMDIDs = techMDPremisID
@@ -506,16 +506,16 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
             # We end up here if config.createSIPs == False
             # Dummy values (not used)
             premisCreationEvents = []
-            listTechMDFile = []
+            techMDFileElements = []
 
     else:
         # We end up here if skipChecksumVerification == True
         # Dummy values (not used)
         divDisc = etree.Element('rubbish')
         premisCreationEvents = []
-        listTechMDFile = []
+        techMDFileElements = []
 
-    return fileGrp, divDisc, premisCreationEvents, listTechMDFile, sipFileCounter, counterTechMD
+    return fileGrp, divDisc, premisCreationEvents, techMDFileElements, sipFileCounter, counterTechMD
 
 
 def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
@@ -591,7 +591,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
     # Set up list that will is used to collect all source and digiProv elements
     # for all carriers within PPN
     sourceElementsPPN = []
-    digiProvElementsPPN = []
+    digiProvElements = []
 
     # Convert to list (needed because othwerwise we can't sort)
     carriers = list(carriers)
@@ -636,10 +636,10 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
             # Create Carrier class instance for this carrier
             thisCarrier = Carrier(jobID, PPN, imagePathFull,
                                   volumeNumber, carrierType)
-            fileGrp, divDisc, premisEventsCarrier, listTechMDFile, fileCounter, counterTechMD = processCarrier(
+            fileGrp, divDisc, premisEventsCarrier, techMDFileElements, fileCounter, counterTechMD = processCarrier(
                 thisCarrier, fileGrp, dirSIP, fileCounterStart, counterTechMD)
             # NOTE
-            # listTechMDFile: list of techMD elements, each of which represent one file.
+            # techMDFileElements: list of techMD elements, each of which represent one file.
             # Wraps EbuCore audio metdata + possibly other tech metadata
             # NOTE
 
@@ -651,7 +651,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
             divDisc.attrib["ADMID"] = " ".join([digiProvID, sourceID])
 
             # Append file-level techMD elements to amdSec
-            for techMD in listTechMDFile:
+            for techMD in techMDFileElements:
                 amdSec.append(techMD)
 
             # Create sourceMD, digiprovMD, mdWrap and xmlData child elements
@@ -682,7 +682,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
                 xmlDatadigiprov.append(premisEvent)
 
             sourceElementsPPN.append(sourceMD)
-            digiProvElementsPPN.append(digiprovMD)
+            digiProvElements.append(digiprovMD)
 
             # Add to PPNGroup class instance
             thisPPNGroup.append(thisCarrier)
@@ -748,7 +748,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
     # Append sourceMD and digiProvMD elements to amdSec
     for sourceMDElt in sourceElementsPPN:
         amdSec.append(sourceMDElt)
-    for digiProvMDElt in digiProvElementsPPN:
+    for digiProvMDElt in digiProvElements:
         amdSec.append(digiProvMDElt)
 
     if config.createSIPs:
