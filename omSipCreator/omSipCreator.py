@@ -17,7 +17,7 @@ from operator import itemgetter
 from itertools import groupby
 from lxml import etree
 from . import config
-from .cdinfo import parseCDInfo
+from .cdinfo import parseCDInfoLog
 from .mods import createMODS
 from .premis import addCreationEvent
 from .premis import addObjectInstance
@@ -513,6 +513,17 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
             if dBpowerampLogs != []:
                 premisEvent = addCreationEvent(dBpowerampLogs[0])
                 premisCreationEvents.append(premisEvent)
+
+            # Representation-level tech metadata from cd-info.log
+            # TODO: serialize as XML, pass to processPPN and then add inside representation-level techMD element
+            if cdinfoLogs != []:
+                cdInfo = parseCDInfoLog(cdinfoLogs[0])
+                ## TEST
+                print(cdInfo)
+                ## TEST
+            else:
+                cdInfo = {}
+
         else:
             # We end up here if config.createSIPs == False
             # Dummy values (not used)

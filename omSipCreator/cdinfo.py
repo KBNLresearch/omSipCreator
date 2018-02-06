@@ -4,7 +4,7 @@
 import io
 from . import shared
 
-def parseCDInfo(fileCDInfo):
+def parseCDInfoLog(fileCDInfo):
     """Determine carrier type and number of sessions on carrier"""
 
     # Open cd-info log file and read to list
@@ -75,5 +75,6 @@ def parseCDInfo(fileCDInfo):
     dictOut["containsAudio"] = containsAudio
     dictOut["containsData"] = containsData
     dictOut["dataTrackLSNStart"] = dataTrackLSNStart
+    dictOut["trackList"] = trackList
 
     return dictOut
