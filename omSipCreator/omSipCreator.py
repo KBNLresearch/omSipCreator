@@ -388,8 +388,8 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
             filesToCopy = [
                 i for i in checksumsFromFile if not i[1].endswith(('.log', '.xml'))]
 
-            # Set up list that will hold techMD elements
-            listTechMD = []
+            # Set up list that will hold file-level techMD elements
+            listTechMDFile = []
 
             for entry in filesToCopy:
 
@@ -480,7 +480,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                 premisObjectInfo = addObjectInstance(
                     fSIP, fileSize, mimeType, checksum)
                 xmlDataObjectPremis.append(premisObjectInfo)
-                listTechMD.append(techMDPremis)
+                listTechMDFile.append(techMDPremis)
 
                 # String of techMD identifiers that are used as ADMID attribute of fileElt
                 techMDIDs = techMDPremisID
@@ -506,16 +506,16 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
             # We end up here if config.createSIPs == False
             # Dummy values (not used)
             premisCreationEvents = []
-            listTechMD = []
+            listTechMDFile = []
 
     else:
         # We end up here if skipChecksumVerification == True
         # Dummy values (not used)
         divDisc = etree.Element('rubbish')
         premisCreationEvents = []
-        listTechMD = []
+        listTechMDFile = []
 
-    return fileGrp, divDisc, premisCreationEvents, listTechMD, sipFileCounter, counterTechMD
+    return fileGrp, divDisc, premisCreationEvents, listTechMDFile, sipFileCounter, counterTechMD
 
 
 def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
@@ -636,10 +636,10 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
             # Create Carrier class instance for this carrier
             thisCarrier = Carrier(jobID, PPN, imagePathFull,
                                   volumeNumber, carrierType)
-            fileGrp, divDisc, premisEventsCarrier, listTechMD, fileCounter, counterTechMD = processCarrier(
+            fileGrp, divDisc, premisEventsCarrier, listTechMDFile, fileCounter, counterTechMD = processCarrier(
                 thisCarrier, fileGrp, dirSIP, fileCounterStart, counterTechMD)
             # NOTE
-            # listTechMD: list of techMD elements, each of which represent one file.
+            # listTechMDFile: list of techMD elements, each of which represent one file.
             # Wraps EbuCore audio metdata + possibly other tech metadata
             # NOTE
 
@@ -650,8 +650,8 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
             sourceID = "sourceMD_" + str(counterSourceMD)
             divDisc.attrib["ADMID"] = " ".join([digiProvID, sourceID])
 
-            # Append techMD elements to amdSec
-            for techMD in listTechMD:
+            # Append file-level techMD elements to amdSec
+            for techMD in listTechMDFile:
                 amdSec.append(techMD)
 
             # Create sourceMD, digiprovMD, mdWrap and xmlData child elements
