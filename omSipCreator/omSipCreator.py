@@ -643,19 +643,22 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
             # Wraps EbuCore audio metdata + possibly other tech metadata
             # NOTE
 
-            # Construct unique identifiers for digiProvMD and sourceMD (see below)
+            # Construct unique identifiers for digiProvMD and techMD (see below)
             # and add to divDisc as ADMID
             carrierID = "disc_" + str(carrierCounter).zfill(3)
             digiProvID = "digiprovMD_" + str(counterDigiprovMD)
-            sourceID = "sourceMD_" + str(counterSourceMD)
+            sourceID = "techMD_" + str(counterTechMD)
             divDisc.attrib["ADMID"] = " ".join([digiProvID, sourceID])
 
             # Append file-level techMD elements to amdSec
             for techMD in techMDFileElements:
                 amdSec.append(techMD)
 
-            # Create sourceMD, digiprovMD, mdWrap and xmlData child elements
-            sourceMDName = etree.QName(config.mets_ns, "sourceMD")
+            counterTechMD += 1
+
+            # Create representation-level techMD, digiprovMD, mdWrap and xmlData
+            # child elements
+            sourceMDName = etree.QName(config.mets_ns, "techMD")
             sourceMD = etree.Element(sourceMDName, nsmap=config.NSMAP)
             sourceMD.attrib["ID"] = sourceID
             mdWrapsource = etree.SubElement(
