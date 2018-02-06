@@ -689,6 +689,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
             mdWrapTechMDRep.attrib["MDTYPEVERSION"] = "3.0"
             xmlDatatechMDRep = etree.SubElement(
                 mdWrapTechMDRep, "{%s}xmlData" % (config.mets_ns))
+            # TODO: insert/wrap cd-info metadata here somewhere
 
             digiprovMDName = etree.QName(config.mets_ns, "digiprovMD")
             digiprovMD = etree.Element(digiprovMDName, nsmap=config.NSMAP)
