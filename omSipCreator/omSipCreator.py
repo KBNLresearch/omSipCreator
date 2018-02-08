@@ -399,14 +399,18 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                     cdInfoName, nsmap=config.NSMAP)
                 dataSectorOffset = 0
 
-            # Metadata from Isobuster report
+            # Metadata from Isobuster report (return empy element in case of parse
+            # errors)
             if isobusterReports != []:
                 try:
                     isobusterReportElt = etree.parse(isobusterReports[0]).getroot()
                 except:
-                    isobusterReportElt = []
+                    logging.error("jobID " + carrier.jobID +
+                              ": error parsing '" + isobusterReports[0] + "'")
+                    config.errors += 1
+                    isobusterReportElt =  etree.Element("dfxml")
             else:
-                isobusterReportElt = []
+                isobusterReportElt = etree.Element("dfxml")
 
             # Create Volume directory
             logging.info("creating carrier directory")
