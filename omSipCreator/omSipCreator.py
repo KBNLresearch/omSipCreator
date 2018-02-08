@@ -517,12 +517,12 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
             # Representation-level tech metadata from cd-info.log
             # TODO: serialize as XML, pass to processPPN and then add inside representation-level techMD element
             if cdinfoLogs != []:
-                cdInfo = parseCDInfoLog(cdinfoLogs[0])
-                ## TEST
-                print(cdInfo)
-                ## TEST
+                cdInfoElt = parseCDInfoLog(cdinfoLogs[0])
             else:
-                cdInfo = {}
+                # Create empty cd-info element
+                cdInfoName = etree.QName(config.cdInfo_ns, "cd-info")
+                cdInfoElt = etree.Element(
+                    cdInfoName, nsmap=config.NSMAP)
 
         else:
             # We end up here if config.createSIPs == False
@@ -537,7 +537,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
         premisCreationEvents = []
         techMDFileElements = []
 
-    return fileGrp, divDisc, premisCreationEvents, techMDFileElements, sipFileCounter, counterTechMD
+    return fileGrp, divDisc, premisCreationEvents, techMDFileElements, cdInfoElt, sipFileCounter, counterTechMD
 
 
 def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
@@ -657,7 +657,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
             # Create Carrier class instance for this carrier
             thisCarrier = Carrier(jobID, PPN, imagePathFull,
                                   volumeNumber, carrierType)
-            fileGrp, divDisc, premisEventsCarrier, techMDFileElements, fileCounter, counterTechMD = processCarrier(
+            fileGrp, divDisc, premisEventsCarrier, techMDFileElements, cdInfoElt, fileCounter, counterTechMD = processCarrier(
                 thisCarrier, fileGrp, dirSIP, fileCounterStart, counterTechMD)
             # NOTE
             # techMDFileElements: list of techMD elements, each of which represent one file.
@@ -685,11 +685,11 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
             mdWrapTechMDRep = etree.SubElement(
                 techMDRep, "{%s}mdWrap" % (config.mets_ns))
             mdWrapTechMDRep.attrib["MIMETYPE"] = "text/xml"
-            mdWrapTechMDRep.attrib["MDTYPE"] = "PREMIS:OBJECT"
-            mdWrapTechMDRep.attrib["MDTYPEVERSION"] = "3.0"
+            mdWrapTechMDRep.attrib["MDTYPE"] = "OTHER"
+            mdWrapTechMDRep.attrib["OTHERMDTYPE"] = "cd-info output"
             xmlDatatechMDRep = etree.SubElement(
                 mdWrapTechMDRep, "{%s}xmlData" % (config.mets_ns))
-            # TODO: insert/wrap cd-info metadata here somewhere
+            xmlDatatechMDRep.append(cdInfoElt)
 
             digiprovMDName = etree.QName(config.mets_ns, "digiprovMD")
             digiprovMD = etree.Element(digiprovMDName, nsmap=config.NSMAP)
@@ -875,6 +875,7 @@ def main():
     config.premis_ns = 'http://www.loc.gov/premis/v3'
     config.ebucore_ns = 'urn:ebu:metadata-schema:ebuCore_2017'
     config.isolyzer_ns = 'https://github.com/KBNLresearch/isolyzer'
+    config.cdInfo_ns = 'cd-info' # TODO: is this a proper namespace?
     config.xlink_ns = 'http://www.w3.org/1999/xlink'
     config.xsi_ns = 'http://www.w3.org/2001/XMLSchema-instance'
     config.metsSchema = 'http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd'
@@ -887,6 +888,7 @@ def main():
                     "premis": config.premis_ns,
                     "ebucore": config.ebucore_ns,
                     "isolyzer": config.isolyzer_ns,
+                    "cd-info": config.cdInfo_ns,
                     "xlink": config.xlink_ns,
                     "xsi": config.xsi_ns}
 

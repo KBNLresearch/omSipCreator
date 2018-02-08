@@ -4,9 +4,21 @@
 import io
 from lxml import etree
 from . import shared
+from . import config
 
 def parseCDInfoLog(fileCDInfo):
     """Determine carrier type and number of sessions on carrier"""
+
+    # Create cd-info element
+    cdInfoName = etree.QName(config.cdInfo_ns, "cd-info")
+    cdInfoElt = etree.Element(
+        cdInfoName, nsmap=config.NSMAP)
+
+    # Add trackList and analysisReport elements
+    trackListElt = etree.SubElement(
+                    cdInfoElt, "{%s}trackList" % (config.cdInfo_ns))
+    analysisReportElt = etree.SubElement(
+                    cdInfoElt, "{%s}analysisReport" % (config.cdInfo_ns))
 
     # Open cd-info log file and read to list
     outAsList = []    
@@ -17,9 +29,10 @@ def parseCDInfoLog(fileCDInfo):
             outAsList.append(line)
     fCdInfoLogFile.close()
 
-    # Set up dictionary and list for storing track list and analysis report
+    # Set up list and empty string for storing track list and analysis report
     trackList = []
-    analysisReport = []
+    analysisReport = []    
+    analysisReportString = ''
 
     # Locate track list and analysis report in cd-info output
     startIndexTrackList = shared.index_startswith_substring(outAsList, "CD-ROM Track List")
@@ -34,13 +47,25 @@ def parseCDInfoLog(fileCDInfo):
             trackDetails = thisTrack[1].split()
             trackMSFStart = trackDetails[0]  # Minute:Second:Frame
             trackLSNStart = trackDetails[1]  # Logical Sector Number
-            trackType = trackDetails[2]
-            trackProperties = {}
-            trackProperties['trackNumber'] = trackNumber
-            trackProperties['trackMSFStart'] = trackMSFStart
-            trackProperties['trackLSNStart'] = trackLSNStart
-            trackProperties['trackType'] = trackType
-            trackList.append(trackProperties)
+            trackType = trackDetails[2]  # Track type: audio / data
+            trackGreen = trackDetails[3] # Don  know what this means
+            trackCopy = trackDetails[4] # Don  know what this means
+
+            # Append properties to trackList
+            trackElt = etree.SubElement(
+                    trackListElt, "{%s}track" % (config.cdInfo_ns))
+            trackNumberElt = etree.SubElement(
+                    trackElt, "{%s}trackNumber" % (config.cdInfo_ns))
+            trackNumberElt.text = str(trackNumber)
+            MSFElt = etree.SubElement(
+                    trackElt, "{%s}MSF" % (config.cdInfo_ns))
+            MSFElt.text = trackMSFStart
+            LSNElt = etree.SubElement(
+                    trackElt, "{%s}LSN" % (config.cdInfo_ns))
+            LSNElt.text = str(trackLSNStart)
+            TypeElt = etree.SubElement(
+                    trackElt, "{%s}type" % (config.cdInfo_ns))
+            TypeElt.text = trackType
 
     # Flags for presence of audio / data tracks
     containsAudio = False
@@ -57,8 +82,8 @@ def parseCDInfoLog(fileCDInfo):
     # Parse analysis report
     for i in range(startIndexAnalysisReport + 1, len(outAsList), 1):
         thisLine = outAsList[i]
-        if not thisLine.startswith("++"): # This gets rid of warning messages, do we want that?
-            analysisReport.append(thisLine)
+        analysisReport.append(thisLine)
+        analysisReportString = analysisReportString + thisLine + "\n"
 
     # Flags for CD/Extra / multisession / mixed-mode
     # Note that single-session mixed mode CDs are erroneously reported as
@@ -68,15 +93,21 @@ def parseCDInfoLog(fileCDInfo):
     multiSession = shared.index_startswith_substring(analysisReport, "session #") != -1
     mixedMode = shared.index_startswith_substring(analysisReport, "mixed mode CD") != -1
 
-    # Main results to dictionary
-    dictOut = {}
-    dictOut["cdExtra"] = cdExtra
-    dictOut["multiSession"] = multiSession
-    dictOut["mixedMode"] = mixedMode
-    dictOut["containsAudio"] = containsAudio
-    dictOut["containsData"] = containsData
-    dictOut["dataTrackLSNStart"] = dataTrackLSNStart
-    dictOut["trackList"] = trackList
-    dictOut["analysisReport"] = analysisReport
+    # Add individual parsed values from analysis report to separate subelements
+    cdExtraElt = etree.SubElement(
+                    analysisReportElt, "{%s}cdExtra" % (config.cdInfo_ns))
+    cdExtraElt.text = str(cdExtra)
+    multiSessionElt = etree.SubElement(
+                    analysisReportElt, "{%s}multiSession" % (config.cdInfo_ns))
+    multiSessionElt.text = str(multiSession)
+    mixedModeElt = etree.SubElement(
+                    analysisReportElt, "{%s}mixedMode" % (config.cdInfo_ns))
+    mixedModeElt.text = str(mixedMode)
 
-    return dictOut
+    # Add unformatted analysis report to analysisReportFullElt element
+    analysisReportFullElt = etree.SubElement(
+                    analysisReportElt, "{%s}fullReport" % (config.cdInfo_ns))
+    analysisReportFullElt.text = analysisReportString
+
+    return cdInfoElt
+
