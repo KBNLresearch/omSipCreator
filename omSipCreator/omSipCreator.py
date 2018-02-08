@@ -378,6 +378,27 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
 
         if config.createSIPs:
 
+            # Generate event metadata from Isobuster/dBpoweramp logs
+            # For each carrier we can have an Isobuster even, a dBpoweramp event, or both
+            # Events are wrapped in a list premisEvents
+            premisCreationEvents = []
+            if isobusterLogs != []:
+                premisEvent = addCreationEvent(isobusterLogs[0])
+                premisCreationEvents.append(premisEvent)
+            if dBpowerampLogs != []:
+                premisEvent = addCreationEvent(dBpowerampLogs[0])
+                premisCreationEvents.append(premisEvent)
+
+            # Representation-level tech metadata from cd-info.log
+            # TODO: serialize as XML, pass to processPPN and then add inside representation-level techMD element
+            if cdinfoLogs != []:
+                cdInfoElt = parseCDInfoLog(cdinfoLogs[0])
+            else:
+                # Create empty cd-info element
+                cdInfoName = etree.QName(config.cdInfo_ns, "cd-info")
+                cdInfoElt = etree.Element(
+                    cdInfoName, nsmap=config.NSMAP)
+
             # Create Volume directory
             logging.info("creating carrier directory")
             dirVolume = os.path.join(
@@ -502,27 +523,6 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                 fileCounter += 1
                 sipFileCounter += 1
                 counterTechMD += 1
-
-            # Generate event metadata from Isobuster/dBpoweramp logs
-            # For each carrier we can have an Isobuster even, a dBpoweramp event, or both
-            # Events are wrapped in a list premisEvents
-            premisCreationEvents = []
-            if isobusterLogs != []:
-                premisEvent = addCreationEvent(isobusterLogs[0])
-                premisCreationEvents.append(premisEvent)
-            if dBpowerampLogs != []:
-                premisEvent = addCreationEvent(dBpowerampLogs[0])
-                premisCreationEvents.append(premisEvent)
-
-            # Representation-level tech metadata from cd-info.log
-            # TODO: serialize as XML, pass to processPPN and then add inside representation-level techMD element
-            if cdinfoLogs != []:
-                cdInfoElt = parseCDInfoLog(cdinfoLogs[0])
-            else:
-                # Create empty cd-info element
-                cdInfoName = etree.QName(config.cdInfo_ns, "cd-info")
-                cdInfoElt = etree.Element(
-                    cdInfoName, nsmap=config.NSMAP)
 
         else:
             # We end up here if config.createSIPs == False
