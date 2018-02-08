@@ -889,6 +889,7 @@ def main():
     config.ebucore_ns = 'urn:ebu:metadata-schema:ebuCore_2017'
     config.isolyzer_ns = 'https://github.com/KBNLresearch/isolyzer'
     config.cdInfo_ns = 'cd-info' # TODO: is this a proper namespace?
+    config.dfxml_ns = 'http://www.forensicswiki.org/wiki/Category:Digital_Forensics_XML'
     config.xlink_ns = 'http://www.w3.org/1999/xlink'
     config.xsi_ns = 'http://www.w3.org/2001/XMLSchema-instance'
     config.metsSchema = 'http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd'
@@ -902,6 +903,7 @@ def main():
                     "ebucore": config.ebucore_ns,
                     "isolyzer": config.isolyzer_ns,
                     "cd-info": config.cdInfo_ns,
+                    "dfxml": config.dfxml_ns,
                     "xlink": config.xlink_ns,
                     "xsi": config.xsi_ns}
 

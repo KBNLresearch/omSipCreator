@@ -235,6 +235,7 @@ def addObjectInstance(fileName, fileSize, mimeType, sha512Sum, sectorOffset, iso
         objectCharacteristicsExtension1.append(audioMD)
     elif fileName.endswith(('.iso', '.ISO')):
         # Add Isobuster's DFXML report
+        isobusterReportElt = add_ns_prefix(isobusterReportElt, config.dfxml_ns)
         objectCharacteristicsExtension1.append(isobusterReportElt)
 
         # Add another objectCharacteristicsExtension element for Isolyzer output
