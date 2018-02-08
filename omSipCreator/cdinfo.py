@@ -34,6 +34,9 @@ def parseCDInfoLog(fileCDInfo):
     analysisReport = []    
     analysisReportString = ''
 
+    # Initialise variable that reports LSN of data track
+    dataTrackLSNStart = 0
+
     # Locate track list and analysis report in cd-info output
     startIndexTrackList = shared.index_startswith_substring(outAsList, "CD-ROM Track List")
     startIndexAnalysisReport = shared.index_startswith_substring(outAsList, "CD Analysis Report")
@@ -48,8 +51,11 @@ def parseCDInfoLog(fileCDInfo):
             trackMSFStart = trackDetails[0]  # Minute:Second:Frame
             trackLSNStart = trackDetails[1]  # Logical Sector Number
             trackType = trackDetails[2]  # Track type: audio / data
-            trackGreen = trackDetails[3] # Don  know what this means
-            trackCopy = trackDetails[4] # Don  know what this means
+            #trackGreen = trackDetails[3] # Don't  know what this means
+            #trackCopy = trackDetails[4] # Don't  know what this means
+
+            if trackType == 'data':
+                dataTrackLSNStart = int(trackLSNStart)
 
             # Append properties to trackList
             trackElt = etree.SubElement(
@@ -67,18 +73,6 @@ def parseCDInfoLog(fileCDInfo):
                     trackElt, "{%s}type" % (config.cdInfo_ns))
             TypeElt.text = trackType
 
-    # Flags for presence of audio / data tracks
-    containsAudio = False
-    containsData = False
-    dataTrackLSNStart = '0'
-
-    for track in trackList:
-        if track['trackType'] == 'audio':
-            containsAudio = True
-        if track['trackType'] == 'data':
-            containsData = True
-            dataTrackLSNStart = track['trackLSNStart']
-
     # Parse analysis report
     for i in range(startIndexAnalysisReport + 1, len(outAsList), 1):
         thisLine = outAsList[i]
@@ -88,7 +82,6 @@ def parseCDInfoLog(fileCDInfo):
     # Flags for CD/Extra / multisession / mixed-mode
     # Note that single-session mixed mode CDs are erroneously reported as
     # multisession by libcdio. See: http://savannah.gnu.org/bugs/?49090#comment1
-
     cdExtra = shared.index_startswith_substring(analysisReport, "CD-Plus/Extra") != -1
     multiSession = shared.index_startswith_substring(analysisReport, "session #") != -1
     mixedMode = shared.index_startswith_substring(analysisReport, "mixed mode CD") != -1
@@ -109,5 +102,5 @@ def parseCDInfoLog(fileCDInfo):
                     analysisReportElt, "{%s}fullReport" % (config.cdInfo_ns))
     analysisReportFullElt.text = analysisReportString
 
-    return cdInfoElt
+    return cdInfoElt, dataTrackLSNStart
 

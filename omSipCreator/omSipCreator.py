@@ -390,14 +390,19 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                 premisCreationEvents.append(premisEvent)
 
             # Representation-level tech metadata from cd-info.log
-            # TODO: serialize as XML, pass to processPPN and then add inside representation-level techMD element
             if cdinfoLogs != []:
-                cdInfoElt = parseCDInfoLog(cdinfoLogs[0])
+                cdInfoElt, sectorOffsetData = parseCDInfoLog(cdinfoLogs[0])
             else:
                 # Create empty cd-info element
                 cdInfoName = etree.QName(config.cdInfo_ns, "cd-info")
                 cdInfoElt = etree.Element(
                     cdInfoName, nsmap=config.NSMAP)
+
+            # Sector offset of data track (needed by Isolyzer)                
+            try:            
+                sectorOffset = 
+            except:
+                sectorOffset = 0
 
             # Create Volume directory
             logging.info("creating carrier directory")
