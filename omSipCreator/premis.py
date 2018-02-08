@@ -143,7 +143,7 @@ def addAgent(softwareName):
     return agent
 
 
-def addObjectInstance(fileName, fileSize, mimeType, sha512Sum, sectorOffset):
+def addObjectInstance(fileName, fileSize, mimeType, sha512Sum, sectorOffset, isobusterReportElt):
 
     """Generate object instance for file"""
 
@@ -224,16 +224,22 @@ def addObjectInstance(fileName, fileSize, mimeType, sha512Sum, sectorOffset):
         formatRegistry, "{%s}formatRegistryKey" % (config.premis_ns))
     formatRegistryKey.text = fileTypeIDs.get(mimeType)
 
-    # objectCharacteristicsExtension - EBUCore, isolyzer
-    objectCharacteristicsExtension = etree.SubElement(
+    # objectCharacteristicsExtension - EBUCore, isolyzer, Isobuster DFXML
+    objectCharacteristicsExtension1 = etree.SubElement(
         objectCharacteristics, "{%s}objectCharacteristicsExtension" % (config.premis_ns))
 
     if fileName.endswith(('.wav', '.WAV', 'flac', 'FLAC')):
         #objectCharacteristicsExtension.attrib["namespace"] = config.ebucore_ns
         audioMDOut = getAudioMetadata(fileName)
         audioMD = audioMDOut["outElt"]
-        objectCharacteristicsExtension.append(audioMD)
+        objectCharacteristicsExtension1.append(audioMD)
     elif fileName.endswith(('.iso', '.ISO')):
+        # Add Isobuster's DFXML report
+        objectCharacteristicsExtension1.append(isobusterReportElt)
+
+        # Add another objectCharacteristicsExtension element for Isolyzer output
+        objectCharacteristicsExtension2 = etree.SubElement(
+            objectCharacteristics, "{%s}objectCharacteristicsExtension" % (config.premis_ns))
         # Analyze ISO image with isolyzer
         isolyzerOut = isolyzer.processImage(fileName, sectorOffset)
         # Isolyzer output is Elementtree element, which must be converted
@@ -249,7 +255,7 @@ def addObjectInstance(fileName, fileSize, mimeType, sha512Sum, sectorOffset):
         toolName.text = "isolyzer"
         toolVersion.text = isolyzer.__version__
         isoMDOut.append(isolyzerOutLXML)
-        objectCharacteristicsExtension.append(isoMDOut)
+        objectCharacteristicsExtension2.append(isoMDOut)
 
     # originalName
     originalName = etree.SubElement(

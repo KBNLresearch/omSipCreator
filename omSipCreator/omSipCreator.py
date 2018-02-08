@@ -399,6 +399,15 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                     cdInfoName, nsmap=config.NSMAP)
                 dataSectorOffset = 0
 
+            # Metadata from Isobuster report
+            if isobusterReports != []:
+                try:
+                    isobusterReportElt = etree.parse(isobusterReports[0]).getroot()
+                except:
+                    isobusterReportElt = []
+            else:
+                isobusterReportElt = []
+
             # Create Volume directory
             logging.info("creating carrier directory")
             dirVolume = os.path.join(
@@ -510,7 +519,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                     mdWrapObjectPremis, "{%s}xmlData" % (config.mets_ns))
 
                 premisObjectInfo = addObjectInstance(
-                    fSIP, fileSize, mimeType, checksum, dataSectorOffset)
+                    fSIP, fileSize, mimeType, checksum, dataSectorOffset, isobusterReportElt)
                 xmlDataObjectPremis.append(premisObjectInfo)
                 techMDFileElements.append(techMDPremis)
 
