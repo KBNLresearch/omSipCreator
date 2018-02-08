@@ -143,7 +143,7 @@ def addAgent(softwareName):
     return agent
 
 
-def addObjectInstance(fileName, fileSize, mimeType, sha512Sum):
+def addObjectInstance(fileName, fileSize, mimeType, sha512Sum, sectorOffset):
 
     """Generate object instance for file"""
 
@@ -234,9 +234,6 @@ def addObjectInstance(fileName, fileSize, mimeType, sha512Sum):
         audioMD = audioMDOut["outElt"]
         objectCharacteristicsExtension.append(audioMD)
     elif fileName.endswith(('.iso', '.ISO')):
-        # TODO insert Isolyzer output
-        sectorOffset = 0
-        #isoMDOut = etree.Element("bullsh", nsmap=config.NSMAP)
         # Analyze ISO image with isolyzer
         isolyzerOut = isolyzer.processImage(fileName, sectorOffset)
         # Isolyzer output is Elementtree element, which must be converted
