@@ -27,6 +27,7 @@ INSTALL_REQUIRES = [
     'requests',
     'setuptools',
     'lxml',
+    'pytz',
     'isolyzer'
 ]
 
