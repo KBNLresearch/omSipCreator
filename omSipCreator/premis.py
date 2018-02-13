@@ -8,6 +8,7 @@ import os
 import io
 import uuid
 from datetime import datetime
+import pytz
 import xml.etree.ElementTree as ET
 from lxml import etree
 from isolyzer import isolyzer
@@ -45,10 +46,12 @@ def addCreationEvent(log):
     eventType.text = "creation"
 
     # Event date/time: taken from timestamp of log file (last-modified)
-    eventDateTimeValue = os.path.getctime(log)
-    # Convert to formatted date/time string
-    eventDateTimeFormatted = datetime.fromtimestamp(
-        eventDateTimeValue).strftime('%Y-%m-%d %H:%M:%S')
+    eventDateTimeValue = datetime.fromtimestamp(os.path.getctime(log))
+    # Add time zone info    
+    pst = pytz.timezone('Europe/Amsterdam')
+    eventDateTimeValue = pst.localize(eventDateTimeValue)
+    eventDateTimeFormatted = eventDateTimeValue.isoformat()
+
     eventDateTime = etree.SubElement(
         event, "{%s}eventDateTime" % (config.premis_ns))
     eventDateTime.text = eventDateTimeFormatted
