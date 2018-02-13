@@ -40,13 +40,13 @@ And here's an example of a SIP that contains 1 audio CD, with separate tracks re
 The METS file contains various types of metadata. Here's an overview:
 
 - Bibliographic metadata, which is stored in [MODS](https://www.loc.gov/standards/mods/) format (3.4).
-- File-level technical metadata. Each file (ISO image, audio file) has an associated METS *techMD* section that wraps around a [PREMIS](https://www.loc.gov/standards/premis/) *Object*. The PREMIS *objectCharacteristicsExtension* unit is used to wrap additional, format-specific metadata that are not covered by the PREMIS semantic units: 
-    * An [Isobuster DFXML report](https://www.isobuster.com/dfxml-example.php) that contains, amongst other things, a listing of all files inside the image (only for ISO/HFS/UDF images)
-    * Output of the [Isolyzer](https://github.com/KBNLresearch/isolyzer) tool, which provides information about the file systems used inside the image (only for  ISO/HFS/UDF images)
-    - Descriptive and technical metadata on audio files in [EBUCore](https://tech.ebu.ch/MetadataEbuCore) format (only for audio files)
+- File-level technical metadata. Each file (ISO image, audio file) has an associated METS *techMD* section that wraps around a [PREMIS](https://www.loc.gov/standards/premis/) *Object*. The PREMIS *objectCharacteristicsExtension* unit is used to wrap additional, format-specific metadata that are not covered by the PREMIS semantic units:
+    * An [Isobuster DFXML report](https://www.isobuster.com/dfxml-example.php) that contains, amongst other things, a listing of all files inside the image (only for ISO/HFS/UDF images).
+    * Output of the [Isolyzer](https://github.com/KBNLresearch/isolyzer) tool, which provides information about the file systems used inside the image (only for  ISO/HFS/UDF images).
+    * Descriptive and technical metadata on audio files in [EBUCore](https://tech.ebu.ch/MetadataEbuCore) format (only for audio files).
 - Carrier-level technical metadata in the form of XML-serialized output of the [cd-info](https://www.gnu.org/software/libcdio/libcdio.html#cd_002dinfo) tool.
-- Basic file-level metadata (METS *fileSec*)
-- Structural metadata (METS *structMap*)
+- Basic file-level metadata (METS *fileSec*).
+- Structural metadata (METS *structMap*).
 
 ### METS root
 
