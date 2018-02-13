@@ -569,6 +569,8 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
     # Add schema reference
     mets.attrib[etree.QName(config.xsi_ns, "schemaLocation")] = "".join(
         [config.metsSchema, " ", config.modsSchema, " ", config.premisSchema])
+    # Add TYPE attribute
+    mets.attrib["TYPE"] = "SIP"
     # Subelements for dmdSec, amdSec, fileSec and structMap
     # dmdSec
     dmdSec = etree.SubElement(mets, "{%s}dmdSec" % (config.mets_ns))

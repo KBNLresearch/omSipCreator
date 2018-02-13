@@ -37,6 +37,31 @@ And here's an example of a SIP that contains 1 audio CD, with separate tracks re
 
 ## METS metadata
 
+
+## METS root
+
+The METS root element contains the following namespace declarations:
+
+- `xmlns:mets="http://www.loc.gov/METS/"`
+- `xmlns:mods="http://www.loc.gov/mods/v3"`
+- `xmlns:premis="http://www.loc.gov/premis/v3"`
+- `xmlns:ebucore="urn:ebu:metadata-schema:ebuCore_2017"`
+- `xmlns:isolyzer="https://github.com/KBNLresearch/isolyzer"`
+- `xmlns:cd-info="https://www.gnu.org/software/libcdio/libcdio.html#cd_002dinfo"`
+- `xmlns:dfxml="http://www.forensicswiki.org/wiki/Category:Digital_Forensics_XML"`
+- `xmlns:xlink="http://www.w3.org/1999/xlink"`
+- `xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"`
+
+It also contains the following schema references:
+
+- `xsi:schemaLocation="http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd http://www.loc.gov/mods/v3 https://www.loc.gov/standards/mods/v3/mods-3-4.xsd http://www.loc.gov/premis/v3 https://www.loc.gov/standards/premis/premis.xsd"`
+
+Finally it contains the following attribute:
+
+- `@TYPE="SIP"`
+
+
+
 ### dmdSec
 
 - Contains top-level *mdWrap* element with the following attributes:
