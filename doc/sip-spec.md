@@ -4,7 +4,7 @@ This document describes the structure of the SIPs created by *omSipCreator*, inc
 
 ## General structure of a SIP
 
-Each SIP is represented as a directory. Each carrier that is part of the SIP is represented as a subdirectory within that directory. The SIP's root directory contains a [METS](https://www.loc.gov/mets/) file with technical, structural and bibliographic metadata. Bibliographic metadata is stored in [MODS](https://www.loc.gov/standards/mods/) format (3.4) which is embedded in a METS *mdWrap* element. Here's a simple example of a SIP that is made up of 2 carriers (which are represented as ISO 9660 images):
+Each SIP is represented as a directory. Each carrier that is part of the SIP is represented as a subdirectory within that directory. The SIP's root directory contains a [METS](https://www.loc.gov/mets/) file with technical, structural and bibliographic metadata. Here's a simple example of a SIP that is made up of 2 carriers (which are represented as ISO 9660 images):
 
 
     ── 269448861
@@ -37,10 +37,20 @@ And here's an example of a SIP that contains 1 audio CD, with separate tracks re
 
 ## METS metadata
 
+The METS file contains various types of metadata. Here's an overview:
 
-## METS root
+- Bibliographic metadata, which is stored in [MODS](https://www.loc.gov/standards/mods/) format (3.4).
+- File-level technical metadata. Each file (ISO image, audio file) has an associated METS *techMD* section that wraps around a [PREMIS](https://www.loc.gov/standards/premis/) *Object*. The PREMIS *objectCharacteristicsExtension* unit is used to wrap additional, format-specific metadata that are not covered by the PREMIS semantic units: 
+    * An [Isobuster DFXML report](https://www.isobuster.com/dfxml-example.php) that contains, amongst other things, a listing of all files inside the image (only for ISO/HFS/UDF images)
+    * Output of the [Isolyzer](https://github.com/KBNLresearch/isolyzer) tool, which provides information about the file systems used inside the image (only for  ISO/HFS/UDF images)
+    - Descriptive and technical metadata on audio files in [EBUCore](https://tech.ebu.ch/MetadataEbuCore) format (only for audio files)
+- Carrier-level technical metadata in the form of XML-serialized output of the [cd-info](https://www.gnu.org/software/libcdio/libcdio.html#cd_002dinfo) tool.
+- Basic file-level metadata (METS *fileSec*)
+- Structural metadata (METS *structMap*)
 
-The METS root element contains the following namespace declarations:
+### METS root
+
+The METS root element has the following namespace declarations:
 
 - `xmlns:mets="http://www.loc.gov/METS/"`
 - `xmlns:mods="http://www.loc.gov/mods/v3"`
@@ -52,23 +62,39 @@ The METS root element contains the following namespace declarations:
 - `xmlns:xlink="http://www.w3.org/1999/xlink"`
 - `xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"`
 
-It also contains the following schema references:
+It also has the following schema references:
 
 - `xsi:schemaLocation="http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd http://www.loc.gov/mods/v3 https://www.loc.gov/standards/mods/v3/mods-3-4.xsd http://www.loc.gov/premis/v3 https://www.loc.gov/standards/premis/premis.xsd"`
 
-Finally it contains the following attribute:
+Finally it has the following attribute:
 
 - `@TYPE="SIP"`
 
+The METS root element contains the following sub-elements:
 
+- *dmdSec*
+- *amdSec*
+- *fileSec*
+- *structMap*
 
-### dmdSec
+These are all described in the following sections.
 
-- Contains top-level *mdWrap* element with the following attributes:
-    - *MDTYPE* - indicates type of metadata that this element wraps. Value is *MODS*
-    - *MDTYPEVERSION* - MODS version, is *3.4* (as per KB Metatadata policies)
-- The *mdWrap* element contains one *xmlData* element
-- The *xmlData* element contains one *mods* element.
+### METS dmdSec
+
+The *dmdSec* element has the following attribute:
+
+- `ID=dmdSec_x`
+
+Here, *x* is an index.
+
+The *dmdSec* element contains an *mdWrap* element with the following attributes:
+
+- `@MDTYPE="MODS"`
+- `@MDTYPEVERSION="3.4"` (as per KB Metatadata policies)
+
+The *mdWrap* element contains an *xmlData* element, which in turn holds a *mods* element.
+
+### MODS
 
 The *mods* element contains the actual metadata elements. Most of these are imported from the KB catalogue record. Since the catalogue use Dublin Core (with some custom extensions), the DC elements are mapped to equivalent MODS elements. The mapping largely follows the [*Dublin Core Metadata Element Set Mapping to MODS Version 3*](http://www.loc.gov/standards/mods/dcsimple-mods.html) by Library of Congress. The table below shows each MODS element with its corresponding data source:
 
@@ -94,6 +120,23 @@ Some additional notes to the above:
 - Some of these elements (e.g. *creator* and *contributor*) may be repeatable.
 - Title info in KB catalogue can either be in `dc:title@xsi:type="dcx:maintitle"`, `dc:title`, or both. If available,  `dc:title@xsi:type="dcx:maintitle"` is used as the mapping  source; otherwise  `dc:title` is used.
 - The *relatedItem* element (with attribute *type* set to *host*) describes the relation of the intellectual entity with its (physical) parent item. It does this by referring to its identifiers in the KB catalogue.
+
+### METS amdSec
+
+The *amdSec* element has the following attribute:
+
+- `ID=amdSec_x`
+
+Here, *x* is an index.
+
+The *amdSec* element contains one or more *techMD* sections, and one or more *digiprovMD* sections. These are described below.
+
+### METS techMD
+
+METS
+
+
+
 
 ### fileSec
 
