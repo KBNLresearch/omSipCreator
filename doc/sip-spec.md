@@ -168,9 +168,7 @@ Note that, unlike the file-level technical metadata (see next section), the carr
 
 ### METS techMD, file level
 
-This element contains file-level technical metadata, which, for each file, are wrapped in a [PREMIS](https://www.loc.gov/standards/premis/) *Object*.
-
-The *techMD* element has the following attribute:
+This element contains file-level technical metadata for one file. The *techMD* element has the following attribute:
 
 - `@ID=techMD_x`
 
@@ -182,7 +180,7 @@ The *techMD* element contains a METS *mdWrap* element with the following attribu
 - `@MDTYPE="PREMIS:OBJECT"`
 - `@MDTYPEVERSION="3.0"`
 
-Inside the *mdWrap* element is a METS *xmlData* element, which in turn wraps a PREMIS *object* element (which is declared in the *premis* namespace). It has the following attribute:
+Inside the *mdWrap* element is a METS *xmlData* element, which in turn wraps a [PREMIS](https://www.loc.gov/standards/premis/) *object* element (which is declared in the *premis* namespace). It has the following attribute:
 
 - `@xsi:type=premis:file`
 
@@ -201,6 +199,17 @@ The following table lists all subelements of the PREMIS *object*:
 |`object/objectCharacteristics/format/formatDesignation/formatRegistry/formatRegistryName`|value *DIAS*|
 |`object/objectCharacteristics/format/formatDesignation/formatRegistry/formatRegistryKey`|value *n/a* **TODO**: figure how out to use the *formatRegistry* elements!|
 |`object/objectCharacteristics/objectCharacteristicsExtension`|used to wrap additional format-specific metadata (see below)|
+
+### Use of objectCharacteristicsExtension element
+
+The *objectCharacteristicsExtension* element is used to wrap additional format-specific metadata. For an ISO image, there are 2 *objectCharacteristicsExtension* elements:
+
+- The first one holds an [*Isobuster* report](https://www.isobuster.com/dfxml-example.php) in [DFXML](http://www.forensicswiki.org/wiki/Category:Digital_Forensics_XML) (Digital Forensics XML) format. The DFXML report contains, amongst other things, a listing of all files inside the ISO image.
+- The second one contains the output of the [*Isolyzer*](https://github.com/KBNLresearch/isolyzer) tool. This contains information about the file system(s) used inside the image (only for  ISO/HFS/UDF images).
+
+For an audio file (FLAC or Wave format) only one *objectCharacteristicsExtension* element is written. In this case it contains descriptive and technical audio-specific metadata that were extracted using the [*MediaInfo*](https://mediaarea.net/en/MediaInfo) tool in [EBUCore](https://tech.ebu.ch/MetadataEbuCore) format.
+
+
 
 ### fileSec
 
