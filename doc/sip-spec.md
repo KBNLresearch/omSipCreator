@@ -85,7 +85,7 @@ These are all described in the following sections.
 
 The *dmdSec* element has the following attribute:
 
-- `ID=dmdSec_x`
+- `@ID=dmdSec_x`
 
 Here, *x* is an index.
 
@@ -102,18 +102,18 @@ The *mods* element contains descriptive and bibliographic metadata, most of whic
 
 |MODS|Source|
 |:--|:--|
-|`titleInfo/title`|`dc:title@xsi:type="dcx:maintitle"` (catalogue)|
-|`titleInfo/title`|`dc:title` (catalogue)|
-|`name/namePart`; `name/role/roleTerm/@type="creator"`|`dc:creator` (catalogue)|
-|`name/namePart`; `name/role/roleTerm/@type="contributor"`|`dc:contributor` (catalogue)|
-|`originInfo@displayLabel="publisher"/publisher`|`dc:publisher` (catalogue)|
-|`originInfo/dateIssued`|`dc:date` (catalogue)|
-|`subject/topic`|`dc:subject` (catalogue)|
-|`typeOfResource`|mapping with *carrierType* field from batch manifest|
-|`note`|`dcx:annotation` (catalogue)|
-|`relatedItem/@type="host"/identifier/@type="ppn"`|*PPN* field from batch manifest|
-|`relatedItem/@type="host"/identifier/@type="uri"`|`dc:identifier/@xsi:type="dcterms:URI"`(catalogue)|
-|`relatedItem/@type="host"/identifier/@type="isbn"`|`dc:identifier/@xsi:type="dcterms:ISBN"` (catalogue)|
+|`mods/titleInfo/title`|`dc:title@xsi:type="dcx:maintitle"` (catalogue)|
+|`mods/titleInfo/title`|`dc:title` (catalogue)|
+|`mods/name/namePart`; `name/role/roleTerm/@type="creator"`|`dc:creator` (catalogue)|
+|`mods/name/namePart`; `name/role/roleTerm/@type="contributor"`|`dc:contributor` (catalogue)|
+|`mods/originInfo@displayLabel="publisher"/publisher`|`dc:publisher` (catalogue)|
+|`mods/originInfo/dateIssued`|`dc:date` (catalogue)|
+|`mods/subject/topic`|`dc:subject` (catalogue)|
+|`mods/typeOfResource`|mapping with *carrierType* field from batch manifest|
+|`mods/note`|`dcx:annotation` (catalogue)|
+|`mods/relatedItem/@type="host"/identifier/@type="ppn"`|*PPN* field from batch manifest|
+|`mods/relatedItem/@type="host"/identifier/@type="uri"`|`dc:identifier/@xsi:type="dcterms:URI"`(catalogue)|
+|`mods/relatedItem/@type="host"/identifier/@type="isbn"`|`dc:identifier/@xsi:type="dcterms:ISBN"` (catalogue)|
 
 Some notes to the above:
 
@@ -125,7 +125,7 @@ Some notes to the above:
 
 The *amdSec* element has the following attribute:
 
-- `ID=amdSec_x`
+- `@ID=amdSec_x`
 
 Here, *x* is an index.
 
@@ -133,43 +133,74 @@ The *amdSec* element contains one or more *techMD* sections, and one or more *di
 
 ### METS techMD, carrier level
 
-This element wraps carrier-level technical metadata in the form of XML-serialized output of the [cd-info](https://www.gnu.org/software/libcdio/libcdio.html#cd_002dinfo) tool.
+This element contains carrier-level technical metadata in the form of XML-serialized output of the [cd-info](https://www.gnu.org/software/libcdio/libcdio.html#cd_002dinfo) tool.
 
 The *techMD* element has the following attribute:
 
-- `ID=techMD_x`
+- `@ID=techMD_x`
 
 Here, *x* is an index.
 
 The *techMD* element contains a METS *mdWrap* element with the following attributes:
 
-- `@MIMETYPE="test/html"`
+- `@MIMETYPE="text/xml"`
 - `@MDTYPE="OTHER"`
 - `@OTHERMDTYPE="cd-info output"`
 
-Inside the *mdWrap* element is METS *xmlData* element, which in turn wraps a *cd-info* element (which is declared in the *cd-info* namespace). The following table lists all subelements of *cd-info*: 
+Inside the *mdWrap* element is a METS *xmlData* element, which in turn wraps a *cd-info* element (which is declared in the *cd-info* namespace). The following table lists all subelements of *cd-info*:
 
 |Element|Description|
 |:--|:--|
-|`trackList`|Holds the track list|
-|`trackList/track`|Holds all properties of one track (repeated for each track)|
-|`trackList/track/trackNumber`|Track number|
-|`trackList/track/MSF`|Track start position timecode [minutes:seconds:frames]|
-|`trackList/track/LSN`|Track start position sector offset [number of 2048-byte sectors]|
-|`trackList/track/type`|Track type [audio/data/leadout]|
-|`analysisReport`|Holds the full analysis report, and three *True*/*False* flags that are derived from it|
-|`analysisReport/cdExtra`|Flag that is *True* if carrier is a [CD-Extra / Blue Book](https://en.wikipedia.org/wiki/Blue_Book_(CD_standard)) disc, and *False* otherwise|
-|`analysisReport/multiSession`|Flag that is *True* if carrier is a multisession disc, and *False* otherwise|
-|`analysisReport/mixedMode`|Flag that is *True* if carrier is a [mixed mode](https://en.wikipedia.org/wiki/Mixed_Mode_CD) disc, and *False* otherwise|
-|`analysisReport/fullReport`|Contains full analysis report as unstructured text|
+|`cd-info/trackList`|Holds the track list|
+|`cd-info/trackList/track`|Holds all properties of one track (repeated for each track)|
+|`cd-info/trackList/track/trackNumber`|Track number|
+|`cd-info/trackList/track/MSF`|Track start position timecode [minutes:seconds:frames]|
+|`cd-info/trackList/track/LSN`|Track start position sector offset [number of 2048-byte sectors]|
+|`cd-info/trackList/track/type`|Track type [audio/data/leadout]|
+|`cd-info/analysisReport`|Holds the full analysis report, and three *True*/*False* flags that are derived from it|
+|`cd-info/analysisReport/cdExtra`|Flag that is *True* if carrier is a [CD-Extra / Blue Book](https://en.wikipedia.org/wiki/Blue_Book_(CD_standard)) disc, and *False* otherwise|
+|`cd-info/analysisReport/multiSession`|Flag that is *True* if carrier is a multisession disc, and *False* otherwise|
+|`cd-info/analysisReport/mixedMode`|Flag that is *True* if carrier is a [mixed mode](https://en.wikipedia.org/wiki/Mixed_Mode_CD) disc, and *False* otherwise|
+|`cd-info/analysisReport/fullReport`|Contains full analysis report as unstructured text|
 
 Note that, unlike the file-level technical metadata (see next section), the carrier-level metadata are *not* wrapped inside a PREMIS *objectCharacteristicsExtension* element. The reason for this is that PREMIS *only* allows *objectCharacteristicsExtension* to be used for File and Bitstream objects, and not for Intellectual Entity / Representation objects. See also: [*How/where to store metadata about optical media sector layout in METS/PREMIS*](http://qanda.digipres.org/1146/where-store-metadata-about-optical-media-sector-layout-premis).
 
 
 ### METS techMD, file level
 
-This element wraps file-level technical metadata in the form of XML-serialized output of the [cd-info](https://www.gnu.org/software/libcdio/libcdio.html#cd_002dinfo) tool.
+This element contains file-level technical metadata, which, for each file, are wrapped in a [PREMIS](https://www.loc.gov/standards/premis/) *Object*.
 
+The *techMD* element has the following attribute:
+
+- `@ID=techMD_x`
+
+Here, *x* is an index.
+
+The *techMD* element contains a METS *mdWrap* element with the following attributes:
+
+- `@MIMETYPE="text/xml"`
+- `@MDTYPE="PREMIS:OBJECT"`
+- `@MDTYPEVERSION="3.0"`
+
+Inside the *mdWrap* element is a METS *xmlData* element, which in turn wraps a PREMIS *object* element (which is declared in the *premis* namespace). It has the following attribute:
+
+- `@xsi:type=premis:file`
+
+The following table lists all subelements of the PREMIS *object*:
+
+|Element|Description|
+|:--|:--|
+|`object/objectIdentifier/objectIdentifierType`|value *UUID*|
+|`object/objectIdentifier/objectIdentifierValue`|Automatically generated UUID identifier|
+|`object/objectCharacteristics/compositionLevel`|value *0*|
+|`object/objectCharacteristics/fixity/messageDigestAlgorithm`|value *SHA-512*|
+|`object/objectCharacteristics/fixity/messageDigest`|value of computed SHA-512 hash|
+|`object/objectCharacteristics/fixity/messageDigestOriginator`|value *python.hashlib.sha512.hexdigest*|
+|`object/objectCharacteristics/size`|File size|
+|`object/objectCharacteristics/format/formatDesignation/formatName`|either *ISO_Image*, *Wave* or *FLAC*|
+|`object/objectCharacteristics/format/formatDesignation/formatRegistry/formatRegistryName`|value *DIAS*|
+|`object/objectCharacteristics/format/formatDesignation/formatRegistry/formatRegistryKey`|value *n/a* **TODO**: figure how out to use the *formatRegistry* elements!|
+|`object/objectCharacteristics/objectCharacteristicsExtension`|used to wrap additional format-specific metadata (see below)|
 
 ### fileSec
 
