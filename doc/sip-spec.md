@@ -40,11 +40,11 @@ And here's an example of a SIP that contains 1 audio CD, with separate tracks re
 The METS file contains various types of metadata. Here's an overview:
 
 - Bibliographic metadata, which are stored in [MODS](https://www.loc.gov/standards/mods/) format (3.4).
+- Carrier-level technical metadata in the form of XML-serialized output of the [cd-info](https://www.gnu.org/software/libcdio/libcdio.html#cd_002dinfo) tool.
 - File-level technical metadata. Each file (ISO image, audio file) has an associated METS *techMD* section that wraps around a [PREMIS](https://www.loc.gov/standards/premis/) *Object*. The PREMIS *objectCharacteristicsExtension* unit is used to wrap additional, format-specific metadata that are not covered by the PREMIS semantic units:
     * An [Isobuster DFXML report](https://www.isobuster.com/dfxml-example.php) that contains, amongst other things, a listing of all files inside the image (only for ISO/HFS/UDF images).
     * Output of the [Isolyzer](https://github.com/KBNLresearch/isolyzer) tool, which provides information about the file systems used inside the image (only for  ISO/HFS/UDF images).
     * Descriptive and technical metadata on audio files in [EBUCore](https://tech.ebu.ch/MetadataEbuCore) format (only for audio files).
-- Carrier-level technical metadata in the form of XML-serialized output of the [cd-info](https://www.gnu.org/software/libcdio/libcdio.html#cd_002dinfo) tool.
 - Basic file-level metadata (METS *fileSec*).
 - Structural metadata (METS *structMap*).
 
@@ -131,10 +131,39 @@ Here, *x* is an index.
 
 The *amdSec* element contains one or more *techMD* sections, and one or more *digiprovMD* sections. These are described below.
 
-### METS techMD
+### METS techMD, carrier level
 
-METS
+This element wraps carrier-level technical metadata in the form of XML-serialized output of the [cd-info](https://www.gnu.org/software/libcdio/libcdio.html#cd_002dinfo) tool.
 
+The *techMD* element has the following attribute:
+
+- `ID=techMD_x`
+
+Here, *x* is an index.
+
+The *techMD* element contains a METS *mdWrap* element with the following attributes:
+
+- `@MIMETYPE="test/html"`
+- `@MDTYPE="OTHER"`
+- `@OTHERMDTYPE="cd-info output"`
+
+Inside the *mdWrap* element is METS *xmlData* element, which in turn wraps a *cd-info* element (which is declared in the *cd-info* namespace). The following table lists all subelements of *cd-info*: 
+
+|Element|Description|
+|:--|:--|
+|`trackList`|Holds the track list|
+|`trackList/track`|Holds all properties of one track (repeated for each track)|
+|`trackList/track/trackNumber`|Track number|
+|`trackList/track/MSF`|Track start position timecode [minutes:seconds:frames]|
+|`trackList/track/LSN`|Track start position sector offset [number of 2048-byte sectors]|
+|`trackList/track/type`|Track type [audio/data/leadout]|
+|`analysisReport`|Holds the analysis report|
+|`analysisReport/cdExtra`|Flag that is *True* if carrier is a [CD-Extra / Blue Book](https://en.wikipedia.org/wiki/Blue_Book_(CD_standard)) disc, and *False* otherwise|
+|`analysisReport/multiSession`|Flag that is *True* if carrier is a multisession disc, and *False* otherwise|
+|`analysisReport/mixedMode`|Flag that is *True* if carrier is a [mixed mode](https://en.wikipedia.org/wiki/Mixed_Mode_CD) disc, and *False* otherwise|
+|`analysisReport/fullReport`|Contains full analysis report as unstructured text|
+
+### METS techMD, file level
 
 
 
