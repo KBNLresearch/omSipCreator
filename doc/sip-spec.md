@@ -57,7 +57,7 @@ The METS root element has the following namespace declarations:
 - `xmlns:mets="http://www.loc.gov/METS/"`
 - `xmlns:mods="http://www.loc.gov/mods/v3"`
 - `xmlns:premis="http://www.loc.gov/premis/v3"`
-- `xmlns:ebucore="urn:ebu:metadata-schema:ebuCore_2017"`
+- `xmlns:ebucore="urn:ebu:metadata-schema:ebucore"`
 - `xmlns:isolyzer="https://github.com/KBNLresearch/isolyzer"`
 - `xmlns:cd-info="https://www.gnu.org/software/libcdio/libcdio.html#cd_002dinfo"`
 - `xmlns:dfxml="http://www.forensicswiki.org/wiki/Category:Digital_Forensics_XML"`
