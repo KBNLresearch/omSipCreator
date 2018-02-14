@@ -39,7 +39,7 @@ And here's an example of a SIP that contains 1 audio CD, with separate tracks re
 
 The METS file contains various types of metadata. Here's an overview:
 
-- Bibliographic metadata, which is stored in [MODS](https://www.loc.gov/standards/mods/) format (3.4).
+- Bibliographic metadata, which are stored in [MODS](https://www.loc.gov/standards/mods/) format (3.4).
 - File-level technical metadata. Each file (ISO image, audio file) has an associated METS *techMD* section that wraps around a [PREMIS](https://www.loc.gov/standards/premis/) *Object*. The PREMIS *objectCharacteristicsExtension* unit is used to wrap additional, format-specific metadata that are not covered by the PREMIS semantic units:
     * An [Isobuster DFXML report](https://www.isobuster.com/dfxml-example.php) that contains, amongst other things, a listing of all files inside the image (only for ISO/HFS/UDF images).
     * Output of the [Isolyzer](https://github.com/KBNLresearch/isolyzer) tool, which provides information about the file systems used inside the image (only for  ISO/HFS/UDF images).
@@ -47,6 +47,8 @@ The METS file contains various types of metadata. Here's an overview:
 - Carrier-level technical metadata in the form of XML-serialized output of the [cd-info](https://www.gnu.org/software/libcdio/libcdio.html#cd_002dinfo) tool.
 - Basic file-level metadata (METS *fileSec*).
 - Structural metadata (METS *structMap*).
+
+The following sections describe each of the abovre elements in more detail.
 
 ### METS root
 
@@ -96,7 +98,7 @@ The *mdWrap* element contains an *xmlData* element, which in turn holds a *mods*
 
 ### MODS
 
-The *mods* element contains the actual metadata elements. Most of these are imported from the KB catalogue record. Since the catalogue use Dublin Core (with some custom extensions), the DC elements are mapped to equivalent MODS elements. The mapping largely follows the [*Dublin Core Metadata Element Set Mapping to MODS Version 3*](http://www.loc.gov/standards/mods/dcsimple-mods.html) by Library of Congress. The table below shows each MODS element with its corresponding data source:
+The *mods* element contains descriptive and bibliographic metadata, most of which are imported from the KB catalogue record. Since the catalogue use Dublin Cores (with some custom extensions), the DC elements are mapped to equivalent MODS elements. The mapping largely follows the [*Dublin Core Metadata Element Set Mapping to MODS Version 3*](http://www.loc.gov/standards/mods/dcsimple-mods.html) by Library of Congress. The table below shows each MODS element with its corresponding data source:
 
 |MODS|Source|
 |:--|:--|
@@ -104,18 +106,16 @@ The *mods* element contains the actual metadata elements. Most of these are impo
 |`titleInfo/title`|`dc:title` (catalogue)|
 |`name/namePart`; `name/role/roleTerm/@type="creator"`|`dc:creator` (catalogue)|
 |`name/namePart`; `name/role/roleTerm/@type="contributor"`|`dc:contributor` (catalogue)|
-|`originInfo@displayLabel="publisher"/publisher`|`dc:publisher` (catalogue)| 
+|`originInfo@displayLabel="publisher"/publisher`|`dc:publisher` (catalogue)|
 |`originInfo/dateIssued`|`dc:date` (catalogue)|
 |`subject/topic`|`dc:subject` (catalogue)|
-|`typeOfResource`|mapping with *carrierType* (carrier metadata file)|
+|`typeOfResource`|mapping with *carrierType* field from batch manifest|
 |`note`|`dcx:annotation` (catalogue)|
-|`relatedItem/@type="host"/identifier/@type="ppn"`|*PPNParent* (carrier metadata file)|
+|`relatedItem/@type="host"/identifier/@type="ppn"`|*PPN* field from batch manifest|
 |`relatedItem/@type="host"/identifier/@type="uri"`|`dc:identifier/@xsi:type="dcterms:URI"`(catalogue)|
 |`relatedItem/@type="host"/identifier/@type="isbn"`|`dc:identifier/@xsi:type="dcterms:ISBN"` (catalogue)|
 
-<!-- |`relatedItem/@type="host"/identifier/@type="uri"`|`dcx:recordIdentifier/@xsi:type="dcterms:URI"` (catalogue)| -->
-
-Some additional notes to the above:
+Some notes to the above:
 
 - Some of these elements (e.g. *creator* and *contributor*) may be repeatable.
 - Title info in KB catalogue can either be in `dc:title@xsi:type="dcx:maintitle"`, `dc:title`, or both. If available,  `dc:title@xsi:type="dcx:maintitle"` is used as the mapping  source; otherwise  `dc:title` is used.
