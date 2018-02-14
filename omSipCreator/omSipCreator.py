@@ -888,7 +888,7 @@ def main():
     config.mets_ns = 'http://www.loc.gov/METS/'
     config.mods_ns = 'http://www.loc.gov/mods/v3'
     config.premis_ns = 'http://www.loc.gov/premis/v3'
-    config.ebucore_ns = 'http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#'
+    config.ebucore_ns = 'urn:ebu:metadata-schema:ebucore'
     config.isolyzer_ns = 'https://github.com/KBNLresearch/isolyzer'
     config.cdInfo_ns = 'https://www.gnu.org/software/libcdio/libcdio.html#cd_002dinfo' # TODO: is this a proper namespace?
     config.dfxml_ns = 'http://www.forensicswiki.org/wiki/Category:Digital_Forensics_XML'
