@@ -157,14 +157,18 @@ Inside the *mdWrap* element is METS *xmlData* element, which in turn wraps a *cd
 |`trackList/track/MSF`|Track start position timecode [minutes:seconds:frames]|
 |`trackList/track/LSN`|Track start position sector offset [number of 2048-byte sectors]|
 |`trackList/track/type`|Track type [audio/data/leadout]|
-|`analysisReport`|Holds the analysis report|
+|`analysisReport`|Holds the full analysis report, and three *True*/*False* flags that are derived from it|
 |`analysisReport/cdExtra`|Flag that is *True* if carrier is a [CD-Extra / Blue Book](https://en.wikipedia.org/wiki/Blue_Book_(CD_standard)) disc, and *False* otherwise|
 |`analysisReport/multiSession`|Flag that is *True* if carrier is a multisession disc, and *False* otherwise|
 |`analysisReport/mixedMode`|Flag that is *True* if carrier is a [mixed mode](https://en.wikipedia.org/wiki/Mixed_Mode_CD) disc, and *False* otherwise|
 |`analysisReport/fullReport`|Contains full analysis report as unstructured text|
 
+Note that, unlike the file-level technical metadata (see next section), the carrier-level metadata are *not* wrapped inside a PREMIS *objectCharacteristicsExtension* element. The reason for this is that PREMIS *only* allows *objectCharacteristicsExtension* to be used for File and Bitstream objects, and not for Intellectual Entity / Representation objects. See also: [*How/where to store metadata about optical media sector layout in METS/PREMIS*](http://qanda.digipres.org/1146/where-store-metadata-about-optical-media-sector-layout-premis).
+
+
 ### METS techMD, file level
 
+This element wraps file-level technical metadata in the form of XML-serialized output of the [cd-info](https://www.gnu.org/software/libcdio/libcdio.html#cd_002dinfo) tool.
 
 
 ### fileSec
