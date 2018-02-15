@@ -24,7 +24,7 @@ def createMODS(PPNGroup):
     }
 
     PPN = PPNGroup.PPN
-    carrierType = PPNGroup.carrierType
+    carrierTypes = PPNGroup.carrierTypes
 
     # Create MODS element
     modsName = etree.QName(config.mods_ns, "mods")
@@ -139,9 +139,16 @@ def createMODS(PPNGroup):
             modsSubject, "{%s}topic" % (config.mods_ns))
         modsTopic.text = subjectBrinkman
 
+    # If all carrierType values within this PPN are identical, map modsTypeOfResource
+    # from that value. Otherwise, assign "mixed material"
+    if carrierTypes.count(carrierTypes[0]) == len(carrierTypes):
+        resourceType = resourceTypeMap[carrierTypes[0]]
+    else:
+        resourceType = "mixed material"
+
     modsTypeOfResource = etree.SubElement(
         mods, "{%s}typeOfResource" % (config.mods_ns))
-    modsTypeOfResource.text = resourceTypeMap[carrierType]
+    modsTypeOfResource.text = resourceType
 
     for annotation in annotations:
         modsNote = etree.SubElement(mods, "{%s}note" % (config.mods_ns))

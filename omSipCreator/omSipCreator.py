@@ -64,7 +64,7 @@ class PPNGroup:
         """initialise PPNGroup class instance"""
         self.carriers = []
         self.PPN = ""
-        self.carrierType = ""
+        self.carrierTypes = []
 
     def append(self, carrier):
         """Append a carrier. Result of this is that below PPN-level properties
@@ -74,7 +74,7 @@ class PPNGroup:
         """
         self.carriers.append(carrier)
         self.PPN = carrier.PPN
-        self.carrierType = carrier.carrierType
+        self.carrierTypes.append(carrier.carrierType)
 
 
 def main_is_frozen():
