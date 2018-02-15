@@ -88,7 +88,7 @@ The *dmdSec* element has the following attribute:
 
 - `@ID=dmdSec_x`
 
-Here, *x* is an index.
+Here, *x* is an index. The index is linked to the outermost METS *structMap* element that represents all volumes (carriers) in this SIP.
 
 The *dmdSec* element contains an *mdWrap* element with the following attributes:
 
@@ -132,7 +132,7 @@ The *amdSec* element has the following attribute:
 
 - `@ID=amdSec_x`
 
-Here, *x* is an index.
+Here, *x* is an index with value 1.
 
 The *amdSec* element contains one or more *techMD* sections, and one or more *digiprovMD* sections. These are described below.
 
@@ -144,7 +144,7 @@ The *techMD* element has the following attribute:
 
 - `@ID=techMD_x`
 
-Here, *x* is an index.
+Here, *x* is an index. The index is linked to the METS *structMap* element that represents the carrier as a whole.
 
 The *techMD* element contains a METS *mdWrap* element with the following attributes:
 
@@ -177,7 +177,8 @@ This element contains file-level technical metadata for one file. The *techMD* e
 
 - `@ID=techMD_x`
 
-Here, *x* is an index.
+Here, *x* is an index. The index is linked to the corresponding METS *file* element in the METS *fileSec* element.
+
 
 The *techMD* element contains a METS *mdWrap* element with the following attributes:
 
@@ -218,11 +219,11 @@ Note: for now the choice for the EBUCore format is provisional. The main reason 
 
 ### METS digiprovMD
 
-This element contains event metadata. The *digiprovMD* element has the following attribute:
+This element contains event metadata about the imaging/ripping process (IsoBuster exit status, dBpoweramp log). The *digiprovMD* element has the following attribute:
 
 - `@ID=digiprovMD_x`
 
-Here, *x* is an index.
+Here, *x* is an index. The index is linked to the METS *structMap* element that represents the carrier as a whole.
 
 The *digiprovMD* element contains a METS *mdWrap* element with the following attributes:
 
@@ -238,6 +239,12 @@ The following table lists all subelements of the PREMIS *event*:
 |:--|:--|
 |`event/eventIdentifier/eventIdentifierType`|value *UUID*|
 |`event/eventIdentifier/eventIdentifierValue`|Automatically generated UUID identifier|
+|`event/eventType`|value *creation*|
+|`event/eventDateTime`|date/time of creation (taken from time-stamp of IsoBuster/dBpoweramp log file); datetime string in [ISO8601 format](https://en.wikipedia.org/wiki/ISO_8601)|
+|`event/eventDetailInformation/eventDetail`|value either *Image created with IsoBuster* or *Audio ripped with dBpoweramp*|
+|`event/eventOutcomeInformation/eventOutcomeDetail/eventOutcomeDetailNote`|value either IsoBuster error value or contents of dBpoweramp extraction log|
+|`event/linkingAgentIdentifier/linkingAgentIdentifierType`|value *URI*|
+|`event/linkingAgentIdentifier/linkingAgentIdentifierValue`|[WikiData URI of IsoBuster](https://www.wikidata.org/wiki/Q304733) or [dBpoweramp](https://www.wikidata.org/wiki/Q1152133)|
 
 ### fileSec
 
