@@ -109,8 +109,8 @@ The *mods* element contains descriptive and bibliographic metadata, most of whic
 |`mods/name/namePart`; `mods/name/role/roleTerm/@type="text"`|`dc:contributor` (catalogue)\*|
 |`mods/originInfo@displayLabel="publisher"/publisher`|`dc:publisher` (catalogue)|
 |`mods/originInfo/dateIssued`|`dc:date` (catalogue)|
-|`mods/subject/topic`|`dc:subject` (catalogue)|
-|`mods/typeOfResource`|mapping with *carrierType* field from batch manifest|
+|`mods/subject/topic`|`dc:subject@xsi:type=dcx:Brinkman`(catalogue)|
+|`mods/typeOfResource`|mapping with *carrierType* values from batch manifest; "mixed material" in case of multiple *carrierType* values|
 |`mods/note`|`dcx:annotation` (catalogue)|
 |`mods/relatedItem/@type="host"/identifier/@type="ppn"`|*PPN* field from batch manifest|
 |`mods/relatedItem/@type="host"/identifier/@type="uri"`|`dc:identifier/@xsi:type="dcterms:URI"`(catalogue)|
@@ -124,6 +124,7 @@ Some notes to the above:
 - Some of these elements (e.g. *creator* and *contributor*) may be repeatable.
 - Title info in KB catalogue can either be in `dc:title@xsi:type="dcx:maintitle"`, `dc:title`, or both. If available,  `dc:title@xsi:type="dcx:maintitle"` is used as the mapping  source; otherwise  `dc:title` is used.
 - The *relatedItem* element (with attribute *type* set to *host*) describes the relation of the intellectual entity with its (physical) parent item. It does this by referring to its identifiers in the KB catalogue.
+- Assignment of *subject/topic* is now exclusively based on *Brinkman* subjects. However, these do not always exist, and the catalogue uses many other subject classifications (e.g. dcx:person, dcx:GOO, ISO_9707_[Brinkman], etc.).
 
 ### METS amdSec
 
