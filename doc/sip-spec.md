@@ -268,7 +268,7 @@ Each *file* element also contains an *FLocat* subelement with the following attr
 
 |Attribute|Description|Example|
 |:--|:--|:--|
-|`@LOCTYPE`|Locator type. Value is always *URL*|`@LOCTYPE="URL""|
+|`@LOCTYPE`|Locator type. Value is always *URL*|`@LOCTYPE="URL"`|
 |`@xlink:href`|URL of file. Format: filepath, relative to root of SIP directory.|`@xlink:href="file:///cd-rom/1/01.flac"`|
 
 
