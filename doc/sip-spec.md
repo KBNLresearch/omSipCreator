@@ -257,7 +257,7 @@ Each METS *file* element has the following attributes:
 
 |Attribute|Description|Example|
 |:--|:--|:--|
-|`@ID`|file identifier|`@ID="file_1"|
+|`@ID`|file identifier|`@ID="file_1"`|
 |`@SIZE`|file size in bytes|`@SIZE="4102411"`|
 |`@MIMETYPE`|Mime type|`@MIMETYPE="audio/flac"`|
 |`@CHECKSUM`|checksum value|`@CHECKSUM="6bc4f0a53e9d866b751beff5d465f5b86a8a160d388032c079527a9cb7cabef430617f156abec03ff5a6897474ac2d31c573845d1bb99e2d02ca951da8eb2d01"`|
