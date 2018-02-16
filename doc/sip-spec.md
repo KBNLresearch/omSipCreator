@@ -4,36 +4,50 @@ This document describes the structure of the SIPs created by *omSipCreator*, inc
 
 ## General structure of a SIP
 
-Each SIP is represented as a directory. Each carrier that is part of the SIP is represented as a subdirectory within that directory. The SIP's root directory contains a [METS](https://www.loc.gov/mets/) file with technical, structural and bibliographic metadata. Here's a simple example of a SIP that is made up of 2 carriers (which are represented as ISO 9660 images):
+Each SIP is represented as a directory. Each carrier that is part of the SIP is represented as a subdirectory within that directory. The SIP's root directory contains a [METS](https://www.loc.gov/mets/) file with technical, structural and bibliographic metadata. Here's a simple example of a SIP that is made up of 1 "enhanced"  audio CD (which is represented as 7 audio tracks in FLAC format and one ISO image):
 
 
-    ── 269448861
-       ├── cd-rom
-       │   ├── 1
-       │   │   └── nuvoorstraks1.iso
-       │   └── 2
-       │       └── nuvoorstraks2.iso
-       └── mets.xml
+    18594650X/
+    ├── cd-rom
+    │   └── 1
+    │       ├── 01.flac
+    │       ├── 02.flac
+    │       ├── 03.flac
+    │       ├── 04.flac
+    │       ├── 05.flac
+    │       ├── 06.flac
+    │       ├── 07.flac
+    │       └── ELL2.iso
+    └── mets.xml
 
-And here's an example of a SIP that contains 1 audio CD, with separate tracks represented as WAV files:
+And here's an example of a SIP that contains 3 audio CDs, and one video DVD:
 
-    ── 16385100X
-       ├── cd-audio
-       │   └── 1
-       │       ├── track01.cdda.wav
-       │       ├── track02.cdda.wav
-       │       ├── track03.cdda.wav
-       │       ├── track04.cdda.wav
-       │       ├── track05.cdda.wav
-       │       ├── track06.cdda.wav
-       │       ├── track07.cdda.wav
-       │       ├── track08.cdda.wav
-       │       ├── track09.cdda.wav
-       │       ├── track10.cdda.wav
-       │       ├── track11.cdda.wav
-       │       ├── track12.cdda.wav
-       │       └── track13.cdda.wav
-       └── mets.xml
+    376144572/
+    ├── cd-audio
+    │   ├── 1
+    │   │   ├── 01.flac
+    │   │   ├── 02.flac
+    │   │   ├── 03.flac
+    │   │   ├── ...
+    │   │   ├── ...
+    │   │   ├── 23.flac
+    │   │   └── 24.flac
+    │   ├── 2
+    │   │   ├── 01.flac
+    │   │   ├── 02.flac
+    │   │   ├── 03.flac
+    │   │   ├── ...
+    │   │   ├── ...
+    │   │   ├── 18.flac
+    │   │   └── 19.flac
+    │   └── 3
+    │       ├── 01.flac
+    │       └── 02.flac
+    ├── dvd-video
+    │   └── 1
+    │       └── GRANDES_LIGNES_6VWO.iso
+    └── mets.xml
+
 
 ## METS metadata
 
@@ -315,4 +329,4 @@ Here, *x* is an index. The value of `@FILEID` provides a link to the correspondi
 **TODO:**
 
 - `@TYPE` of top-level *div* element is now set to *physical*, not sure if this shouldn't be *logical* (see [issue](https://github.com/KBNLresearch/omSipCreator/issues/53))
-- Currently the assignment of the carrier-level values for `@ORDER` is repeated for all carriers with the same `@TYPE`. This results in some complexity that is probably unnecessary. See also this [omSipCreator issue](https://github.com/KBNLresearch/omSipCreator/issues/54) and this [Iromlab issue](https://github.com/KBNLresearch/iromlab/issues/66).
+- Currently the assignment of the carrier-level values for `@ORDER` is repeated for all carriers with the same `@TYPE`. This results in some complexity that is probably unnecessary. A simpler approach would be to continue the numbering throughout *all* carriers. In that case the *cd-rom*, *cd-audio* etc. directory level in the SIP can also be eliminated. See also this [omSipCreator issue](https://github.com/KBNLresearch/omSipCreator/issues/54) and this [Iromlab issue](https://github.com/KBNLresearch/iromlab/issues/66).
