@@ -311,4 +311,4 @@ Here, *x* is an index. The value of `@FILEID` provides a link to the correspondi
 **Notes:**:
 
 - `@TYPE` of top-level *div* element is now set to *physical*, not sure if this shouldn't be *logical* (see [issue](https://github.com/KBNLresearch/omSipCreator/issues/53))
-- 
+- Currently the assignment of the carrier-level values for `@ORDER` is repeated for all carriers with the same `@TYPE`. This results in some complexity that is probably unnecessary. See also this [omSipCreator issue](https://github.com/KBNLresearch/omSipCreator/issues/54) and this [Iromlab issue](https://github.com/KBNLresearch/iromlab/issues/66).
