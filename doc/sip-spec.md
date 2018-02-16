@@ -88,7 +88,7 @@ The *dmdSec* element has the following attribute:
 
 - `@ID="dmdSec_x"`
 
-Here, *x* is an index. The index is linked to the outermost METS *structMap* element that represents all volumes (carriers) in this SIP.
+Here, *x* is an index. The value of `@ID` is linked to the outermost METS *structMap* element that represents all volumes (carriers) in this SIP.
 
 The *dmdSec* element contains an *mdWrap* element with the following attributes:
 
@@ -119,7 +119,7 @@ The *mods* element contains descriptive and bibliographic metadata, most of whic
 
 \* : for a `dc:creator` element in the catalogue the value of `roleTerm` is "creator"; for a `dc:contributor` element in the catalogue the value of `roleTerm` is "contributor".
 
-Some notes to the above:
+**Notes:**:
 
 - Some of these elements (e.g. *creator* and *contributor*) may be repeatable.
 - Title info in KB catalogue can either be in `dc:title@xsi:type="dcx:maintitle"`, `dc:title`, or both. If available,  `dc:title@xsi:type="dcx:maintitle"` is used as the mapping  source; otherwise  `dc:title` is used.
@@ -144,7 +144,7 @@ The *techMD* element has the following attribute:
 
 - `@ID="techMD_x"`
 
-Here, *x* is an index. The index is linked to the METS *structMap* element that represents the carrier as a whole.
+Here, *x* is an index. value of `@ID` is linked to the METS *structMap* element that represents the carrier as a whole.
 
 The *techMD* element contains a METS *mdWrap* element with the following attributes:
 
@@ -177,7 +177,7 @@ This element contains file-level technical metadata for one file. The *techMD* e
 
 - `@ID="techMD_x"`
 
-Here, *x* is an index. The index is linked to the corresponding METS *file* element in the METS *fileSec* element.
+Here, *x* is an index. The value of `@ID`is linked to the corresponding METS *file* element in the METS *fileSec* element.
 
 
 The *techMD* element contains a METS *mdWrap* element with the following attributes:
@@ -215,7 +215,7 @@ The *objectCharacteristicsExtension* element is used to wrap additional format-s
 
 For an audio file (FLAC or Wave format) only one *objectCharacteristicsExtension* element is written. In this case it contains descriptive and technical audio-specific metadata that were extracted using the [*MediaInfo*](https://mediaarea.net/en/MediaInfo) tool in [EBUCore](https://tech.ebu.ch/MetadataEbuCore) format.
 
-Note: for now the choice for the EBUCore format is provisional. The main reason it was chose here is the fact that EBUCore is natively supported by MediaInfo, which makes implementing it trivially simple.
+**Note:** for now the choice for the EBUCore format is provisional. The main reason it was chose here is the fact that EBUCore is natively supported by MediaInfo, which makes implementing it trivially simple.
 
 ### METS digiprovMD
 
@@ -223,7 +223,7 @@ This element contains event metadata about the imaging/ripping process (IsoBuste
 
 - `@ID="digiprovMD_x"`
 
-Here, *x* is an index. The index is linked to the METS *structMap* element that represents the carrier as a whole.
+Here, *x* is an index. The value of `@ID` is linked to the METS *structMap* element that represents the carrier as a whole.
 
 The *digiprovMD* element contains a METS *mdWrap* element with the following attributes:
 
@@ -246,12 +246,12 @@ The following table lists all subelements of the PREMIS *event*:
 |`event/linkingAgentIdentifier/linkingAgentIdentifierType`|value *URI*|
 |`event/linkingAgentIdentifier/linkingAgentIdentifierValue`|[WikiData URI of IsoBuster](https://www.wikidata.org/wiki/Q304733) or [dBpoweramp](https://www.wikidata.org/wiki/Q1152133)|
 
-Note: the IsoBuster DFXML report (now stored as file-level techMD section, see above) also contains some fields that are really event metadata. Perhaps it would be better to extract/copy these fields over to a PREMIS event in digiprovMD as well (see also [issue tracker](https://github.com/KBNLresearch/omSipCreator/issues/27#issuecomment-365987990) for details).
+**Note:** the IsoBuster DFXML report (now stored as file-level techMD section, see above) also contains some fields that are really event metadata. Perhaps it would be better to extract/copy these fields over to a PREMIS event in digiprovMD as well (see also [issue tracker](https://github.com/KBNLresearch/omSipCreator/issues/27#issuecomment-365987990) for details).
 
 
 ### fileSec
 
-The METS *fileSec* element describes all files that are part of the SIP. It contains one METS *fileGrp* element, which in turn contains a METS *file* element for each file in the SIP (even if a SIP spans multiple carriers, all *file* elements are wrapped inside the same *fileGrp* element).
+The METS *fileSec* section describes all files that are part of the SIP. It contains one METS *fileGrp* element, which in turn contains a METS *file* element for each file in the SIP (even if a SIP spans multiple carriers, all *file* elements are wrapped inside the same *fileGrp* element).
 
 Each METS *file* element has the following attributes:
 
@@ -268,19 +268,47 @@ Each *file* element also contains an *FLocat* subelement with the following attr
 
 |Attribute|Description|Example|
 |:--|:--|:--|
-|`@LOCTYPE`|Locator type. Value is always *URL*|`@LOCTYPE="URL"`|
+|`@LOCTYPE`|Locator type (value is always *URL*)|`@LOCTYPE="URL"`|
 |`@xlink:href`|URL of file. Format: filepath, relative to root of SIP directory.|`@xlink:href="file:///cd-rom/1/01.flac"`|
 
 
 ### structMap
 
-- *structMap* contains a top-level *div* element with the following attributes:
-    - *TYPE* - value *physical*
-    - *LABEL* - value *volumes*
-- Each carrier is wrapped into a *div* element that descibes the carrier using the following attributes:
-    - *TYPE* - describes the carrier type. Possible values: *cd-rom*, *cd-audio*, *dvd-rom*, *dvd-video*
-    - *ORDER* - in case of multiple carriers, this describes -for each *TYPE*, see above- the order of each volume 
-- Each of the above *div* elements contains one or more further *div* elements that describe the components (files) that make up a carrier. They have the following attributes:
-    - *TYPE* - describes the nature of the carrier component. Possible values are *disk image* and *audio track*.
-    - *ORDER* - describes the order of each component (e.g. for an audio CD that is represented as multiple audio files, it describes the playing order).
-- Finally each of the the above (file-level) *div* elements contains one *fptr*. It contains one *FILEID* attribute, whose value corresponds to the corresponding *ID* attribute in the *file* element (see *FileSec* description above).
+The METS *structMap* section describes the hierarchical structure of the carriers that are part of the SIP. Each level is represented by one or more *div* elements inside the *structMap* element. The general structure is:
+
+1. Top level: represents all carriers that are part of the SIP
+2. Intermediate level: represents a single carrier (cd-rom, audio cd, dvd-rom, dvd-video)
+3. Lowest level: represents a file that is extracted from the carrier (a disk image of the filesystem, one or more ripped audio tracks, or both)
+
+The top-level *div* element (which represents all carriers that are part of the SIP has the following attributes:
+
+- `@TYPE="physical"`
+- `@LABEL="volumes"`
+- `@DMDID="dmdSec_1"`
+
+The value of `@DMDID` links to the METS *dmdSec* section (which contains the descriptive and bibliographic metadata for all carriers in this SIP).
+
+The top-level *div* element contains one or more intermediate-level *div* elements that each descibe an individual carrier, using the following attributes:
+
+|Attribute|Description|Example|
+|:--|:--|:--|
+|`@TYPE`|describes the carrier type; possible values are *cd-rom*, *cd-audio*, *dvd-rom*, *dvd-video*|`@TYPE="cd-rom"`|
+|`@ORDER`|in case of multiple carriers, this attribute describes -for each *TYPE* the order of this carrier|`@ORDER="1"`|
+
+Each intermediate-level *div* element contains one or more low-level *div* elements that each descibe an individual file that was extracted from the carrier, using the following attributes:
+
+|Attribute|Description|Example|
+|:--|:--|:--|
+|`@TYPE`|describes the nature of the carrier component. Possible values are *disk image* and *audio track*|`@TYPE="disk image"`|
+|`@ORDER`|describes the order of each component (e.g. for an audio CD that is represented as multiple audio files, it describes the playing order)|`@ORDER="1"`|
+
+Finally each file-level *div* element contains one *fptr* element. It contains the following attribute:
+
+- `@FILEID="file_x"`
+
+Here, *x* is an index. The value of `@FILEID` provides a link to the corresponding identifier in the *fileSec* section (`@ID` attribute of *file* element).
+
+**Notes:**:
+
+- `@TYPE` of top-level *div* element is now set to *physical*, not sure if this shouldn't be *logical* (see [issue](https://github.com/KBNLresearch/omSipCreator/issues/53))
+- 
