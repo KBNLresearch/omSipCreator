@@ -86,7 +86,7 @@ These are all described in the following sections.
 
 The *dmdSec* element has the following attribute:
 
-- `@ID=dmdSec_x`
+- `@ID="dmdSec_x"`
 
 Here, *x* is an index. The index is linked to the outermost METS *structMap* element that represents all volumes (carriers) in this SIP.
 
@@ -130,7 +130,7 @@ Some notes to the above:
 
 The *amdSec* element has the following attribute:
 
-- `@ID=amdSec_x`
+- `@ID="amdSec_x"`
 
 Here, *x* is an index with value 1.
 
@@ -142,7 +142,7 @@ This element contains carrier-level technical metadata in the form of XML-serial
 
 The *techMD* element has the following attribute:
 
-- `@ID=techMD_x`
+- `@ID="techMD_x"`
 
 Here, *x* is an index. The index is linked to the METS *structMap* element that represents the carrier as a whole.
 
@@ -175,7 +175,7 @@ Note that, unlike the file-level technical metadata (see next section), the carr
 
 This element contains file-level technical metadata for one file. The *techMD* element has the following attribute:
 
-- `@ID=techMD_x`
+- `@ID="techMD_x"`
 
 Here, *x* is an index. The index is linked to the corresponding METS *file* element in the METS *fileSec* element.
 
@@ -221,7 +221,7 @@ Note: for now the choice for the EBUCore format is provisional. The main reason 
 
 This element contains event metadata about the imaging/ripping process (IsoBuster exit status, dBpoweramp log). The *digiprovMD* element has the following attribute:
 
-- `@ID=digiprovMD_x`
+- `@ID="digiprovMD_x"`
 
 Here, *x* is an index. The index is linked to the METS *structMap* element that represents the carrier as a whole.
 
@@ -246,19 +246,31 @@ The following table lists all subelements of the PREMIS *event*:
 |`event/linkingAgentIdentifier/linkingAgentIdentifierType`|value *URI*|
 |`event/linkingAgentIdentifier/linkingAgentIdentifierValue`|[WikiData URI of IsoBuster](https://www.wikidata.org/wiki/Q304733) or [dBpoweramp](https://www.wikidata.org/wiki/Q1152133)|
 
+Note: the IsoBuster DFXML report (now stored as file-level techMD section, see above) also contains some fields that are really event metadata. Perhaps it would be better to extract/copy these fields over to a PREMIS event in digiprovMD as well (see also [issue tracker](https://github.com/KBNLresearch/omSipCreator/issues/27#issuecomment-365987990) for details).
+
+
 ### fileSec
 
-- Contains one top-level *fileGrp* element (if a SIP spans multiple carriers, they are all wrapped inside the same *fileGrp* element).
-- The *fileGrp* elements contains 1 or more *file* elements. Each *file* element has the following attributes:
-    - *ID* - file identifier (e.g. *FILE_001*, *FILE_002*, etc.)
-    - *SIZE* - file size in bytes
-    - *MIMETYPE* - Mime type (e.g. *application/x-iso9660*)
-    - *CHECKSUM*
-    - *CHECKSUMTYPE* (*SHA-512*)
-- Each *file* element contains an *FLocat* element with the following attributes:
-    - *LOCTYPE* - Locator type. Value is *URL*
-    - *xlink:href* - URL of file. Format: filepath, relative to root of SIP directory. Example:
-        `xlink:href="file:///cd-rom/4/alles_over_bestandsformaten.iso"`
+The METS *fileSec* element describes all files that are part of the SIP. It contains one METS *fileGrp* element, which in turn contains a METS *file* element for each file in the SIP (even if a SIP spans multiple carriers, all *file* elements are wrapped inside the same *fileGrp* element).
+
+Each METS *file* element has the following attributes:
+
+|Attribute|Description|Example|
+|:--|:--|:--|
+|`@ID`|file identifier|`@ID="file_1"|
+|`@SIZE`|file size in bytes|`@SIZE="4102411"`|
+|`@MIMETYPE`|Mime type|`@MIMETYPE="audio/flac"`|
+|`@CHECKSUM`|checksum value|`@CHECKSUM="6bc4f0a53e9d866b751beff5d465f5b86a8a160d388032c079527a9cb7cabef430617f156abec03ff5a6897474ac2d31c573845d1bb99e2d02ca951da8eb2d01"`|
+|`@CHECKSUMTYPE`|checksum type|`@CHECKSUMTYPE="SHA-512"`|
+|`@ADMID`|reference to corresponding METS sections in *amdSec*|`@ADMID="techMD_1"`|
+
+Each *file* element also contains an *FLocat* subelement with the following attributes:
+
+|Attribute|Description|Example|
+|:--|:--|:--|
+|`@LOCTYPE`|Locator type. Value is always *URL*|`@LOCTYPE="URL""|
+|`@xlink:href`|URL of file. Format: filepath, relative to root of SIP directory.|`@xlink:href="file:///cd-rom/1/01.flac"`|
+
 
 ### structMap
 
