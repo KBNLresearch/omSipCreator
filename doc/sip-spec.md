@@ -119,12 +119,15 @@ The *mods* element contains descriptive and bibliographic metadata, most of whic
 
 \* : for a `dc:creator` element in the catalogue the value of `roleTerm` is "creator"; for a `dc:contributor` element in the catalogue the value of `roleTerm` is "contributor".
 
-**Notes:**:
+Note that:
 
 - Some of these elements (e.g. *creator* and *contributor*) may be repeatable.
 - Title info in KB catalogue can either be in `dc:title@xsi:type="dcx:maintitle"`, `dc:title`, or both. If available,  `dc:title@xsi:type="dcx:maintitle"` is used as the mapping  source; otherwise  `dc:title` is used.
 - The *relatedItem* element (with attribute *type* set to *host*) describes the relation of the intellectual entity with its (physical) parent item. It does this by referring to its identifiers in the KB catalogue.
-- Assignment of *subject/topic* is now exclusively based on *Brinkman* subjects. However, these do not always exist, and the catalogue uses many other subject classifications (e.g. dcx:person, dcx:GOO, ISO_9707_[Brinkman], etc.).
+
+**TODO:**
+
+Assignment of *subject/topic* is now exclusively based on *Brinkman* subjects. However, these do not always exist, and the catalogue uses many other subject classifications (e.g. dcx:person, dcx:GOO, ISO_9707_[Brinkman], etc.). See this [issue](https://github.com/KBNLresearch/omSipCreator/issues/52).
 
 ### METS amdSec
 
@@ -215,7 +218,7 @@ The *objectCharacteristicsExtension* element is used to wrap additional format-s
 
 For an audio file (FLAC or Wave format) only one *objectCharacteristicsExtension* element is written. In this case it contains descriptive and technical audio-specific metadata that were extracted using the [*MediaInfo*](https://mediaarea.net/en/MediaInfo) tool in [EBUCore](https://tech.ebu.ch/MetadataEbuCore) format.
 
-**Note:** for now the choice for the EBUCore format is provisional. The main reason it was chose here is the fact that EBUCore is natively supported by MediaInfo, which makes implementing it trivially simple.
+Note that for now the choice for the EBUCore format is provisional. The main reason it was chose here is the fact that EBUCore is natively supported by MediaInfo, which makes implementing it trivially simple.
 
 ### METS digiprovMD
 
@@ -246,8 +249,9 @@ The following table lists all subelements of the PREMIS *event*:
 |`event/linkingAgentIdentifier/linkingAgentIdentifierType`|value *URI*|
 |`event/linkingAgentIdentifier/linkingAgentIdentifierValue`|[WikiData URI of IsoBuster](https://www.wikidata.org/wiki/Q304733) or [dBpoweramp](https://www.wikidata.org/wiki/Q1152133)|
 
-**Note:** the IsoBuster DFXML report (now stored as file-level techMD section, see above) also contains some fields that are really event metadata. Perhaps it would be better to extract/copy these fields over to a PREMIS event in digiprovMD as well (see also [issue tracker](https://github.com/KBNLresearch/omSipCreator/issues/27#issuecomment-365987990) for details).
+**TODO:**
 
+The IsoBuster DFXML report (now stored as file-level techMD section, see above) also contains some fields that are really event metadata. Perhaps it would be better to extract/copy these fields over to a PREMIS event in digiprovMD as well (see also [issue tracker](https://github.com/KBNLresearch/omSipCreator/issues/27#issuecomment-365987990) for details).
 
 ### fileSec
 
@@ -308,7 +312,7 @@ Finally each file-level *div* element contains one *fptr* element. It contains t
 
 Here, *x* is an index. The value of `@FILEID` provides a link to the corresponding identifier in the *fileSec* section (`@ID` attribute of *file* element).
 
-**Notes:**:
+**TODO:**
 
 - `@TYPE` of top-level *div* element is now set to *physical*, not sure if this shouldn't be *logical* (see [issue](https://github.com/KBNLresearch/omSipCreator/issues/53))
 - Currently the assignment of the carrier-level values for `@ORDER` is repeated for all carriers with the same `@TYPE`. This results in some complexity that is probably unnecessary. See also this [omSipCreator issue](https://github.com/KBNLresearch/omSipCreator/issues/54) and this [Iromlab issue](https://github.com/KBNLresearch/iromlab/issues/66).
