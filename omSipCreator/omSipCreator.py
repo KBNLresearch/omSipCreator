@@ -376,6 +376,29 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
         divDisc.attrib["TYPE"] = carrier.carrierType
         divDisc.attrib["ORDER"] = carrier.volumeNumber
 
+        # Representation-level tech metadata from cd-info.log
+        if cdinfoLogs != []:
+            cdInfoElt, dataSectorOffset = parseCDInfoLog(cdinfoLogs[0])
+        else:
+            # Create empty cd-info element
+            cdInfoName = etree.QName(config.cdInfo_ns, "cd-info")
+            cdInfoElt = etree.Element(
+                cdInfoName, nsmap=config.NSMAP)
+            dataSectorOffset = 0
+
+        # Metadata from Isobuster report (return empy element in case of parse
+        # errors)
+        if isobusterReports != []:
+            try:
+                isobusterReportElt = etree.parse(isobusterReports[0]).getroot()
+            except:
+                logging.error("jobID " + carrier.jobID +
+                          ": error parsing '" + isobusterReports[0] + "'")
+                config.errors += 1
+                isobusterReportElt =  etree.Element("dfxml")
+        else:
+            isobusterReportElt = etree.Element("dfxml")
+
         if config.createSIPs:
 
             # Generate event metadata from Isobuster/dBpoweramp logs
@@ -388,29 +411,6 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
             if dBpowerampLogs != []:
                 premisEvent = addCreationEvent(dBpowerampLogs[0])
                 premisCreationEvents.append(premisEvent)
-
-            # Representation-level tech metadata from cd-info.log
-            if cdinfoLogs != []:
-                cdInfoElt, dataSectorOffset = parseCDInfoLog(cdinfoLogs[0])
-            else:
-                # Create empty cd-info element
-                cdInfoName = etree.QName(config.cdInfo_ns, "cd-info")
-                cdInfoElt = etree.Element(
-                    cdInfoName, nsmap=config.NSMAP)
-                dataSectorOffset = 0
-
-            # Metadata from Isobuster report (return empy element in case of parse
-            # errors)
-            if isobusterReports != []:
-                try:
-                    isobusterReportElt = etree.parse(isobusterReports[0]).getroot()
-                except:
-                    logging.error("jobID " + carrier.jobID +
-                              ": error parsing '" + isobusterReports[0] + "'")
-                    config.errors += 1
-                    isobusterReportElt =  etree.Element("dfxml")
-            else:
-                isobusterReportElt = etree.Element("dfxml")
 
             # Create Volume directory
             logging.info("creating carrier directory")
