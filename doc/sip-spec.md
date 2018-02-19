@@ -1,6 +1,6 @@
 # omSipCreator SIP specification
 
-This document describes the structure of the SIPs created by *omSipCreator*, including its associated metadata.
+This document describes the structure of the SIPs created by *omSipCreator*, including their associated metadata.
 
 ## General structure of a SIP
 
