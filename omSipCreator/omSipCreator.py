@@ -11,12 +11,14 @@ import imp
 import argparse
 import codecs
 import csv
-import hashlib
 import logging
 from operator import itemgetter
 from itertools import groupby
 from lxml import etree
 from . import config
+from . import checksums
+from .shared import errorExit
+from .carrier import processCarrier
 from .cdinfo import parseCDInfoLog
 from .mods import createMODS
 from .premis import addCreationEvent
@@ -93,13 +95,6 @@ def get_main_dir():
     return os.path.dirname(sys.argv[0])
 
 
-def errorExit(errors, warnings):
-    """Print errors and exit"""
-    logging.info("Batch verification yielded " + str(errors) +
-                 " errors and " + str(warnings) + " warnings")
-    sys.exit()
-
-
 def checkFileExists(fileIn):
     """Check if file exists and exit if not"""
     if not os.path.isfile(fileIn):
@@ -123,46 +118,6 @@ def get_immediate_subdirectories(a_dir, ignoreDirs):
                 subDirs.append(os.path.abspath(os.path.join(root, myDir)))
 
     return subDirs
-
-
-def readChecksums(fileIn):
-    """Read checksum file, return contents as nested list
-    Also strip away any file paths if they exist (return names only)
-    """
-
-    try:
-        data = []
-        f = open(fileIn, "r", encoding="utf-8")
-        for row in f:
-            rowSplit = row.split(' ', 1)
-            # Second col contains file name. Strip away any path components if they are present
-            # Raises IndexError if entry only 1 col (malformed checksum file)!
-            fileName = rowSplit[1].strip()
-            rowSplit[1] = os.path.basename(fileName)
-            data.append(rowSplit)
-        f.close()
-        return data
-    except IOError:
-        logging.fatal("cannot read '" + fileIn + "'")
-        config.errors += 1
-        errorExit(config.errors, config.warnings)
-
-
-def generate_file_sha512(fileIn):
-    """Generate sha512 hash of file
-    fileIn is read in chunks to ensure it will work with (very) large files as well
-    Adapted from: http://stackoverflow.com/a/1131255/1209004
-    """
-
-    blocksize = 2**20
-    m = hashlib.sha512()
-    with open(fileIn, "rb") as f:
-        while True:
-            buf = f.read(blocksize)
-            if not buf:
-                break
-            m.update(buf)
-    return m.hexdigest()
 
 
 def parseCommandLine():
@@ -218,7 +173,7 @@ def printHelpAndExit():
     sys.exit()
 
 
-def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMDStart):
+def processCarrierOld(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMDStart):
     """Process contents of imagepath directory"""
     # TODO: * check file type / extension matches carrierType!
     # TODO: currently lots of file path manipulations which make things hard to read,
@@ -339,7 +294,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
 
             # Calculate SHA-512 hash of actual file
             if os.path.isfile(fileNameWithPath):
-                checksumCalculated = generate_file_sha512(fileNameWithPath)
+                checksumCalculated = checksums.generate_file_sha512(fileNameWithPath)
             else:
                 logging.fatal("jobID " + carrier.jobID + ": file '" +
                               fileNameWithPath + "' is referenced in '" + checksumFiles[0] +
@@ -459,7 +414,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                     errorExit(config.errors, config.warnings)
 
                 # Calculate hash of copied file, and verify against known value
-                checksumCalculated = generate_file_sha512(fSIP)
+                checksumCalculated = checksums.generate_file_sha512(fSIP)
                 if checksumCalculated != checksum:
                     logging.error("jobID " + carrier.jobID + ": checksum mismatch for file '" +
                                   fSIP + "'")
@@ -1229,8 +1184,8 @@ def main():
                             config.errors += 1
 
                         # Verify checksum
-                        checksumIn = generate_file_sha512(fileIn)
-                        checksumErr = generate_file_sha512(fileErr)
+                        checksumIn = checksums.generate_file_sha512(fileIn)
+                        checksumErr = checksums.generate_file_sha512(fileErr)
 
                         if checksumIn != checksumErr:
                             logging.error("jobID " + jobID + ": checksum of '" +

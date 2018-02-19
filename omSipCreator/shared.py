@@ -8,10 +8,18 @@ import os
 import sys
 import subprocess as sub
 import string
+import logging
 from lxml import etree
 from random import choice
 from . import byteconv as bc
 from . import config
+
+def errorExit(errors, warnings):
+    """Print errors and exit"""
+    logging.info("Batch verification yielded " + str(errors) +
+                 " errors and " + str(warnings) + " warnings")
+    sys.exit()
+
 
 def makeHumanReadable(element, remapTable={}):
     """Takes element object, and returns a modified version in which all
