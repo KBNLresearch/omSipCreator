@@ -30,20 +30,15 @@ class Carrier:
 
 class PPNGroup:
     """PPNGroup class"""
-    def __init__(self):
+    def __init__(self, PPN):
         """initialise PPNGroup class instance"""
         self.carriers = []
-        self.PPN = ""
+        self.PPN = PPN
         self.carrierTypes = []
 
     def append(self, carrier):
-        """Append a carrier. Result of this is that below PPN-level properties
-        are inherited from last appended carrier (values should be identical
-        for all carriers within PPN, but important to do proper QA on this as
-        results may be unexpected otherwise)
-        """
+        """Append a carrier"""
         self.carriers.append(carrier)
-        self.PPN = carrier.PPN
         self.carrierTypes.append(carrier.carrierType)
 
 
@@ -55,7 +50,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
     # carriers is another iterator that contains individual carrier records
 
     # Create class instance for this PPN
-    thisPPNGroup = PPNGroup()
+    thisPPNGroup = PPNGroup(PPN)
 
     # Create METS element for this SIP
     metsName = etree.QName(config.mets_ns, "mets")
