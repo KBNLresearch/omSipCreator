@@ -9,10 +9,10 @@ import sys
 import subprocess as sub
 import string
 import logging
-from lxml import etree
 from random import choice
+from lxml import etree
 from . import byteconv as bc
-from . import config
+
 
 def errorExit(errors, warnings):
     """Print errors and exit"""
