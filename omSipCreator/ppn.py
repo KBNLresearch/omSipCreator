@@ -42,8 +42,7 @@ class PPNGroup:
         self.carrierTypes.append(carrier.carrierType)
 
 
-def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
-               dirsInMetaCarriers, carrierTypeAllowedValues):
+def processPPN(PPN, carriers):
 
     """Process a PPN"""
     # PPN is PPN identifier (by which we grouped data)
@@ -100,7 +99,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
     if config.createSIPs:
         logging.info("creating SIP directory")
         # Create SIP directory
-        dirSIP = os.path.join(dirOut, PPN)
+        dirSIP = os.path.join(config.dirOut, PPN)
         try:
             os.makedirs(dirSIP)
         except OSError:
@@ -128,15 +127,15 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
         volumeNumbersTypeGroup = []
         for carrier in carrierTypeGroup:
 
-            jobID = carrier[colsBatchManifest["jobID"]]
-            volumeNumber = carrier[colsBatchManifest["volumeNo"]]
-            carrierType = carrier[colsBatchManifest["carrierType"]]
-            title = carrier[colsBatchManifest["title"]]
-            volumeID = carrier[colsBatchManifest["volumeID"]]
-            success = carrier[colsBatchManifest["success"]]
-            containsAudio = carrier[colsBatchManifest["containsAudio"]]
-            containsData = carrier[colsBatchManifest["containsData"]]
-            cdExtra = carrier[colsBatchManifest["cdExtra"]]
+            jobID = carrier[config.colsBatchManifest["jobID"]]
+            volumeNumber = carrier[config.colsBatchManifest["volumeNo"]]
+            carrierType = carrier[config.colsBatchManifest["carrierType"]]
+            title = carrier[config.colsBatchManifest["title"]]
+            volumeID = carrier[config.colsBatchManifest["volumeID"]]
+            success = carrier[config.colsBatchManifest["success"]]
+            containsAudio = carrier[config.colsBatchManifest["containsAudio"]]
+            containsData = carrier[config.colsBatchManifest["containsData"]]
+            cdExtra = carrier[config.colsBatchManifest["cdExtra"]]
 
             # Update jobIDs list
             jobIDs.append(jobID)
@@ -146,11 +145,11 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
             # Check if imagePath is existing directory
 
             # Full path, relative to batchIn TODO: check behaviour on Window$
-            imagePathFull = os.path.normpath(os.path.join(batchIn, jobID))
+            imagePathFull = os.path.normpath(os.path.join(config.batchIn, jobID))
             imagePathAbs = os.path.abspath(imagePathFull)
 
             # Append absolute path to list (used later for completeness check)
-            dirsInMetaCarriers.append(imagePathAbs)
+            config.dirsInMetaCarriers.append(imagePathAbs)
 
             if not os.path.isdir(imagePathFull):
                 logging.error("jobID " + jobID + ": '" + imagePathFull +
@@ -229,7 +228,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
                 config.failedPPNs.append(PPN)
 
             # Check carrierType value against controlled vocabulary
-            if carrierType not in carrierTypeAllowedValues:
+            if carrierType not in config.carrierTypeAllowedValues:
                 logging.error("jobID " + jobID + ": '" + carrierType +
                               "' is illegal value for 'carrierType'")
                 config.errors += 1

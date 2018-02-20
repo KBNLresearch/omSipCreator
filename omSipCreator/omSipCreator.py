@@ -173,7 +173,7 @@ def main():
                                  'cdExtra']
 
     # Controlled vocabulary for 'carrierType' field
-    carrierTypeAllowedValues = ['cd-rom',
+    config.carrierTypeAllowedValues = ['cd-rom',
                                 'cd-audio',
                                 'dvd-rom',
                                 'dvd-video']
@@ -231,18 +231,18 @@ def main():
         # Exit and print help message if command line is empty
         printHelpAndExit()
 
-    batchIn = os.path.normpath(args.batchIn)
+    config.batchIn = os.path.normpath(args.batchIn)
 
     if action == "write":
-        dirOut = os.path.normpath(args.dirOut)
+        config.dirOut = os.path.normpath(args.dirOut)
         config.createSIPs = True
     elif action == "prune":
-        batchErr = os.path.normpath(args.batchErr)
-        dirOut = None
+        config.batchErr = os.path.normpath(args.batchErr)
+        config.dirOut = None
         config.pruneBatch = True
     else:
         # Dummy value
-        dirOut = None
+        config.dirOut = None
 
     # Path to MediaInfo
     if sys.platform is "win32":
@@ -253,7 +253,7 @@ def main():
     checkFileExists(config.mediaInfoExe)
 
     # Check if batch dir exists
-    if not os.path.isdir(batchIn):
+    if not os.path.isdir(config.batchIn):
         logging.fatal("input batch directory does not exist")
         config.errors += 1
         errorExit(config.errors, config.warnings)
@@ -264,14 +264,14 @@ def main():
     # Define dirs to ignore (jobs and jobsFailed)
     ignoreDirs = ["jobs", "jobsFailed"]
 
-    dirsInBatch = get_immediate_subdirectories(batchIn, ignoreDirs)
+    dirsInBatch = get_immediate_subdirectories(config.batchIn, ignoreDirs)
 
     # List for storing directories as extracted from carrier metadata file (see below)
     # Note: all entries as full, absolute file paths!
-    dirsInMetaCarriers = []
+    config.dirsInMetaCarriers = []
 
     # Check if batch manifest exists
-    batchManifest = os.path.join(batchIn, fileBatchManifest)
+    batchManifest = os.path.join(config.batchIn, fileBatchManifest)
     if not os.path.isfile(batchManifest):
         logging.fatal("file " + batchManifest + " does not exist")
         config.errors += 1
@@ -322,15 +322,15 @@ def main():
     if config.createSIPs:
         # Remove output dir tree if it exists already
         # Potentially dangerous, so ask for user confirmation
-        if os.path.isdir(dirOut):
+        if os.path.isdir(config.dirOut):
 
-            out.write("This will overwrite existing directory '" + dirOut +
+            out.write("This will overwrite existing directory '" + config.dirOut +
                       "' and remove its contents!\nDo you really want to proceed (Y/N)? > ")
             response = input()
 
             if response.upper() == "Y":
                 try:
-                    shutil.rmtree(dirOut)
+                    shutil.rmtree(config.dirOut)
                 except OSError:
                     logging.fatal("cannot remove '" + dirOut + "'")
                     config.errors += 1
@@ -338,9 +338,9 @@ def main():
 
         # Create new dir
         try:
-            os.makedirs(dirOut)
+            os.makedirs(config.dirOut)
         except OSError:
-            logging.fatal("cannot create '" + dirOut + "'")
+            logging.fatal("cannot create '" + config.dirOut + "'")
             config.errors += 1
             errorExit(config.errors, config.warnings)
 
@@ -360,11 +360,11 @@ def main():
             errorExit(config.errors, config.warnings)
 
     # Set up dictionary to store header fields and corresponding column numbers
-    colsBatchManifest = {}
+    config.colsBatchManifest = {}
 
     col = 0
     for header in headerBatchManifest:
-        colsBatchManifest[header] = col
+        config.colsBatchManifest[header] = col
         col += 1
 
     # Sort rows by PPN
@@ -379,14 +379,13 @@ def main():
 
     for PPN, carriers in metaCarriersByPPN:
         logging.info("Processing PPN " + PPN)
-        processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
-                   dirsInMetaCarriers, carrierTypeAllowedValues)
+        processPPN(PPN, carriers)
 
     # Check if directories that are part of batch are all represented in carrier metadata file
     # (reverse already covered by checks above)
 
     # Diff as list
-    diffDirs = list(set(dirsInBatch) - set(dirsInMetaCarriers))
+    diffDirs = list(set(dirsInBatch) - set(config.dirsInMetaCarriers))
 
     # Report each item in list as an error
 
@@ -414,17 +413,17 @@ def main():
         # Check if batchErr is an existing directory. If yes,
         # prompt user to confirm that it will be overwritten
 
-        if os.path.isdir(batchErr):
+        if os.path.isdir(config.batchErr):
 
-            out.write("\nThis will overwrite existing directory '" + batchErr +
+            out.write("\nThis will overwrite existing directory '" + config.batchErr +
                       "' and remove its contents!\nDo you really want to proceed (Y/N)? > ")
             response = input()
 
             if response.upper() == "Y":
                 try:
-                    shutil.rmtree(batchErr)
+                    shutil.rmtree(config.batchErr)
                 except OSError:
-                    logging.fatal("cannot remove '" + batchErr + "'")
+                    logging.fatal("cannot remove '" + config.batchErr + "'")
                     config.errors += 1
                     errorExit(config.errors, config.warnings)
             else:
@@ -434,18 +433,18 @@ def main():
         # Create batchErr directory
 
         try:
-            os.makedirs(batchErr)
+            os.makedirs(config.batchErr)
         except (OSError, IOError):
-            logging.fatal("Cannot create directory '" + batchErr + "'")
+            logging.fatal("Cannot create directory '" + config.batchErr + "'")
             config.errors += 1
             errorExit(config.errors, config.warnings)
 
         # Add batch manifest to batchErr directory
-        batchManifestErr = os.path.join(batchErr, fileBatchManifest)
+        batchManifestErr = os.path.join(config.batchErr, fileBatchManifest)
 
         # Add temporary (updated) batch manifest to batchIn
         fileBatchManifestTemp = "tmp.csv"
-        batchManifestTemp = os.path.join(batchIn, fileBatchManifestTemp)
+        batchManifestTemp = os.path.join(config.batchIn, fileBatchManifestTemp)
 
         try:
             if sys.version.startswith('3'):
@@ -481,8 +480,8 @@ def main():
                 # If PPN is in list of failed PPNs then add record to error batch
 
                 # Image path for this jobID in input, pruned and error batch
-                imagePathIn = os.path.normpath(os.path.join(batchIn, jobID))
-                imagePathErr = os.path.normpath(os.path.join(batchErr, jobID))
+                imagePathIn = os.path.normpath(os.path.join(config.batchIn, jobID))
+                imagePathErr = os.path.normpath(os.path.join(config.batchErr, jobID))
 
                 imagePathInAbs = os.path.abspath(imagePathIn)
                 imagePathErrAbs = os.path.abspath(imagePathErr)
@@ -535,7 +534,7 @@ def main():
                 # Remove directory from input batch
                 if os.path.isdir(imagePathInAbs):
                     logging.info("Removing  directory '" +
-                                 imagePathInAbs + "' from batchIn")
+                                 imagePathInAbs + "' from config.batchIn")
                     try:
                         shutil.rmtree(imagePathInAbs)
                     except OSError:
@@ -551,7 +550,7 @@ def main():
 
         # Rename original batchManifest to '.old' extension
         fileBatchManifestOld = os.path.splitext(fileBatchManifest)[0] + ".old"
-        batchManifestOld = os.path.join(batchIn, fileBatchManifestOld)
+        batchManifestOld = os.path.join(config.batchIn, fileBatchManifestOld)
         os.rename(batchManifest, batchManifestOld)
 
         # Rename batchManifestTemp to batchManifest
@@ -561,8 +560,8 @@ def main():
                      fileBatchManifestOld + "'")
 
         # Copy batch log to error batch
-        batchLogIn = os.path.join(batchIn, fileBatchLog)
-        batchLogErr = os.path.join(batchErr, fileBatchLog)
+        batchLogIn = os.path.join(config.batchIn, fileBatchLog)
+        batchLogErr = os.path.join(config.batchErr, fileBatchLog)
         shutil.copy2(batchLogIn, batchLogErr)
 
         # Summarise no. of additional warnings / errors during pruning
