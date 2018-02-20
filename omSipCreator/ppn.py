@@ -118,7 +118,7 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
     volumeNumbers = []
     carrierTypes = []
 
-    # Set up list that will is used to collect all representation-level techMD and 
+    # Set up list that will is used to collect all representation-level techMD and
     # digiProv elements for all carriers within PPN
     techMDRepElements = []
     digiProvElements = []
@@ -175,7 +175,6 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
 
             # Construct unique identifiers for digiProvMD and techMD (see below)
             # and add to divDisc as ADMID
-            carrierID = "disc_" + str(carrierCounter).zfill(3)
             digiProvID = "digiprovMD_" + str(counterDigiprovMD)
             techID = "techMD_" + str(counterTechMD)
             divDisc.attrib["ADMID"] = " ".join([digiProvID, techID])
@@ -221,9 +220,8 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
             # Add to PPNGroup class instance
             thisPPNGroup.append(thisCarrier)
 
-            # Update fileCounterStart and counterTechMDStart
+            # Update fileCounterStart
             fileCounterStart = fileCounter
-            counterTechMDStart = counterTechMD
 
             # convert volumeNumber to integer (so we can do more checking below)
             try:
@@ -335,4 +333,3 @@ def processPPN(PPN, carriers, dirOut, colsBatchManifest, batchIn,
             logging.warning("PPN " + PPN + " (" + carrierType +
                             "): values for 'volumeNumber' are not consecutive")
             config.warnings += 1
-
