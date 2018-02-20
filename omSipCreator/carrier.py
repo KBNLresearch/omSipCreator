@@ -359,4 +359,14 @@ def processCarrier(carrier, SIPPath, sipFileCounterStart, counterTechMDStart):
         fileElements = []
         techMDFileElements = []
 
-    return fileElements, divDisc, premisCreationEvents, techMDFileElements, cdInfoElt, sipFileCounter, counterTechMD
+    # Wrap all output in dictionary
+    carrierOut = {}
+    carrierOut['divDisc'] = divDisc
+    carrierOut['fileElements'] = fileElements
+    carrierOut['techMDFileElements'] = techMDFileElements
+    carrierOut['premisCreationEvents'] = premisCreationEvents
+    carrierOut['cdInfoElt'] = cdInfoElt
+    carrierOut['sipFileCounter'] = sipFileCounter
+    carrierOut['counterTechMD'] = counterTechMD
+
+    return carrierOut

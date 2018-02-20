@@ -160,8 +160,21 @@ def processPPN(PPN, carriers):
             # Create Carrier class instance for this carrier
             thisCarrier = Carrier(jobID, PPN, imagePathFull,
                                   volumeNumber, carrierType)
-            fileElements, divDisc, premisEventsCarrier, techMDFileElements, cdInfoElt, fileCounter, counterTechMD = processCarrier(
-                thisCarrier, dirSIP, fileCounterStart, counterTechMD)
+
+            # Process carrier; output to dictionary
+            carrierOutput = processCarrier(thisCarrier,
+                                           dirSIP,
+                                           fileCounterStart,
+                                           counterTechMD)
+
+            divDisc = carrierOutput['divDisc']
+            fileElements = carrierOutput['fileElements']
+            techMDFileElements = carrierOutput['techMDFileElements']
+            premisCreationEvents = carrierOutput['premisCreationEvents']
+            cdInfoElt = carrierOutput['cdInfoElt']
+            sipFileCounter = carrierOutput['sipFileCounter']
+            counterTechMD = carrierOutput['counterTechMD']
+
             # NOTE
             # techMDFileElements: list of techMD elements, each of which represent one file.
             # Wraps EbuCore audio metdata + possibly other tech metadata
@@ -209,7 +222,7 @@ def processPPN(PPN, carriers):
                 mdWrapdigiprov, "{%s}xmlData" % (config.mets_ns))
 
             # Append PREMIS events that were returned by ProcessCarrier
-            for premisEvent in premisEventsCarrier:
+            for premisEvent in premisCreationEvents:
                 xmlDatadigiprov.append(premisEvent)
 
             techMDRepElements.append(techMDRep)
@@ -219,7 +232,7 @@ def processPPN(PPN, carriers):
             thisPPNGroup.append(thisCarrier)
 
             # Update fileCounterStart
-            fileCounterStart = fileCounter
+            fileCounterStart = sipFileCounter
 
             # convert volumeNumber to integer (so we can do more checking below)
             try:
