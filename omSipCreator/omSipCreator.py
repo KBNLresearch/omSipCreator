@@ -12,14 +12,12 @@ import argparse
 import codecs
 import csv
 import logging
-from lxml import etree
 from operator import itemgetter
 from itertools import groupby
 from . import config
 from . import checksums
 from .shared import errorExit
 from .ppn import processPPN
-from .cdinfo import parseCDInfoLog
 
 
 # Bind raw_input (Python 3) to input (Python 2)
@@ -38,7 +36,7 @@ if len(config.scriptName) == 0:
     config.scriptName = 'omSipCreator'
 
 __version__ = "0.4.11"
-config.version = __version__ 
+config.version = __version__
 
 # Create parser
 parser = argparse.ArgumentParser(
@@ -247,7 +245,7 @@ def main():
         dirOut = None
 
     # Path to MediaInfo
-    if sys.platform is "win32":    
+    if sys.platform is "win32":
         config.mediaInfoExe = os.path.join(
             toolsDirUser, 'mediainfo', 'MediaInfo.exe')
     elif sys.platform in ["linux", "linux2"]:
@@ -437,7 +435,7 @@ def main():
 
         try:
             os.makedirs(batchErr)
-        except OSError or IOError:
+        except (OSError, IOError):
             logging.fatal("Cannot create directory '" + batchErr + "'")
             config.errors += 1
             errorExit(config.errors, config.warnings)
@@ -482,9 +480,6 @@ def main():
             if PPN in config.failedPPNs:
                 # If PPN is in list of failed PPNs then add record to error batch
 
-                # Default state of flag that is set to "True" if checksums are missing
-                skipChecksumVerification = False
-
                 # Image path for this jobID in input, pruned and error batch
                 imagePathIn = os.path.normpath(os.path.join(batchIn, jobID))
                 imagePathErr = os.path.normpath(os.path.join(batchErr, jobID))
@@ -497,7 +492,7 @@ def main():
                     # Create directory in error batch
                     try:
                         os.makedirs(imagePathErrAbs)
-                    except OSError or IOError:
+                    except (OSError, IOError):
                         logging.error("jobID " + jobID +
                                       ": could not create directory '" +
                                       imagePathErrAbs)
@@ -519,7 +514,7 @@ def main():
                         # Copy file to batchErr
                         try:
                             shutil.copy2(fileIn, fileErr)
-                        except IOError or OSError:
+                        except (IOError, OSError):
                             logging.error("jobID " + jobID + ": cannot copy '" +
                                           fileIn + "' to '" + fileErr + "'")
                             config.errors += 1
