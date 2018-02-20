@@ -192,9 +192,9 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                 isobusterReportElt = etree.parse(isobusterReports[0]).getroot()
             except:
                 logging.error("jobID " + carrier.jobID +
-                          ": error parsing '" + isobusterReports[0] + "'")
+                              ": error parsing '" + isobusterReports[0] + "'")
                 config.errors += 1
-                isobusterReportElt =  etree.Element("dfxml")
+                isobusterReportElt = etree.Element("dfxml")
         else:
             isobusterReportElt = etree.Element("dfxml")
 
@@ -217,7 +217,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                 SIPPath, carrier.carrierType, carrier.volumeNumber)
             try:
                 os.makedirs(dirVolume)
-            except OSError or IOError:
+            except (OSError, IOError):
                 logging.fatal("jobID " + carrier.jobID +
                               ": cannot create '" + dirVolume + "'")
                 config.errors += 1
@@ -350,4 +350,3 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
         techMDFileElements = []
 
     return fileGrp, divDisc, premisCreationEvents, techMDFileElements, cdInfoElt, sipFileCounter, counterTechMD
-
