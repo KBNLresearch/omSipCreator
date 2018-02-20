@@ -160,8 +160,8 @@ def processPPN(PPN, carriers):
             # Create Carrier class instance for this carrier
             thisCarrier = Carrier(jobID, PPN, imagePathFull,
                                   volumeNumber, carrierType)
-            fileGrp, divDisc, premisEventsCarrier, techMDFileElements, cdInfoElt, fileCounter, counterTechMD = processCarrier(
-                thisCarrier, fileGrp, dirSIP, fileCounterStart, counterTechMD)
+            fileElements, divDisc, premisEventsCarrier, techMDFileElements, cdInfoElt, fileCounter, counterTechMD = processCarrier(
+                thisCarrier, dirSIP, fileCounterStart, counterTechMD)
             # NOTE
             # techMDFileElements: list of techMD elements, each of which represent one file.
             # Wraps EbuCore audio metdata + possibly other tech metadata
@@ -172,6 +172,10 @@ def processPPN(PPN, carriers):
             digiProvID = "digiprovMD_" + str(counterDigiprovMD)
             techID = "techMD_" + str(counterTechMD)
             divDisc.attrib["ADMID"] = " ".join([digiProvID, techID])
+
+            # Append file elements to fileGrp
+            for fileElement in fileElements:
+                fileGrp.append(fileElement)
 
             # Append file-level techMD elements to amdSec
             for techMD in techMDFileElements:

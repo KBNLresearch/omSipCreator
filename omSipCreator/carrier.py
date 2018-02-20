@@ -17,7 +17,7 @@ from .premis import addCreationEvent
 from .premis import addObjectInstance
 
 
-def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMDStart):
+def processCarrier(carrier, SIPPath, sipFileCounterStart, counterTechMDStart):
     """Process contents of imagepath directory"""
     # TODO: * check file type / extension matches carrierType!
     # TODO: currently lots of file path manipulations which make things hard to read,
@@ -232,7 +232,9 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
             filesToCopy = [
                 i for i in checksumsFromFile if not i[1].endswith(('.log', '.xml'))]
 
-            # Set up list that will hold file-level techMD elements
+            # Set up list that will hold file elements and file-level 
+            # techMD elements
+            fileElements = []
             techMDFileElements = []
 
             for entry in filesToCopy:
@@ -266,8 +268,11 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                     config.failedPPNs.append(carrier.PPN)
 
                 # Create METS file and FLocat elements
-                fileElt = etree.SubElement(
-                    fileGrp, "{%s}file" % (config.mets_ns))
+
+                fileEltName = etree.QName(config.mets_ns, "file")
+                fileElt = etree.Element(
+                    fileEltName, nsmap=config.NSMAP)
+
                 fileElt.attrib["ID"] = fileID
                 fileElt.attrib["SIZE"] = fileSize
                 # TODO: add SEQ and CREATED, DMDID attributes as well
@@ -332,6 +337,9 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
                 # Add techMDIDs to fileElt
                 fileElt.attrib["ADMID"] = techMDIDs
 
+                # Add fileElt to fileElements
+                fileElements.append(fileElt)
+
                 fileCounter += 1
                 sipFileCounter += 1
                 counterTechMD += 1
@@ -340,6 +348,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
             # We end up here if config.createSIPs == False
             # Dummy values (not used)
             premisCreationEvents = []
+            fileElements = []
             techMDFileElements = []
 
     else:
@@ -347,6 +356,7 @@ def processCarrier(carrier, fileGrp, SIPPath, sipFileCounterStart, counterTechMD
         # Dummy values (not used)
         divDisc = etree.Element('rubbish')
         premisCreationEvents = []
+        fileElements = []
         techMDFileElements = []
 
-    return fileGrp, divDisc, premisCreationEvents, techMDFileElements, cdInfoElt, sipFileCounter, counterTechMD
+    return fileElements, divDisc, premisCreationEvents, techMDFileElements, cdInfoElt, sipFileCounter, counterTechMD
