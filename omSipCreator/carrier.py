@@ -17,15 +17,13 @@ from .premis import addCreationEvent
 from .premis import addObjectInstance
 
 
-def processCarrier(carrier, SIPPath, sipFileCounterStart, counterTechMDStart):
+def processCarrier(carrier, SIPPath):
     """Process one carrier"""
     # TODO: * check file type / extension matches carrierType!
     # TODO: currently lots of file path manipulations which make things hard to read,
     # could be better structured with more understandable naming conventions.
 
     fileCounter = 1
-    sipFileCounter = sipFileCounterStart
-    counterTechMD = counterTechMDStart
 
     # Mapping between mimeType and structmap TYPE field
 
@@ -168,12 +166,8 @@ def processCarrier(carrier, SIPPath, sipFileCounterStart, counterTechMDStart):
 
         # Carrier-level (representation) tech metadata from cd-info.log
         if cdinfoLogs != []:
-            cdInfoElt, dataSectorOffset = parseCDInfoLog(cdinfoLogs[0])
+            carrier.cdInfoElt, dataSectorOffset = parseCDInfoLog(cdinfoLogs[0])
         else:
-            # Create empty cd-info element
-            cdInfoName = etree.QName(config.cdInfo_ns, "cd-info")
-            cdInfoElt = etree.Element(
-                cdInfoName, nsmap=config.NSMAP)
             dataSectorOffset = 0
 
         # Metadata from Isobuster report (return empy element in case of parse
@@ -194,13 +188,12 @@ def processCarrier(carrier, SIPPath, sipFileCounterStart, counterTechMDStart):
             # Generate event metadata from Isobuster/dBpoweramp logs
             # For each carrier we can have an Isobuster even, a dBpoweramp event, or both
             # Events are wrapped in a list premisEvents
-            premisCreationEvents = []
             if isobusterLogs != []:
                 premisEvent = addCreationEvent(isobusterLogs[0])
-                premisCreationEvents.append(premisEvent)
+                carrier.premisCreationEvents.append(premisEvent)
             if dBpowerampLogs != []:
                 premisEvent = addCreationEvent(dBpowerampLogs[0])
-                premisCreationEvents.append(premisEvent)
+                carrier.premisCreationEvents.append(premisEvent)
 
             # Create Volume directory
             logging.info("creating carrier directory")
@@ -223,11 +216,6 @@ def processCarrier(carrier, SIPPath, sipFileCounterStart, counterTechMDStart):
             filesToCopy = [
                 i for i in checksumsFromFile if not i[1].endswith(('.log', '.xml'))]
 
-            # Set up lists that will hold file, divFile and file-level 
-            # techMD elements
-            fileElements = []
-            divFileElements = []
-            techMDFileElements = []
 
             for entry in filesToCopy:
 
@@ -235,7 +223,7 @@ def processCarrier(carrier, SIPPath, sipFileCounterStart, counterTechMDStart):
                 fileName = entry[1]
                 fileSize = entry[2]
                 # Generate unique file ID (used in structMap)
-                fileID = "file_" + str(sipFileCounter)
+                fileID = "file_" + str(carrier.sipFileCounter)
                 # Construct path relative to carrier directory
                 fIn = os.path.join(carrier.imagePathFull, fileName)
 
@@ -302,12 +290,12 @@ def processCarrier(carrier, SIPPath, sipFileCounterStart, counterTechMDStart):
                 fptr.attrib["FILEID"] = fileID
 
                 # Add divisor element to divFileElements
-                divFileElements.append(divFile)
+                carrier.divFileElements.append(divFile)
 
                 # Create techMD element for PREMIS object information
                 techMDPremisName = etree.QName(config.mets_ns, "techMD")
                 techMDPremis = etree.Element(techMDPremisName, nsmap=config.NSMAP)
-                techMDPremisID = "techMD_" + str(counterTechMD)
+                techMDPremisID = "techMD_" + str(carrier.counterTechMD)
                 techMDPremis.attrib["ID"] = techMDPremisID
 
                 # Add wrapper element for PREMIS object metadata
@@ -322,7 +310,7 @@ def processCarrier(carrier, SIPPath, sipFileCounterStart, counterTechMDStart):
                 premisObjectInfo = addObjectInstance(
                     fSIP, fileSize, mimeType, checksum, dataSectorOffset, isobusterReportElt)
                 xmlDataObjectPremis.append(premisObjectInfo)
-                techMDFileElements.append(techMDPremis)
+                carrier.techMDFileElements.append(techMDPremis)
 
                 # String of techMD identifiers that are used as ADMID attribute of fileElt
                 techMDIDs = techMDPremisID
@@ -331,35 +319,10 @@ def processCarrier(carrier, SIPPath, sipFileCounterStart, counterTechMDStart):
                 fileElt.attrib["ADMID"] = techMDIDs
 
                 # Add fileElt to fileElements
-                fileElements.append(fileElt)
+                carrier.fileElements.append(fileElt)
 
                 fileCounter += 1
-                sipFileCounter += 1
-                counterTechMD += 1
+                carrier.sipFileCounter += 1
+                carrier.counterTechMD += 1
 
-        else:
-            # We end up here if config.createSIPs == False
-            # Dummy values (not used)
-            premisCreationEvents = []
-            fileElements = []
-            techMDFileElements = []
 
-    else:
-        # We end up here if skipChecksumVerification == True
-        # Dummy values (not used)
-        divDisc = etree.Element('rubbish')
-        premisCreationEvents = []
-        fileElements = []
-        techMDFileElements = []
-
-    # Wrap all output in dictionary
-    carrierOut = {}
-    carrierOut['divFileElements'] = divFileElements
-    carrierOut['fileElements'] = fileElements
-    carrierOut['techMDFileElements'] = techMDFileElements
-    carrierOut['premisCreationEvents'] = premisCreationEvents
-    carrierOut['cdInfoElt'] = cdInfoElt
-    carrierOut['sipFileCounter'] = sipFileCounter
-    carrierOut['counterTechMD'] = counterTechMD
-
-    return carrierOut

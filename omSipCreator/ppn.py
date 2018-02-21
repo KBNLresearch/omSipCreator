@@ -26,7 +26,14 @@ class Carrier:
         self.imagePathFull = imagePathFull
         self.volumeNumber = volumeNumber
         self.carrierType = carrierType
-
+        self.divFileElements = []
+        self.fileElements = []
+        self.techMDFileElements = []
+        self.premisCreationEvents = []
+        cdInfoName = etree.QName(config.cdInfo_ns, "cd-info")
+        self.cdInfoElt = etree.Element(cdInfoName, nsmap=config.NSMAP)
+        self.sipFileCounter = 1
+        self.counterTechMD = 1
 
 class PPNGroup:
     """PPNGroup class"""
@@ -161,23 +168,11 @@ def processPPN(PPN, carriers):
             thisCarrier = Carrier(jobID, PPN, imagePathFull,
                                   volumeNumber, carrierType)
 
-            # Process carrier; output to dictionary
-            carrierOutput = processCarrier(thisCarrier,
-                                           dirSIP,
-                                           sipFileCounterStart,
-                                           counterTechMD)
-
-            divFileElements = carrierOutput['divFileElements']
-            fileElements = carrierOutput['fileElements']
-            techMDFileElements = carrierOutput['techMDFileElements']
-            premisCreationEvents = carrierOutput['premisCreationEvents']
-            cdInfoElt = carrierOutput['cdInfoElt']
-            sipFileCounter = carrierOutput['sipFileCounter']
-            counterTechMD = carrierOutput['counterTechMD']
-
+            # Process carrier
+            processCarrier(thisCarrier, dirSIP)
 
             # Append file elements to fileGrp
-            for fileElement in fileElements:
+            for fileElement in thisCarrier.fileElements:
                 fileGrp.append(fileElement)
 
             # Create carrier-level METS div entry
@@ -193,14 +188,14 @@ def processPPN(PPN, carriers):
             divDisc.attrib["ADMID"] = " ".join([digiProvID, techID])
 
             # Append file-level div elements to caarier-level div element
-            for divFile in divFileElements:
+            for divFile in thisCarrier.divFileElements:
                 divDisc.append(divFile)
 
             # Append file-level techMD elements to amdSec
-            for techMD in techMDFileElements:
+            for techMD in thisCarrier.techMDFileElements:
                 amdSec.append(techMD)
 
-            counterTechMD += 1
+            thisCarrier.counterTechMD += 1
 
             # Create representation-level techMD, digiprovMD, mdWrap and xmlData
             # child elements
@@ -214,7 +209,7 @@ def processPPN(PPN, carriers):
             mdWrapTechMDRep.attrib["OTHERMDTYPE"] = "cd-info output"
             xmlDatatechMDRep = etree.SubElement(
                 mdWrapTechMDRep, "{%s}xmlData" % (config.mets_ns))
-            xmlDatatechMDRep.append(cdInfoElt)
+            xmlDatatechMDRep.append(thisCarrier.cdInfoElt)
 
             digiprovMDName = etree.QName(config.mets_ns, "digiprovMD")
             digiprovMD = etree.Element(digiprovMDName, nsmap=config.NSMAP)
@@ -228,7 +223,7 @@ def processPPN(PPN, carriers):
                 mdWrapdigiprov, "{%s}xmlData" % (config.mets_ns))
 
             # Append PREMIS events that were returned by ProcessCarrier
-            for premisEvent in premisCreationEvents:
+            for premisEvent in thisCarrier.premisCreationEvents:
                 xmlDatadigiprov.append(premisEvent)
 
             techMDRepElements.append(techMDRep)
@@ -238,7 +233,7 @@ def processPPN(PPN, carriers):
             thisPPNGroup.append(thisCarrier)
 
             # Update sipFileCounterStart
-            sipFileCounterStart = sipFileCounter
+            sipFileCounterStart = thisCarrier.sipFileCounter
 
             # convert volumeNumber to integer (so we can do more checking below)
             try:
