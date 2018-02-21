@@ -87,7 +87,7 @@ def processPPN(PPN, carriers):
     structDivTop.attrib["DMDID"] = dmdSecID
 
     # Initialise counters that are used to assign file and carrier-level IDs
-    fileCounterStart = 1
+    sipFileCounterStart = 1
     carrierCounterStart = 1
     carrierCounter = carrierCounterStart
     counterDigiprovMD = 1
@@ -164,7 +164,7 @@ def processPPN(PPN, carriers):
             # Process carrier; output to dictionary
             carrierOutput = processCarrier(thisCarrier,
                                            dirSIP,
-                                           fileCounterStart,
+                                           sipFileCounterStart,
                                            counterTechMD)
 
             divFileElements = carrierOutput['divFileElements']
@@ -237,8 +237,8 @@ def processPPN(PPN, carriers):
             # Add to PPNGroup class instance
             thisPPNGroup.append(thisCarrier)
 
-            # Update fileCounterStart
-            fileCounterStart = sipFileCounter
+            # Update sipFileCounterStart
+            sipFileCounterStart = sipFileCounter
 
             # convert volumeNumber to integer (so we can do more checking below)
             try:
