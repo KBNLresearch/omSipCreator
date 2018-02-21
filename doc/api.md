@@ -19,7 +19,7 @@
 
 Dictionary *carrierOut* with following elements:
 
-* divDisc: element, *div* element with all carrier-level structMap components (level 2 in SIP specification)
+* divFileElements: list with, *div* elements for all file-level structMap components (level 3 in SIP specification)
 * fileElements: list, with *file* elements for all files that are part of carrier.
 * techMDFileElements: list with file-level techMD elements
 * premisCreationEvents: list with PREMIS imaging/ripping events (Isobuster/dBpoweramp logs)

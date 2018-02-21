@@ -166,12 +166,6 @@ def processCarrier(carrier, SIPPath, sipFileCounterStart, counterTechMDStart):
                 config.errors += 1
                 config.failedPPNs.append(carrier.PPN)
 
-        # Create METS div entry (will remain empty if createSIPs != True)
-        divDiscName = etree.QName(config.mets_ns, "div")
-        divDisc = etree.Element(divDiscName, nsmap=config.NSMAP)
-        divDisc.attrib["TYPE"] = carrier.carrierType
-        divDisc.attrib["ORDER"] = carrier.volumeNumber
-
         # Carrier-level (representation) tech metadata from cd-info.log
         if cdinfoLogs != []:
             cdInfoElt, dataSectorOffset = parseCDInfoLog(cdinfoLogs[0])
@@ -229,9 +223,10 @@ def processCarrier(carrier, SIPPath, sipFileCounterStart, counterTechMDStart):
             filesToCopy = [
                 i for i in checksumsFromFile if not i[1].endswith(('.log', '.xml'))]
 
-            # Set up list that will hold file elements and file-level 
+            # Set up lists that will hold file, divFile and file-level 
             # techMD elements
             fileElements = []
+            divFileElements = []
             techMDFileElements = []
 
             for entry in filesToCopy:
@@ -299,17 +294,19 @@ def processCarrier(carrier, SIPPath, sipFileCounterStart, counterTechMDStart):
                 # (e.g. no audio/x-wav if cd-rom, etc.)
 
                 # Create track divisor element for structmap
-                divFile = etree.SubElement(
-                    divDisc, "{%s}div" % (config.mets_ns))
+                divFileName = etree.QName(config.mets_ns, "div")
+                divFile = etree.Element(divFileName, nsmap=config.NSMAP)
                 divFile.attrib["TYPE"] = mimeTypeMap[mimeType]
                 divFile.attrib["ORDER"] = str(fileCounter)
                 fptr = etree.SubElement(divFile, "{%s}fptr" % (config.mets_ns))
                 fptr.attrib["FILEID"] = fileID
 
+                # Add divisor element to divFileElements
+                divFileElements.append(divFile)
+
                 # Create techMD element for PREMIS object information
                 techMDPremisName = etree.QName(config.mets_ns, "techMD")
-                techMDPremis = etree.Element(
-                    techMDPremisName, nsmap=config.NSMAP)
+                techMDPremis = etree.Element(techMDPremisName, nsmap=config.NSMAP)
                 techMDPremisID = "techMD_" + str(counterTechMD)
                 techMDPremis.attrib["ID"] = techMDPremisID
 
@@ -357,7 +354,7 @@ def processCarrier(carrier, SIPPath, sipFileCounterStart, counterTechMDStart):
 
     # Wrap all output in dictionary
     carrierOut = {}
-    carrierOut['divDisc'] = divDisc
+    carrierOut['divFileElements'] = divFileElements
     carrierOut['fileElements'] = fileElements
     carrierOut['techMDFileElements'] = techMDFileElements
     carrierOut['premisCreationEvents'] = premisCreationEvents

@@ -167,7 +167,7 @@ def processPPN(PPN, carriers):
                                            fileCounterStart,
                                            counterTechMD)
 
-            divDisc = carrierOutput['divDisc']
+            divFileElements = carrierOutput['divFileElements']
             fileElements = carrierOutput['fileElements']
             techMDFileElements = carrierOutput['techMDFileElements']
             premisCreationEvents = carrierOutput['premisCreationEvents']
@@ -175,10 +175,16 @@ def processPPN(PPN, carriers):
             sipFileCounter = carrierOutput['sipFileCounter']
             counterTechMD = carrierOutput['counterTechMD']
 
-            # NOTE
-            # techMDFileElements: list of techMD elements, each of which represent one file.
-            # Wraps EbuCore audio metdata + possibly other tech metadata
-            # NOTE
+
+            # Append file elements to fileGrp
+            for fileElement in fileElements:
+                fileGrp.append(fileElement)
+
+            # Create carrier-level METS div entry
+            divDiscName = etree.QName(config.mets_ns, "div")
+            divDisc = etree.Element(divDiscName, nsmap=config.NSMAP)
+            divDisc.attrib["TYPE"] = thisCarrier.carrierType
+            divDisc.attrib["ORDER"] = thisCarrier.volumeNumber
 
             # Construct unique identifiers for digiProvMD and techMD (see below)
             # and add to divDisc as ADMID
@@ -186,9 +192,9 @@ def processPPN(PPN, carriers):
             techID = "techMD_" + str(counterTechMD)
             divDisc.attrib["ADMID"] = " ".join([digiProvID, techID])
 
-            # Append file elements to fileGrp
-            for fileElement in fileElements:
-                fileGrp.append(fileElement)
+            # Append file-level div elements to caarier-level div element
+            for divFile in divFileElements:
+                divDisc.append(divFile)
 
             # Append file-level techMD elements to amdSec
             for techMD in techMDFileElements:
