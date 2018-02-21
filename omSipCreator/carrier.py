@@ -18,13 +18,10 @@ from .premis import addObjectInstance
 
 
 def processCarrier(carrier, SIPPath, sipFileCounterStart, counterTechMDStart):
-    """Process contents of imagepath directory"""
+    """Process one carrier"""
     # TODO: * check file type / extension matches carrierType!
     # TODO: currently lots of file path manipulations which make things hard to read,
     # could be better structured with more understandable naming conventions.
-
-    # Counters used to assign file ORDER and IDs, sipFileCounter must be unique for
-    # each file within SIP
 
     fileCounter = 1
     sipFileCounter = sipFileCounterStart
@@ -126,7 +123,7 @@ def processCarrier(carrier, SIPPath, sipFileCounterStart, counterTechMDStart):
         # Sort ascending by file name - this ensures correct order when making structMap
         checksumsFromFile.sort(key=itemgetter(1))
 
-        # List which to store names of all files that are referenced in the checksum file
+        # List to store names of all files that are referenced in the checksum file
         allFilesinChecksumFile = []
         for entry in checksumsFromFile:
             checksum = entry[0]
@@ -175,7 +172,7 @@ def processCarrier(carrier, SIPPath, sipFileCounterStart, counterTechMDStart):
         divDisc.attrib["TYPE"] = carrier.carrierType
         divDisc.attrib["ORDER"] = carrier.volumeNumber
 
-        # Representation-level tech metadata from cd-info.log
+        # Carrier-level (representation) tech metadata from cd-info.log
         if cdinfoLogs != []:
             cdInfoElt, dataSectorOffset = parseCDInfoLog(cdinfoLogs[0])
         else:
@@ -275,7 +272,6 @@ def processCarrier(carrier, SIPPath, sipFileCounterStart, counterTechMDStart):
 
                 fileElt.attrib["ID"] = fileID
                 fileElt.attrib["SIZE"] = fileSize
-                # TODO: add SEQ and CREATED, DMDID attributes as well
 
                 fLocat = etree.SubElement(
                     fileElt, "{%s}FLocat" % (config.mets_ns))
