@@ -172,7 +172,7 @@ def processPPN(PPN, carriers):
             techID = "techMD_" + str(counterTechMD)
             divDisc.attrib["ADMID"] = " ".join([digiProvID, techID])
 
-            # Append file-level div elements to caarier-level div element
+            # Append file-level div elements to carrier-level div element
             for divFile in thisCarrier.divFileElements:
                 divDisc.append(divFile)
 
