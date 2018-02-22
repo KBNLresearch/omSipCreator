@@ -18,6 +18,7 @@ from . import config
 from . import checksums
 from .shared import errorExit
 from .ppn import processPPN
+from .prune import pruneBatch
 
 
 # Bind raw_input (Python 3) to input (Python 2)
@@ -407,7 +408,8 @@ def main():
     config.failedPPNs = (list(set(config.failedPPNs)))
 
     if config.pruneBatch and config.failedPPNs != []:
-
+        pruneBatch(batchManifest, fileBatchManifest, headerBatchManifest, rowsBatchManifest, out, fileBatchLog)
+"""
         logging.info("Start pruning")
 
         # Check if batchErr is an existing directory. If yes,
@@ -568,6 +570,7 @@ def main():
         logging.info("Pruning resulted in additional " + str(config.errors) +
                      " errors and " + str(config.warnings) + " warnings")
 
+"""
 
 if __name__ == "__main__":
     main()
