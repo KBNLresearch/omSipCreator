@@ -6,7 +6,6 @@ SIP Creator for Offline Media Images.
 import sys
 import os
 import shutil
-import glob
 import imp
 import argparse
 import codecs
@@ -15,7 +14,6 @@ import logging
 from operator import itemgetter
 from itertools import groupby
 from . import config
-from . import checksums
 from .shared import errorExit
 from .ppn import processPPN
 from .prune import pruneBatch
@@ -141,9 +139,7 @@ def printHelpAndExit():
 def main():
     """Main CLI function"""
 
-    # Set up logger
-    logFile = "omsipcreator.log"
-    # Suppress info messages from requests module
+    # Set up logger; suppress info messages from requests module
     logging.getLogger("requests").setLevel(logging.WARNING)
     logFormatter = logging.Formatter('%(levelname)s - %(message)s')
     logger = logging.getLogger()
