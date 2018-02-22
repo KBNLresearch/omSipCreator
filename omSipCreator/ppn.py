@@ -98,7 +98,6 @@ def processPPN(PPN, carriers):
     carrierCounterStart = 1
     carrierCounter = carrierCounterStart
     counterDigiprovMD = 1
-    counterTechMD = 1
 
     # Dummy value for dirSIP (needed if createSIPs = False)
     dirSIP = "rubbish"
@@ -184,7 +183,7 @@ def processPPN(PPN, carriers):
             # Construct unique identifiers for digiProvMD and techMD (see below)
             # and add to divDisc as ADMID
             digiProvID = "digiprovMD_" + str(counterDigiprovMD)
-            techID = "techMD_" + str(counterTechMD)
+            techID = "techMD_" + str(thisCarrier.counterTechMD)
             divDisc.attrib["ADMID"] = " ".join([digiProvID, techID])
 
             # Append file-level div elements to caarier-level div element
