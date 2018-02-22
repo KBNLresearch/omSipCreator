@@ -32,8 +32,6 @@ class Carrier:
         self.premisCreationEvents = []
         cdInfoName = etree.QName(config.cdInfo_ns, "cd-info")
         self.cdInfoElt = etree.Element(cdInfoName, nsmap=config.NSMAP)
-        self.sipFileCounter = 1
-        self.counterTechMD = 1
 
 class PPNGroup:
     """PPNGroup class"""
@@ -95,6 +93,7 @@ def processPPN(PPN, carriers):
 
     # Initialise counters that are used to assign file and carrier-level IDs
     sipFileCounterStart = 1
+    counterTechMDStart = 1
     carrierCounterStart = 1
     carrierCounter = carrierCounterStart
     counterDigiprovMD = 1
@@ -168,7 +167,10 @@ def processPPN(PPN, carriers):
                                   volumeNumber, carrierType)
 
             # Process carrier
-            processCarrier(thisCarrier, dirSIP)
+            sipFileCounter, counterTechMD = processCarrier(thisCarrier,
+                                                           dirSIP,
+                                                           sipFileCounterStart,
+                                                           counterTechMDStart)
 
             # Append file elements to fileGrp
             for fileElement in thisCarrier.fileElements:
@@ -183,7 +185,7 @@ def processPPN(PPN, carriers):
             # Construct unique identifiers for digiProvMD and techMD (see below)
             # and add to divDisc as ADMID
             digiProvID = "digiprovMD_" + str(counterDigiprovMD)
-            techID = "techMD_" + str(thisCarrier.counterTechMD)
+            techID = "techMD_" + str(counterTechMD)
             divDisc.attrib["ADMID"] = " ".join([digiProvID, techID])
 
             # Append file-level div elements to caarier-level div element
@@ -194,7 +196,7 @@ def processPPN(PPN, carriers):
             for techMD in thisCarrier.techMDFileElements:
                 amdSec.append(techMD)
 
-            thisCarrier.counterTechMD += 1
+            counterTechMD += 1
 
             # Create representation-level techMD, digiprovMD, mdWrap and xmlData
             # child elements
@@ -231,8 +233,9 @@ def processPPN(PPN, carriers):
             # Add to PPNGroup class instance
             thisPPNGroup.append(thisCarrier)
 
-            # Update sipFileCounterStart
-            sipFileCounterStart = thisCarrier.sipFileCounter
+            # Update sipFileCounterStart and counterTechMDStart
+            sipFileCounterStart = sipFileCounter
+            counterTechMDStart = counterTechMD
 
             # convert volumeNumber to integer (so we can do more checking below)
             try:

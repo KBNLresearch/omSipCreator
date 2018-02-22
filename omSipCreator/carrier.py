@@ -17,13 +17,15 @@ from .premis import addCreationEvent
 from .premis import addObjectInstance
 
 
-def processCarrier(carrier, SIPPath):
+def processCarrier(carrier, SIPPath, sipFileCounterStart, counterTechMDStart):
     """Process one carrier"""
     # TODO: * check file type / extension matches carrierType!
     # TODO: currently lots of file path manipulations which make things hard to read,
     # could be better structured with more understandable naming conventions.
 
     fileCounter = 1
+    sipFileCounter = sipFileCounterStart
+    counterTechMD = counterTechMDStart
 
     # Mapping between mimeType and structmap TYPE field
 
@@ -223,7 +225,7 @@ def processCarrier(carrier, SIPPath):
                 fileName = entry[1]
                 fileSize = entry[2]
                 # Generate unique file ID (used in structMap)
-                fileID = "file_" + str(carrier.sipFileCounter)
+                fileID = "file_" + str(sipFileCounter)
                 # Construct path relative to carrier directory
                 fIn = os.path.join(carrier.imagePathFull, fileName)
 
@@ -295,7 +297,7 @@ def processCarrier(carrier, SIPPath):
                 # Create techMD element for PREMIS object information
                 techMDPremisName = etree.QName(config.mets_ns, "techMD")
                 techMDPremis = etree.Element(techMDPremisName, nsmap=config.NSMAP)
-                techMDPremisID = "techMD_" + str(carrier.counterTechMD)
+                techMDPremisID = "techMD_" + str(counterTechMD)
                 techMDPremis.attrib["ID"] = techMDPremisID
 
                 # Add wrapper element for PREMIS object metadata
@@ -322,7 +324,7 @@ def processCarrier(carrier, SIPPath):
                 carrier.fileElements.append(fileElt)
 
                 fileCounter += 1
-                carrier.sipFileCounter += 1
-                carrier.counterTechMD += 1
+                sipFileCounter += 1
+                counterTechMD += 1
 
-
+    return sipFileCounter, counterTechMD
