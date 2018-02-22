@@ -13,7 +13,7 @@ from . import config
 from . import checksums
 from .shared import errorExit
 
-def pruneBatch(batchManifest, fileBatchManifest, headerBatchManifest, rowsBatchManifest, out, fileBatchLog):
+def pruneBatch(out):
     """Prune batch"""
 
     logging.info("Start pruning")
@@ -48,7 +48,7 @@ def pruneBatch(batchManifest, fileBatchManifest, headerBatchManifest, rowsBatchM
         errorExit(config.errors, config.warnings)
 
     # Add batch manifest to batchErr directory
-    batchManifestErr = os.path.join(config.batchErr, fileBatchManifest)
+    batchManifestErr = os.path.join(config.batchErr, config.fileBatchManifest)
 
     # Add temporary (updated) batch manifest to batchIn
     fileBatchManifestTemp = "tmp.csv"
@@ -75,12 +75,12 @@ def pruneBatch(batchManifest, fileBatchManifest, headerBatchManifest, rowsBatchM
     csvTemp = csv.writer(fbatchManifestTemp, lineterminator='\n')
 
     # Write header rows to batch manifests
-    csvErr.writerow(headerBatchManifest)
-    csvTemp.writerow(headerBatchManifest)
+    csvErr.writerow(config.headerBatchManifest)
+    csvTemp.writerow(config.headerBatchManifest)
 
     # Iterate over all entries in batch manifest
 
-    for row in rowsBatchManifest:
+    for row in config.rowsBatchManifest:
         jobID = row[0]
         PPN = row[1]
 
@@ -157,19 +157,19 @@ def pruneBatch(batchManifest, fileBatchManifest, headerBatchManifest, rowsBatchM
     fbatchManifestTemp.close()
 
     # Rename original batchManifest to '.old' extension
-    fileBatchManifestOld = os.path.splitext(fileBatchManifest)[0] + ".old"
+    fileBatchManifestOld = os.path.splitext(config.fileBatchManifest)[0] + ".old"
     batchManifestOld = os.path.join(config.batchIn, fileBatchManifestOld)
-    os.rename(batchManifest, batchManifestOld)
+    os.rename(config.batchManifest, batchManifestOld)
 
     # Rename batchManifestTemp to batchManifest
-    os.rename(batchManifestTemp, batchManifest)
+    os.rename(batchManifestTemp, config.batchManifest)
 
     logging.info("Saved old batch manifest in batchIn as '" +
                  fileBatchManifestOld + "'")
 
     # Copy batch log to error batch
-    batchLogIn = os.path.join(config.batchIn, fileBatchLog)
-    batchLogErr = os.path.join(config.batchErr, fileBatchLog)
+    batchLogIn = os.path.join(config.batchIn, config.fileBatchLog)
+    batchLogErr = os.path.join(config.batchErr, config.fileBatchLog)
     shutil.copy2(batchLogIn, batchLogErr)
 
     # Summarise no. of additional warnings / errors during pruning
