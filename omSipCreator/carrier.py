@@ -17,6 +17,23 @@ from .premis import addCreationEvent
 from .premis import addObjectInstance
 
 
+class Carrier:
+    """Carrier class"""
+    def __init__(self, jobID, PPN, imagePathFull, volumeNumber, carrierType):
+        """Initialise Carrier class instance"""
+        self.jobID = jobID
+        self.PPN = PPN
+        self.imagePathFull = imagePathFull
+        self.volumeNumber = volumeNumber
+        self.carrierType = carrierType
+        self.divFileElements = []
+        self.fileElements = []
+        self.techMDFileElements = []
+        self.premisCreationEvents = []
+        cdInfoName = etree.QName(config.cdInfo_ns, "cd-info")
+        self.cdInfoElt = etree.Element(cdInfoName, nsmap=config.NSMAP)
+
+
 def processCarrier(carrier, SIPPath, sipFileCounterStart, counterTechMDStart):
     """Process one carrier"""
     # TODO: * check file type / extension matches carrierType!

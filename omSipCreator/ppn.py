@@ -10,28 +10,13 @@ from operator import itemgetter
 from itertools import groupby
 from lxml import etree
 from . import config
-from .shared import errorExit
+from .carrier import Carrier
 from .carrier import processCarrier
+from .shared import errorExit
 from .mods import createMODS
 
 
 # Classes for Carrier and PPN
-
-class Carrier:
-    """Carrier class"""
-    def __init__(self, jobID, PPN, imagePathFull, volumeNumber, carrierType):
-        """Initialise Carrier class instance"""
-        self.jobID = jobID
-        self.PPN = PPN
-        self.imagePathFull = imagePathFull
-        self.volumeNumber = volumeNumber
-        self.carrierType = carrierType
-        self.divFileElements = []
-        self.fileElements = []
-        self.techMDFileElements = []
-        self.premisCreationEvents = []
-        cdInfoName = etree.QName(config.cdInfo_ns, "cd-info")
-        self.cdInfoElt = etree.Element(cdInfoName, nsmap=config.NSMAP)
 
 class PPNGroup:
     """PPNGroup class"""
@@ -94,8 +79,7 @@ def processPPN(PPN, carriers):
     # Initialise counters that are used to assign file and carrier-level IDs
     sipFileCounterStart = 1
     counterTechMDStart = 1
-    carrierCounterStart = 1
-    carrierCounter = carrierCounterStart
+    carrierCounter = 1
     counterDigiprovMD = 1
 
     # Dummy value for dirSIP (needed if createSIPs = False)
