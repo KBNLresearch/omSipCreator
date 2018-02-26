@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 """
-Class and processing functions for one bATCH
+Class and processing functions for one batch
 """
 
 import os
