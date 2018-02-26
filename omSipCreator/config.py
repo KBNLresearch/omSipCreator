@@ -35,6 +35,5 @@ fileBatchManifest = ""
 headerBatchManifest = []
 rowsBatchManifest = []
 fileBatchLog = ""
-colsBatchManifest = {}
 dirsInMetaCarriers = []
 carrierTypeAllowedValues = []

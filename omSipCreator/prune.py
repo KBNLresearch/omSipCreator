@@ -13,7 +13,7 @@ from . import config
 from . import checksums
 from .shared import errorExit
 
-def pruneBatch(out):
+def pruneBatch():
     """Prune batch"""
 
     logging.info("Start pruning")
@@ -23,7 +23,7 @@ def pruneBatch(out):
 
     if os.path.isdir(config.batchErr):
 
-        out.write("\nThis will overwrite existing directory '" + config.batchErr +
+        config.out.write("\nThis will overwrite existing directory '" + config.batchErr +
                   "' and remove its contents!\nDo you really want to proceed (Y/N)? > ")
         response = input()
 

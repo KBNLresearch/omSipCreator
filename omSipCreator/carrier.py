@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 """
-Processing functions for one carrier
+Class and processing functions for one carrier
 """
 
 import os

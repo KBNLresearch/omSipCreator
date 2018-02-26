@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 """
-Processing functions for one PPN
+Class and processing functions for one PPN
 """
 
 import os
@@ -31,7 +31,7 @@ class PPN:
         self.carrierTypes.append(carrier.carrierType)
 
 
-    def process(self, carriers):
+    def process(self, carriers, batchDir, colsBatchManifest):
 
         """Process a PPN"""
         # PPN is PPN identifier (by which we grouped data)
@@ -112,15 +112,15 @@ class PPN:
             volumeNumbersTypeGroup = []
             for carrier in carrierTypeGroup:
 
-                jobID = carrier[config.colsBatchManifest["jobID"]]
-                volumeNumber = carrier[config.colsBatchManifest["volumeNo"]]
-                carrierType = carrier[config.colsBatchManifest["carrierType"]]
-                title = carrier[config.colsBatchManifest["title"]]
-                volumeID = carrier[config.colsBatchManifest["volumeID"]]
-                success = carrier[config.colsBatchManifest["success"]]
-                containsAudio = carrier[config.colsBatchManifest["containsAudio"]]
-                containsData = carrier[config.colsBatchManifest["containsData"]]
-                cdExtra = carrier[config.colsBatchManifest["cdExtra"]]
+                jobID = carrier[colsBatchManifest["jobID"]]
+                volumeNumber = carrier[colsBatchManifest["volumeNo"]]
+                carrierType = carrier[colsBatchManifest["carrierType"]]
+                title = carrier[colsBatchManifest["title"]]
+                volumeID = carrier[colsBatchManifest["volumeID"]]
+                success = carrier[colsBatchManifest["success"]]
+                containsAudio = carrier[colsBatchManifest["containsAudio"]]
+                containsData = carrier[colsBatchManifest["containsData"]]
+                cdExtra = carrier[colsBatchManifest["cdExtra"]]
 
                 # Update jobIDs list
                 jobIDs.append(jobID)
@@ -130,7 +130,7 @@ class PPN:
                 # Check if imagePath is existing directory
 
                 # Full path, relative to batchIn TODO: check behaviour on Window$
-                imagePathFull = os.path.normpath(os.path.join(config.batchIn, jobID))
+                imagePathFull = os.path.normpath(os.path.join(batchDir, jobID))
                 imagePathAbs = os.path.abspath(imagePathFull)
 
                 # Append absolute path to list (used later for completeness check)
