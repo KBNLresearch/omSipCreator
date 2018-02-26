@@ -7,7 +7,6 @@ import sys
 import os
 import imp
 import argparse
-import codecs
 import logging
 from . import config
 from .batch import Batch
