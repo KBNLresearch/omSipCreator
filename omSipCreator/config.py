@@ -29,14 +29,9 @@ errors = 0
 warnings = 0
 createSIPs = False
 pruneBatch = False
-batchIn = ""
+batchDir = ""
 batchErr = ""
 dirOut = ""
-batchManifest = ""
-fileBatchManifest = ""
-headerBatchManifest = []
-rowsBatchManifest = []
-fileBatchLog = ""
 dirsInMetaCarriers = []
 carrierTypeAllowedValues = []
 # Set encoding of the terminal to UTF-8
