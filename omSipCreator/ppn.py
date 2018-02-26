@@ -11,7 +11,6 @@ from itertools import groupby
 from lxml import etree
 from . import config
 from .carrier import Carrier
-from .carrier import processCarrier
 from .shared import errorExit
 from .mods import createMODS
 
@@ -151,10 +150,9 @@ def processPPN(PPN, carriers):
                                   volumeNumber, carrierType)
 
             # Process carrier
-            sipFileCounter, counterTechMD = processCarrier(thisCarrier,
-                                                           dirSIP,
-                                                           sipFileCounterStart,
-                                                           counterTechMDStart)
+            sipFileCounter, counterTechMD = thisCarrier.process(dirSIP,
+                                                                sipFileCounterStart,
+                                                                counterTechMDStart)
 
             # Append file elements to fileGrp
             for fileElement in thisCarrier.fileElements:
