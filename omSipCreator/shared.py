@@ -122,6 +122,23 @@ def launchSubProcess(args):
     return(exitStatus, outputAsString, errorsAsString)
 
 
+def get_immediate_subdirectories(a_dir, ignoreDirs):
+    """Returns list of immediate subdirectories
+    Directories that end with suffixes defined by ignoreDirs are ignored
+    """
+    subDirs = []
+    for root, dirs, files in os.walk(a_dir):
+        for myDir in dirs:
+            ignore = False
+            for ignoreDir in ignoreDirs:
+                if myDir.endswith(ignoreDir):
+                    ignore = True
+            if not ignore:
+                subDirs.append(os.path.abspath(os.path.join(root, myDir)))
+
+    return subDirs
+
+
 def randomString(length):
     """Generate text string with random characters (a-z;A-Z;0-9)"""
     return ''.join(choice(string.ascii_letters + string.digits) for i in range(length))
