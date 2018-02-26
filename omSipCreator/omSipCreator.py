@@ -9,13 +9,8 @@ import imp
 import argparse
 import codecs
 import logging
-from operator import itemgetter
-from itertools import groupby
 from . import config
-from .shared import errorExit
 from .batch import Batch
-from .prune import pruneBatch
-
 
 # Bind raw_input (Python 3) to input (Python 2)
 # Source: http://stackoverflow.com/a/21731110/1209004
@@ -207,7 +202,7 @@ def main():
         config.dirOut = None
 
     # Path to MediaInfo
-    if sys.platform is "win32":
+    if sys.platform == "win32":
         config.mediaInfoExe = os.path.join(
             toolsDirUser, 'mediainfo', 'MediaInfo.exe')
     elif sys.platform in ["linux", "linux2"]:
