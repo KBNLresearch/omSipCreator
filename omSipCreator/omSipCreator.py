@@ -171,9 +171,9 @@ def main():
 
     # Controlled vocabulary for 'carrierType' field
     config.carrierTypeAllowedValues = ['cd-rom',
-                                'cd-audio',
-                                'dvd-rom',
-                                'dvd-video']
+                                       'cd-audio',
+                                       'dvd-rom',
+                                       'dvd-video']
 
     # Define name spaces for METS output
     config.mets_ns = 'http://www.loc.gov/METS/'
