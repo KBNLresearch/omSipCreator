@@ -167,14 +167,6 @@ def main():
     # List for storing failed PPN values (needed for pruning)
     config.failedPPNs = []
 
-    # Set encoding of the terminal to UTF-8
-    if sys.version.startswith("2"):
-        config.out = codecs.getwriter("UTF-8")(sys.stdout)
-        config.err = codecs.getwriter("UTF-8")(sys.stderr)
-    elif sys.version.startswith("3"):
-        config.out = codecs.getwriter("UTF-8")(sys.stdout.buffer)
-        config.err = codecs.getwriter("UTF-8")(sys.stderr.buffer)
-
     # Flag that indicates if SIPs will be written
     config.createSIPs = False
 

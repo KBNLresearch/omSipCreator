@@ -10,7 +10,6 @@ import csv
 import logging
 from operator import itemgetter
 from itertools import groupby
-from lxml import etree
 from . import config
 from .ppn import PPN
 from .shared import errorExit
@@ -43,6 +42,8 @@ class Batch:
         self.batchDir = batchDir
         # Name of batch manifest file
         self.fileBatchManifest = "manifest.csv"
+        # Batch manifest (full path)        
+        self.batchManifest = os.path.join(self.batchDir, self.fileBatchManifest)
         # Name of batch log file
         self.fileBatchLog = "batch.log"
         # List with batch manifest header items
@@ -55,15 +56,15 @@ class Batch:
 
         # Header values of mandatory columns in batch manifest
         self.requiredColsBatchManifest = ['jobID',
-                                     'PPN',
-                                     'volumeNo',
-                                     'carrierType',
-                                     'title',
-                                     'volumeID',
-                                     'success',
-                                     'containsAudio',
-                                     'containsData',
-                                     'cdExtra']
+                                          'PPN',
+                                          'volumeNo',
+                                          'carrierType',
+                                          'title',
+                                          'volumeID',
+                                          'success',
+                                          'containsAudio',
+                                          'containsData',
+                                          'cdExtra']
 
         # List for storing directories as extracted from batch manifest
         config.dirsInMetaCarriers = []
@@ -79,16 +80,16 @@ class Batch:
             config.errors += 1
             errorExit(config.errors, config.warnings)
 
-        # Get listing of all directories (not files) in batch dir (used later for completeness check)
-        # Note: all entries as full, absolute file paths!
-
         # Define dirs to ignore (jobs and jobsFailed)
         ignoreDirs = ["jobs", "jobsFailed"]
+
+        # Get listing of all directories (not files) in batch dir (used later for
+        # completeness check)
+        # Note: all entries as full, absolute file paths!
 
         dirsInBatch = get_immediate_subdirectories(self.batchDir, ignoreDirs)
 
         # Check if batch manifest exists
-        self.batchManifest = os.path.join(self.batchDir, self.fileBatchManifest)
         if not os.path.isfile(self.batchManifest):
             logging.fatal("file " + self.batchManifest + " does not exist")
             config.errors += 1
@@ -142,14 +143,15 @@ class Batch:
             if os.path.isdir(config.dirOut):
 
                 config.out.write("This will overwrite existing directory '" + config.dirOut +
-                          "' and remove its contents!\nDo you really want to proceed (Y/N)? > ")
+                                 "' and remove its contents!\nDo you really want to proceed" +
+                                 " (Y/N)? > ")
                 response = input()
 
                 if response.upper() == "Y":
                     try:
                         shutil.rmtree(config.dirOut)
                     except OSError:
-                        logging.fatal("cannot remove '" + dirOut + "'")
+                        logging.fatal("cannot remove '" + config.dirOut + "'")
                         config.errors += 1
                         errorExit(config.errors, config.warnings)
 
@@ -228,5 +230,3 @@ class Batch:
         # Start pruning if prune command was issued
         if config.pruneBatch and config.failedPPNs != []:
             pruneBatch()
-
-
