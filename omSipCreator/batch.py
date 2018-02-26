@@ -211,10 +211,6 @@ class Batch:
         # Get all unique values in failedPPNs by converting to a set (and then back to a list)
         config.failedPPNs = (list(set(config.failedPPNs)))
 
-        # Start pruning if prune command was issued
-        if config.pruneBatch and config.failedPPNs != []:
-            self.prune()
-
 
     def prune(self):
         """Prune batch"""

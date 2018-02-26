@@ -206,6 +206,10 @@ def main():
     # Process batch
     thisBatch.process()
 
+    # Start pruning if prune command was issued
+    if config.pruneBatch and config.failedPPNs != []:
+        thisBatch.prune()
+
 
 if __name__ == "__main__":
     main()
