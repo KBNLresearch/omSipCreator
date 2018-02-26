@@ -15,7 +15,7 @@ from operator import itemgetter
 from itertools import groupby
 from . import config
 from .shared import errorExit
-from .ppn import processPPN
+from .ppn import PPN
 from .prune import pruneBatch
 
 
@@ -374,9 +374,12 @@ def main():
     # ** Iterate over PPNs**
     # ********
 
-    for PPN, carriers in metaCarriersByPPN:
-        logging.info("Processing PPN " + PPN)
-        processPPN(PPN, carriers)
+    for PPNValue, carriers in metaCarriersByPPN:
+        logging.info("Processing PPN " + PPNValue)
+        # Create PPN class instance for this PPN
+        thisPPN = PPN(PPNValue)
+        # Call PPN processing function
+        thisPPN.process(carriers)
 
     # Check if directories that are part of batch are all represented in carrier metadata file
     # (reverse already covered by checks above)
