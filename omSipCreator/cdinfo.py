@@ -51,8 +51,11 @@ def parseCDInfoLog(fileCDInfo):
             trackMSFStart = trackDetails[0]  # Minute:Second:Frame
             trackLSNStart = trackDetails[1]  # Logical Sector Number
             trackType = trackDetails[2]  # Track type: audio / data
-            #trackGreen = trackDetails[3] # Don't  know what this means
-            #trackCopy = trackDetails[4] # Don't  know what this means
+            trackGreen = trackDetails[3] # Don't  know what this means
+            trackCopy = trackDetails[4] # Don't  know what this means
+            if trackType == 'audio':            
+                trackChannels = trackDetails[5]
+                trackPreemphasis = trackDetails[6]
 
             if trackType == 'data':
                 dataTrackLSNStart = int(trackLSNStart)
@@ -70,8 +73,23 @@ def parseCDInfoLog(fileCDInfo):
                     trackElt, "{%s}LSN" % (config.cdInfo_ns))
             LSNElt.text = str(trackLSNStart)
             TypeElt = etree.SubElement(
-                    trackElt, "{%s}type" % (config.cdInfo_ns))
+                    trackElt, "{%s}Type" % (config.cdInfo_ns))
             TypeElt.text = trackType
+            if trackType != 'leadout':
+                GreenElt = etree.SubElement(
+                        trackElt, "{%s}Green" % (config.cdInfo_ns))
+                GreenElt.text = trackGreen
+                CopyElt = etree.SubElement(
+                        trackElt, "{%s}Copy" % (config.cdInfo_ns))
+                CopyElt.text = trackCopy
+            if trackType == 'audio':
+                ChannelsElt = etree.SubElement(
+                        trackElt, "{%s}Channels" % (config.cdInfo_ns))
+                ChannelsElt.text = trackChannels
+                PreemphasisElt = etree.SubElement(
+                        trackElt, "{%s}Preemphasis" % (config.cdInfo_ns))
+                PreemphasisElt.text = trackPreemphasis
+
 
     # Parse analysis report
     for i in range(startIndexAnalysisReport + 1, len(outAsList), 1):
