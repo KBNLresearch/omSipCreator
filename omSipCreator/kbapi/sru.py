@@ -45,7 +45,7 @@ SETS = {'ANP': {'collection': 'ANP',
                 'metadataPrefix': 'dcx',
                 'recordschema': 'dcx',
                 'setname': 'ggc',
-                'time_period': [1937, 2016]}} # No idea what to use here?
+                'time_period': [1937, 2016]}}  # No idea what to use here?
 
 # Name spaces in GGC records
 
@@ -56,12 +56,13 @@ dc_ns = 'http://purl.org/dc/elements/1.1/'
 dcterms_ns = 'http://purl.org/dc/terms/'
 dcx_ns = 'http://krait.kb.nl/coop/tel/handbook/telterms.html'
 
-NSMAPGGC = {"srw" : srw_ns,
-            "tel" : tel_ns,
-            "xsi" : xsi_ns,
-            "dc" :  dc_ns,
-            "dcterms" : dcterms_ns,
-            "dcx" : dcx_ns}
+NSMAPGGC = {"srw": srw_ns,
+            "tel": tel_ns,
+            "xsi": xsi_ns,
+            "dc":  dc_ns,
+            "dcterms": dcterms_ns,
+            "dcx": dcx_ns}
+
 
 class response():
     def __init__(self, record_data, sru):
@@ -103,6 +104,7 @@ class response():
         return(self.getElementText('{http://purl.org/dc/elements/1.1/}type',
                                    '{http://www.w3.org/XML/1998/namespace}lang',
                                    'nl'))
+
     @property
     def typesDCMI(self):
         return(self.getElementText('{http://purl.org/dc/elements/1.1/}type',
@@ -249,6 +251,7 @@ class response():
                                    '',
                                    ''))
 
+
 class record():
     def __init__(self, record_data, sru):
         self.record_data = record_data
@@ -278,6 +281,7 @@ class record():
             return response(record_data, self.sru)
         else:
             raise StopIteration
+
 
 class sru():
     DEBUG = False
