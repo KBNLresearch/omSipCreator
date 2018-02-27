@@ -51,9 +51,6 @@ class Carrier:
             "audio/wav": "audio track"
         }
 
-        # Default state of flag that is set to "True" if checksums are missing
-        skipChecksumVerification = False
-
         # All files in directory
         allFiles = glob.glob(self.imagePathFull + "/*")
 
@@ -64,13 +61,14 @@ class Carrier:
         noChecksumFiles = len(checksumFiles)
 
         if noChecksumFiles != 1:
-            logging.error("jobID " + self.jobID + ": found " + str(noChecksumFiles) +
+            logging.fatal("jobID " + self.jobID + ": found " + str(noChecksumFiles) +
                           " checksum files in directory '" +
                           self.imagePathFull + "', expected 1")
+
             config.errors += 1
-            # If we end up here, checksum file either does not exist, or it is ambiguous
-            # which file should be used. No point in doing the checksum verification in that case.
-            skipChecksumVerification = True
+            config.failedPPNs.append(self.PPN)
+            errorExit(config.errors, config.warnings)
+
 
         # Find logfiles and reports (by name extension)
         cdinfoLogs = [i for i in allFiles if i.endswith('cd-info.log')]
@@ -132,215 +130,214 @@ class Carrier:
             config.errors += 1
             config.failedPPNs.append(self.PPN)
 
-        if not skipChecksumVerification:
-            # Read contents of checksum file to list
-            checksumsFromFile = checksums.readChecksums(checksumFiles[0])
+        # Read contents of checksum file to list
+        checksumsFromFile = checksums.readChecksums(checksumFiles[0])
 
-            # Sort ascending by file name - this ensures correct order when making structMap
-            checksumsFromFile.sort(key=itemgetter(1))
+        # Sort ascending by file name - this ensures correct order when making structMap
+        checksumsFromFile.sort(key=itemgetter(1))
 
-            # List to store names of all files that are referenced in the checksum file
-            allFilesinChecksumFile = []
-            for entry in checksumsFromFile:
+        # List to store names of all files that are referenced in the checksum file
+        allFilesinChecksumFile = []
+        for entry in checksumsFromFile:
+            checksum = entry[0]
+            # Raises IndexError if entry only 1 col (malformed checksum file)!
+            fileName = entry[1]
+            # Normalise file path relative to imagePath
+            fileNameWithPath = os.path.normpath(
+                self.imagePathFull + "/" + fileName)
+
+            # Calculate SHA-512 hash of actual file
+            if os.path.isfile(fileNameWithPath):
+                checksumCalculated = checksums.generate_file_sha512(fileNameWithPath)
+            else:
+                logging.fatal("jobID " + self.jobID + ": file '" +
+                              fileNameWithPath + "' is referenced in '" + checksumFiles[0] +
+                              "', but does not exist")
+                config.errors += 1
+                config.failedPPNs.append(self.PPN)
+                errorExit(config.errors, config.warnings)
+
+            if checksumCalculated != checksum:
+                logging.error("jobID " + self.jobID + ": checksum mismatch for file '" +
+                              fileNameWithPath + "'")
+                config.errors += 1
+                config.failedPPNs.append(self.PPN)
+
+            # Get file size and append to allFilesinChecksumFile list
+            # (needed later for METS file entry)
+            entry.append(str(os.path.getsize(fileNameWithPath)))
+
+            # Append file name to list
+            allFilesinChecksumFile.append(fileNameWithPath)
+
+        # Check if any files in directory are missing
+        for f in otherFiles:
+            if f not in allFilesinChecksumFile:
+                logging.error("jobID " + self.jobID + ": file '" + f +
+                              "' not referenced in '" +
+                              checksumFiles[0] + "'")
+                config.errors += 1
+                config.failedPPNs.append(self.PPN)
+
+        # Carrier-level (representation) tech metadata from cd-info.log
+        if cdinfoLogs != []:
+            self.cdInfoElt, dataSectorOffset = parseCDInfoLog(cdinfoLogs[0])
+        else:
+            dataSectorOffset = 0
+
+        # Metadata from Isobuster report (return empy element in case of parse
+        # errors)
+        if isobusterReports != []:
+            try:
+                isobusterReportElt = etree.parse(isobusterReports[0]).getroot()
+            except:
+                logging.error("jobID " + self.jobID +
+                              ": error parsing '" + isobusterReports[0] + "'")
+                config.errors += 1
+                isobusterReportElt = etree.Element("dfxml")
+        else:
+            isobusterReportElt = etree.Element("dfxml")
+
+        if config.createSIPs:
+
+            # Generate event metadata from Isobuster/dBpoweramp logs
+            # For each carrier we can have an Isobuster even, a dBpoweramp event, or both
+            # Events are wrapped in a list premisEvents
+            if isobusterLogs != []:
+                premisEvent = addCreationEvent(isobusterLogs[0])
+                self.premisCreationEvents.append(premisEvent)
+            if dBpowerampLogs != []:
+                premisEvent = addCreationEvent(dBpowerampLogs[0])
+                self.premisCreationEvents.append(premisEvent)
+
+            # Create Volume directory
+            logging.info("creating carrier directory")
+            dirVolume = os.path.join(
+                SIPPath, self.carrierType, self.volumeNumber)
+            try:
+                os.makedirs(dirVolume)
+            except (OSError, IOError):
+                logging.fatal("jobID " + self.jobID +
+                              ": cannot create '" + dirVolume + "'")
+                config.errors += 1
+                errorExit(config.errors, config.warnings)
+
+            # Copy files to SIP Volume directory
+            logging.info("copying files to carrier directory")
+
+            # Get file names from checksum file, as this is the easiest way to make
+            # post-copy checksum verification work. Filter out log files first!
+
+            filesToCopy = [
+                i for i in checksumsFromFile if not i[1].endswith(('.log', '.xml'))]
+
+            for entry in filesToCopy:
+
                 checksum = entry[0]
-                # Raises IndexError if entry only 1 col (malformed checksum file)!
                 fileName = entry[1]
-                # Normalise file path relative to imagePath
-                fileNameWithPath = os.path.normpath(
-                    self.imagePathFull + "/" + fileName)
+                fileSize = entry[2]
+                # Generate unique file ID (used in structMap)
+                fileID = "file_" + str(sipFileCounter)
+                # Construct path relative to carrier directory
+                fIn = os.path.join(self.imagePathFull, fileName)
 
-                # Calculate SHA-512 hash of actual file
-                if os.path.isfile(fileNameWithPath):
-                    checksumCalculated = checksums.generate_file_sha512(fileNameWithPath)
-                else:
-                    logging.fatal("jobID " + self.jobID + ": file '" +
-                                  fileNameWithPath + "' is referenced in '" + checksumFiles[0] +
-                                  "', but does not exist")
+                # Construct path relative to volume directory
+                fSIP = os.path.join(dirVolume, fileName)
+                try:
+                    # Copy to volume dir
+                    shutil.copy2(fIn, fSIP)
+                except OSError:
+                    logging.fatal("jobID " + self.jobID +
+                                  ": cannot copy '" +
+                                  fileName + "' to '" + fSIP + "'")
                     config.errors += 1
-                    config.failedPPNs.append(self.PPN)
                     errorExit(config.errors, config.warnings)
 
+                # Calculate hash of copied file, and verify against known value
+                checksumCalculated = checksums.generate_file_sha512(fSIP)
                 if checksumCalculated != checksum:
                     logging.error("jobID " + self.jobID + ": checksum mismatch for file '" +
-                                  fileNameWithPath + "'")
+                                  fSIP + "'")
                     config.errors += 1
                     config.failedPPNs.append(self.PPN)
 
-                # Get file size and append to allFilesinChecksumFile list
-                # (needed later for METS file entry)
-                entry.append(str(os.path.getsize(fileNameWithPath)))
+                # Create METS file and FLocat elements
 
-                # Append file name to list
-                allFilesinChecksumFile.append(fileNameWithPath)
+                fileEltName = etree.QName(config.mets_ns, "file")
+                fileElt = etree.Element(
+                    fileEltName, nsmap=config.NSMAP)
 
-            # Check if any files in directory are missing
-            for f in otherFiles:
-                if f not in allFilesinChecksumFile:
-                    logging.error("jobID " + self.jobID + ": file '" + f +
-                                  "' not referenced in '" +
-                                  checksumFiles[0] + "'")
-                    config.errors += 1
-                    config.failedPPNs.append(self.PPN)
+                fileElt.attrib["ID"] = fileID
+                fileElt.attrib["SIZE"] = fileSize
 
-            # Carrier-level (representation) tech metadata from cd-info.log
-            if cdinfoLogs != []:
-                self.cdInfoElt, dataSectorOffset = parseCDInfoLog(cdinfoLogs[0])
-            else:
-                dataSectorOffset = 0
+                fLocat = etree.SubElement(
+                    fileElt, "{%s}FLocat" % (config.mets_ns))
+                fLocat.attrib["LOCTYPE"] = "URL"
+                # File locations relative to SIP root (= location of METS file)
+                fLocat.attrib[etree.QName(config.xlink_ns, "href")] = "file:///" + \
+                    self.carrierType + "/" + self.volumeNumber + "/" + fileName
 
-            # Metadata from Isobuster report (return empy element in case of parse
-            # errors)
-            if isobusterReports != []:
-                try:
-                    isobusterReportElt = etree.parse(isobusterReports[0]).getroot()
-                except:
-                    logging.error("jobID " + self.jobID +
-                                  ": error parsing '" + isobusterReports[0] + "'")
-                    config.errors += 1
-                    isobusterReportElt = etree.Element("dfxml")
-            else:
-                isobusterReportElt = etree.Element("dfxml")
+                # Add MIME type and checksum to file element
+                # Note: neither of these Mimetypes are formally registered at
+                # IANA but they seem to be widely used. Also, DIAS filetypes list
+                # uses /audio/x-wav!
+                if fileName.endswith(".iso"):
+                    mimeType = "application/x-iso9660-image"
+                elif fileName.endswith(".wav"):
+                    mimeType = "audio/wav"
+                elif fileName.endswith(".flac"):
+                    mimeType = "audio/flac"
+                else:
+                    mimeType = "application/octet-stream"
+                fileElt.attrib["MIMETYPE"] = mimeType
+                fileElt.attrib["CHECKSUM"] = checksum
+                fileElt.attrib["CHECKSUMTYPE"] = "SHA-512"
 
-            if config.createSIPs:
+                # TODO: check if mimeType values matches carrierType
+                # (e.g. no audio/x-wav if cd-rom, etc.)
 
-                # Generate event metadata from Isobuster/dBpoweramp logs
-                # For each carrier we can have an Isobuster even, a dBpoweramp event, or both
-                # Events are wrapped in a list premisEvents
-                if isobusterLogs != []:
-                    premisEvent = addCreationEvent(isobusterLogs[0])
-                    self.premisCreationEvents.append(premisEvent)
-                if dBpowerampLogs != []:
-                    premisEvent = addCreationEvent(dBpowerampLogs[0])
-                    self.premisCreationEvents.append(premisEvent)
+                # Create track divisor element for structmap
+                divFileName = etree.QName(config.mets_ns, "div")
+                divFile = etree.Element(divFileName, nsmap=config.NSMAP)
+                divFile.attrib["TYPE"] = mimeTypeMap[mimeType]
+                divFile.attrib["ORDER"] = str(fileCounter)
+                fptr = etree.SubElement(divFile, "{%s}fptr" % (config.mets_ns))
+                fptr.attrib["FILEID"] = fileID
 
-                # Create Volume directory
-                logging.info("creating carrier directory")
-                dirVolume = os.path.join(
-                    SIPPath, self.carrierType, self.volumeNumber)
-                try:
-                    os.makedirs(dirVolume)
-                except (OSError, IOError):
-                    logging.fatal("jobID " + self.jobID +
-                                  ": cannot create '" + dirVolume + "'")
-                    config.errors += 1
-                    errorExit(config.errors, config.warnings)
+                # Add divisor element to divFileElements
+                self.divFileElements.append(divFile)
 
-                # Copy files to SIP Volume directory
-                logging.info("copying files to carrier directory")
+                # Create techMD element for PREMIS object information
+                techMDPremisName = etree.QName(config.mets_ns, "techMD")
+                techMDPremis = etree.Element(techMDPremisName, nsmap=config.NSMAP)
+                techMDPremisID = "techMD_" + str(counterTechMD)
+                techMDPremis.attrib["ID"] = techMDPremisID
 
-                # Get file names from checksum file, as this is the easiest way to make
-                # post-copy checksum verification work. Filter out log files first!
+                # Add wrapper element for PREMIS object metadata
+                mdWrapObjectPremis = etree.SubElement(
+                    techMDPremis, "{%s}mdWrap" % (config.mets_ns))
+                mdWrapObjectPremis.attrib["MIMETYPE"] = "text/xml"
+                mdWrapObjectPremis.attrib["MDTYPE"] = "PREMIS:OBJECT"
+                mdWrapObjectPremis.attrib["MDTYPEVERSION"] = "3.0"
+                xmlDataObjectPremis = etree.SubElement(
+                    mdWrapObjectPremis, "{%s}xmlData" % (config.mets_ns))
 
-                filesToCopy = [
-                    i for i in checksumsFromFile if not i[1].endswith(('.log', '.xml'))]
+                premisObjectInfo = addObjectInstance(
+                    fSIP, fileSize, mimeType, checksum, dataSectorOffset, isobusterReportElt)
+                xmlDataObjectPremis.append(premisObjectInfo)
+                self.techMDFileElements.append(techMDPremis)
 
-                for entry in filesToCopy:
+                # String of techMD identifiers that are used as ADMID attribute of fileElt
+                techMDIDs = techMDPremisID
 
-                    checksum = entry[0]
-                    fileName = entry[1]
-                    fileSize = entry[2]
-                    # Generate unique file ID (used in structMap)
-                    fileID = "file_" + str(sipFileCounter)
-                    # Construct path relative to carrier directory
-                    fIn = os.path.join(self.imagePathFull, fileName)
+                # Add techMDIDs to fileElt
+                fileElt.attrib["ADMID"] = techMDIDs
 
-                    # Construct path relative to volume directory
-                    fSIP = os.path.join(dirVolume, fileName)
-                    try:
-                        # Copy to volume dir
-                        shutil.copy2(fIn, fSIP)
-                    except OSError:
-                        logging.fatal("jobID " + self.jobID +
-                                      ": cannot copy '" +
-                                      fileName + "' to '" + fSIP + "'")
-                        config.errors += 1
-                        errorExit(config.errors, config.warnings)
+                # Add fileElt to fileElements
+                self.fileElements.append(fileElt)
 
-                    # Calculate hash of copied file, and verify against known value
-                    checksumCalculated = checksums.generate_file_sha512(fSIP)
-                    if checksumCalculated != checksum:
-                        logging.error("jobID " + self.jobID + ": checksum mismatch for file '" +
-                                      fSIP + "'")
-                        config.errors += 1
-                        config.failedPPNs.append(self.PPN)
-
-                    # Create METS file and FLocat elements
-
-                    fileEltName = etree.QName(config.mets_ns, "file")
-                    fileElt = etree.Element(
-                        fileEltName, nsmap=config.NSMAP)
-
-                    fileElt.attrib["ID"] = fileID
-                    fileElt.attrib["SIZE"] = fileSize
-
-                    fLocat = etree.SubElement(
-                        fileElt, "{%s}FLocat" % (config.mets_ns))
-                    fLocat.attrib["LOCTYPE"] = "URL"
-                    # File locations relative to SIP root (= location of METS file)
-                    fLocat.attrib[etree.QName(config.xlink_ns, "href")] = "file:///" + \
-                        self.carrierType + "/" + self.volumeNumber + "/" + fileName
-
-                    # Add MIME type and checksum to file element
-                    # Note: neither of these Mimetypes are formally registered at
-                    # IANA but they seem to be widely used. Also, DIAS filetypes list
-                    # uses /audio/x-wav!
-                    if fileName.endswith(".iso"):
-                        mimeType = "application/x-iso9660-image"
-                    elif fileName.endswith(".wav"):
-                        mimeType = "audio/wav"
-                    elif fileName.endswith(".flac"):
-                        mimeType = "audio/flac"
-                    else:
-                        mimeType = "application/octet-stream"
-                    fileElt.attrib["MIMETYPE"] = mimeType
-                    fileElt.attrib["CHECKSUM"] = checksum
-                    fileElt.attrib["CHECKSUMTYPE"] = "SHA-512"
-
-                    # TODO: check if mimeType values matches carrierType
-                    # (e.g. no audio/x-wav if cd-rom, etc.)
-
-                    # Create track divisor element for structmap
-                    divFileName = etree.QName(config.mets_ns, "div")
-                    divFile = etree.Element(divFileName, nsmap=config.NSMAP)
-                    divFile.attrib["TYPE"] = mimeTypeMap[mimeType]
-                    divFile.attrib["ORDER"] = str(fileCounter)
-                    fptr = etree.SubElement(divFile, "{%s}fptr" % (config.mets_ns))
-                    fptr.attrib["FILEID"] = fileID
-
-                    # Add divisor element to divFileElements
-                    self.divFileElements.append(divFile)
-
-                    # Create techMD element for PREMIS object information
-                    techMDPremisName = etree.QName(config.mets_ns, "techMD")
-                    techMDPremis = etree.Element(techMDPremisName, nsmap=config.NSMAP)
-                    techMDPremisID = "techMD_" + str(counterTechMD)
-                    techMDPremis.attrib["ID"] = techMDPremisID
-
-                    # Add wrapper element for PREMIS object metadata
-                    mdWrapObjectPremis = etree.SubElement(
-                        techMDPremis, "{%s}mdWrap" % (config.mets_ns))
-                    mdWrapObjectPremis.attrib["MIMETYPE"] = "text/xml"
-                    mdWrapObjectPremis.attrib["MDTYPE"] = "PREMIS:OBJECT"
-                    mdWrapObjectPremis.attrib["MDTYPEVERSION"] = "3.0"
-                    xmlDataObjectPremis = etree.SubElement(
-                        mdWrapObjectPremis, "{%s}xmlData" % (config.mets_ns))
-
-                    premisObjectInfo = addObjectInstance(
-                        fSIP, fileSize, mimeType, checksum, dataSectorOffset, isobusterReportElt)
-                    xmlDataObjectPremis.append(premisObjectInfo)
-                    self.techMDFileElements.append(techMDPremis)
-
-                    # String of techMD identifiers that are used as ADMID attribute of fileElt
-                    techMDIDs = techMDPremisID
-
-                    # Add techMDIDs to fileElt
-                    fileElt.attrib["ADMID"] = techMDIDs
-
-                    # Add fileElt to fileElements
-                    self.fileElements.append(fileElt)
-
-                    fileCounter += 1
-                    sipFileCounter += 1
-                    counterTechMD += 1
+                fileCounter += 1
+                sipFileCounter += 1
+                counterTechMD += 1
 
         return sipFileCounter, counterTechMD
