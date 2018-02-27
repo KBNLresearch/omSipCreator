@@ -29,12 +29,12 @@ OmSipCreator has three sub-commands:
 
 ### Verify a batch without writing any SIPs
 
-    omSipCreator verify batchIn
+    omSipCreator [--nochecksums] verify batchIn
 
-Here *batchIn* is the batch directory.
+Here *batchIn* is the batch directory. Optionally you may use the `--nochecksums` / `-n` flag, which will bypass checksum verification (which can be useful to speed up the verification process for large files). Note that the *prune* and 8write* commands (explained below) will *always* do a checksum verification.
 
 ### Create a sanitised version of a batch
- 
+
     omSipCreator prune batchIn batchErr
 
 Here *batchErr* is the name of the batch that will contain all PPNs that have problems. If *batchErr* is an existing directory, *all* of its contents will be overwritten! OmSipCreator will prompt you for confirmation if this happens:
