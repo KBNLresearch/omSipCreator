@@ -15,13 +15,13 @@ def parseCDInfoLog(fileCDInfo):
         cdInfoName, nsmap=config.NSMAP)
 
     # Add trackList and analysisReport elements
-    trackListElt = etree.SubElement(
-                    cdInfoElt, "{%s}trackList" % (config.cdInfo_ns))
-    analysisReportElt = etree.SubElement(
-                    cdInfoElt, "{%s}analysisReport" % (config.cdInfo_ns))
+    trackListElt = etree.SubElement(cdInfoElt,
+                                    "{%s}trackList" % (config.cdInfo_ns))
+    analysisReportElt = etree.SubElement(cdInfoElt,
+                                         "{%s}analysisReport" % (config.cdInfo_ns))
 
     # Open cd-info log file and read to list
-    outAsList = []    
+    outAsList = []
 
     with io.open(fileCDInfo, "r", encoding="utf-8") as fCdInfoLogFile:
         for line in fCdInfoLogFile:
@@ -29,9 +29,8 @@ def parseCDInfoLog(fileCDInfo):
             outAsList.append(line)
     fCdInfoLogFile.close()
 
-    # Set up list and empty string for storing track list and analysis report
-    trackList = []
-    analysisReport = []    
+    # Set up list and empty string for storing analysis report
+    analysisReport = []
     analysisReportString = ''
 
     # Initialise variable that reports LSN of data track
@@ -53,7 +52,7 @@ def parseCDInfoLog(fileCDInfo):
             trackType = trackDetails[2]  # Track type: audio / data
             trackGreen = trackDetails[3] # Don't  know what this means
             trackCopy = trackDetails[4] # Don't  know what this means
-            if trackType == 'audio':            
+            if trackType == 'audio':
                 trackChannels = trackDetails[5]
                 trackPreemphasis = trackDetails[6]
 
@@ -61,33 +60,33 @@ def parseCDInfoLog(fileCDInfo):
                 dataTrackLSNStart = int(trackLSNStart)
 
             # Append properties to trackList
-            trackElt = etree.SubElement(
-                    trackListElt, "{%s}track" % (config.cdInfo_ns))
-            trackNumberElt = etree.SubElement(
-                    trackElt, "{%s}trackNumber" % (config.cdInfo_ns))
+            trackElt = etree.SubElement(trackListElt,
+                                        "{%s}track" % (config.cdInfo_ns))
+            trackNumberElt = etree.SubElement(trackElt,
+                                              "{%s}trackNumber" % (config.cdInfo_ns))
             trackNumberElt.text = str(trackNumber)
-            MSFElt = etree.SubElement(
-                    trackElt, "{%s}MSF" % (config.cdInfo_ns))
+            MSFElt = etree.SubElement(trackElt,
+                                      "{%s}MSF" % (config.cdInfo_ns))
             MSFElt.text = trackMSFStart
-            LSNElt = etree.SubElement(
-                    trackElt, "{%s}LSN" % (config.cdInfo_ns))
+            LSNElt = etree.SubElement(trackElt,
+                                      "{%s}LSN" % (config.cdInfo_ns))
             LSNElt.text = str(trackLSNStart)
-            TypeElt = etree.SubElement(
-                    trackElt, "{%s}Type" % (config.cdInfo_ns))
+            TypeElt = etree.SubElement(trackElt,
+                                       "{%s}Type" % (config.cdInfo_ns))
             TypeElt.text = trackType
             if trackType != 'leadout':
-                GreenElt = etree.SubElement(
-                        trackElt, "{%s}Green" % (config.cdInfo_ns))
+                GreenElt = etree.SubElement(trackElt,
+                                            "{%s}Green" % (config.cdInfo_ns))
                 GreenElt.text = trackGreen
-                CopyElt = etree.SubElement(
-                        trackElt, "{%s}Copy" % (config.cdInfo_ns))
+                CopyElt = etree.SubElement(trackElt,
+                                           "{%s}Copy" % (config.cdInfo_ns))
                 CopyElt.text = trackCopy
             if trackType == 'audio':
-                ChannelsElt = etree.SubElement(
-                        trackElt, "{%s}Channels" % (config.cdInfo_ns))
+                ChannelsElt = etree.SubElement(trackElt,
+                                               "{%s}Channels" % (config.cdInfo_ns))
                 ChannelsElt.text = trackChannels
-                PreemphasisElt = etree.SubElement(
-                        trackElt, "{%s}Preemphasis" % (config.cdInfo_ns))
+                PreemphasisElt = etree.SubElement(trackElt,
+                                                  "{%s}Preemphasis" % (config.cdInfo_ns))
                 PreemphasisElt.text = trackPreemphasis
 
 
@@ -105,20 +104,19 @@ def parseCDInfoLog(fileCDInfo):
     mixedMode = shared.index_startswith_substring(analysisReport, "mixed mode CD") != -1
 
     # Add individual parsed values from analysis report to separate subelements
-    cdExtraElt = etree.SubElement(
-                    analysisReportElt, "{%s}cdExtra" % (config.cdInfo_ns))
+    cdExtraElt = etree.SubElement(analysisReportElt,
+                                  "{%s}cdExtra" % (config.cdInfo_ns))
     cdExtraElt.text = str(cdExtra)
-    multiSessionElt = etree.SubElement(
-                    analysisReportElt, "{%s}multiSession" % (config.cdInfo_ns))
+    multiSessionElt = etree.SubElement(analysisReportElt,
+                                       "{%s}multiSession" % (config.cdInfo_ns))
     multiSessionElt.text = str(multiSession)
-    mixedModeElt = etree.SubElement(
-                    analysisReportElt, "{%s}mixedMode" % (config.cdInfo_ns))
+    mixedModeElt = etree.SubElement(analysisReportElt,
+                                    "{%s}mixedMode" % (config.cdInfo_ns))
     mixedModeElt.text = str(mixedMode)
 
     # Add unformatted analysis report to analysisReportFullElt element
-    analysisReportFullElt = etree.SubElement(
-                    analysisReportElt, "{%s}fullReport" % (config.cdInfo_ns))
+    analysisReportFullElt = etree.SubElement(analysisReportElt,
+                                             "{%s}fullReport" % (config.cdInfo_ns))
     analysisReportFullElt.text = analysisReportString
 
     return cdInfoElt, dataTrackLSNStart
-
