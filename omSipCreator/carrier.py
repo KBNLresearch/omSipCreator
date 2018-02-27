@@ -33,7 +33,6 @@ class Carrier:
         cdInfoName = etree.QName(config.cdInfo_ns, "cd-info")
         self.cdInfoElt = etree.Element(cdInfoName, nsmap=config.NSMAP)
 
-
     def process(self, SIPPath, sipFileCounterStart, counterTechMDStart):
         """Process one carrier"""
         # TODO: * check file type / extension matches carrierType!
@@ -234,7 +233,6 @@ class Carrier:
 
                 filesToCopy = [
                     i for i in checksumsFromFile if not i[1].endswith(('.log', '.xml'))]
-
 
                 for entry in filesToCopy:
 

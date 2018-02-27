@@ -236,7 +236,6 @@ def addObjectInstance(fileName, fileSize, mimeType, sha512Sum, sectorOffset, iso
         objectCharacteristics, "{%s}objectCharacteristicsExtension" % (config.premis_ns))
 
     if fileName.endswith(('.wav', '.WAV', 'flac', 'FLAC')):
-        #objectCharacteristicsExtension.attrib["namespace"] = config.ebucore_ns
         audioMDOut = getAudioMetadata(fileName)
         audioMD = audioMDOut["outElt"]
         objectCharacteristicsExtension1.append(audioMD)

@@ -17,6 +17,7 @@ from .ppn import PPN
 from .shared import errorExit
 from .shared import get_immediate_subdirectories
 
+
 class Batch:
     """Batch class"""
     def __init__(self, batchDir):
@@ -52,7 +53,6 @@ class Batch:
 
         # List for storing directories as extracted from batch manifest
         config.dirsInMetaCarriers = []
-
 
     def process(self):
 
@@ -210,7 +210,6 @@ class Batch:
 
         # Get all unique values in failedPPNs by converting to a set (and then back to a list)
         config.failedPPNs = (list(set(config.failedPPNs)))
-
 
     def prune(self):
         """Prune batch"""

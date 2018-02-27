@@ -30,7 +30,6 @@ class PPN:
         self.carriers.append(carrier)
         self.carrierTypes.append(carrier.carrierType)
 
-
     def process(self, carriers, batchDir, colsBatchManifest):
 
         """Process a PPN"""

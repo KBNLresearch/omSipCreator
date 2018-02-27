@@ -6,6 +6,7 @@ from lxml import etree
 from . import shared
 from . import config
 
+
 def parseCDInfoLog(fileCDInfo):
     """Determine carrier type and number of sessions on carrier"""
 
@@ -43,15 +44,15 @@ def parseCDInfoLog(fileCDInfo):
     # Parse track list and store interesting bits in dictionary
     for i in range(startIndexTrackList + 2, startIndexAnalysisReport - 1, 1):
         thisTrack = outAsList[i]
-        if not thisTrack.startswith("++"): # This gets rid of warning messages, do we want that?
+        if not thisTrack.startswith("++"):  # This gets rid of warning messages, do we want that?
             thisTrack = thisTrack.split(": ")
             trackNumber = int(thisTrack[0].strip())
             trackDetails = thisTrack[1].split()
             trackMSFStart = trackDetails[0]  # Minute:Second:Frame
             trackLSNStart = trackDetails[1]  # Logical Sector Number
             trackType = trackDetails[2]  # Track type: audio / data
-            trackGreen = trackDetails[3] # Don't  know what this means
-            trackCopy = trackDetails[4] # Don't  know what this means
+            trackGreen = trackDetails[3]  # Don't  know what this means
+            trackCopy = trackDetails[4]  # Don't  know what this means
             if trackType == 'audio':
                 trackChannels = trackDetails[5]
                 trackPreemphasis = trackDetails[6]
@@ -88,7 +89,6 @@ def parseCDInfoLog(fileCDInfo):
                 PreemphasisElt = etree.SubElement(trackElt,
                                                   "{%s}Preemphasis" % (config.cdInfo_ns))
                 PreemphasisElt.text = trackPreemphasis
-
 
     # Parse analysis report
     for i in range(startIndexAnalysisReport + 1, len(outAsList), 1):
