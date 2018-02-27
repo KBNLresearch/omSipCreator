@@ -29,6 +29,7 @@ errors = 0
 warnings = 0
 createSIPs = False
 pruneBatch = False
+skipChecksumFlag = False
 batchErr = ""
 dirOut = ""
 dirsInMetaCarriers = []

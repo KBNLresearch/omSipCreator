@@ -67,33 +67,47 @@ def parseCommandLine():
                                        dest='subcommand')
     parser_verify = subparsers.add_parser('verify',
                                           help='only verify input batch without writing SIPs')
+
     parser_verify.add_argument('batchIn',
                                action="store",
                                type=str,
                                help="input batch")
+
+    parser_verify.add_argument('--nochecksums', '-n',
+                               action='store_true',
+                               dest='skipChecksumFlag',
+                               default=False,
+                               help="skip checksum verification")
+
     parser_prune = subparsers.add_parser('prune',
                                          help="verify input batch, then write 'pruned' version \
                          of batch that omits all PPNs that have errors. Write PPNs with \
                          errors to a separate batch.")
+
     parser_prune.add_argument('batchIn',
                               action="store",
                               type=str,
                               help="input batch")
+
     parser_prune.add_argument('batchErr',
                               action="store",
                               type=str,
                               help="name of batch that will contain all PPNs with errors")
+
     parser_write = subparsers.add_parser('write',
                                          help="verify input batch and write SIPs. Before using \
                          'write' first run the 'verify' command and fix any reported errors.")
+
     parser_write.add_argument('batchIn',
                               action="store",
                               type=str,
                               help="input batch")
+
     parser_write.add_argument('dirOut',
                               action="store",
                               type=str,
                               help="output directory where SIPs are written")
+
     parser.add_argument('--version', '-v',
                         action='version',
                         version=__version__)
@@ -172,6 +186,9 @@ def main():
     # Flag that indicates if prune option is used
     config.pruneBatch = False
 
+    # Flag that indicates if checksum checking is skipped (prune mode only!)
+    config.skipChecksumFlag = False
+
     # Get input from command line
     args = parseCommandLine()
     action = args.subcommand
@@ -181,7 +198,9 @@ def main():
 
     batchDir = os.path.normpath(args.batchIn)
 
-    if action == "write":
+    if action == "verify":
+        config.skipChecksumFlag = args.skipChecksumFlag
+    elif action == "write":
         config.dirOut = os.path.normpath(args.dirOut)
         config.createSIPs = True
     elif action == "prune":

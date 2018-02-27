@@ -147,8 +147,10 @@ class Carrier:
                 self.imagePathFull + "/" + fileName)
 
             # Calculate SHA-512 hash of actual file
-            if os.path.isfile(fileNameWithPath):
+            if os.path.isfile(fileNameWithPath) and config.skipChecksumFlag == False:
                 checksumCalculated = checksums.generate_file_sha512(fileNameWithPath)
+            elif os.path.isfile(fileNameWithPath) and config.skipChecksumFlag == True:
+                checksumCalculated = "bogus"
             else:
                 logging.fatal("jobID " + self.jobID + ": file '" +
                               fileNameWithPath + "' is referenced in '" + checksumFiles[0] +
@@ -157,7 +159,7 @@ class Carrier:
                 config.failedPPNs.append(self.PPN)
                 errorExit(config.errors, config.warnings)
 
-            if checksumCalculated != checksum:
+            if checksumCalculated != checksum and config.skipChecksumFlag == False:
                 logging.error("jobID " + self.jobID + ": checksum mismatch for file '" +
                               fileNameWithPath + "'")
                 config.errors += 1
