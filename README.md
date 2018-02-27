@@ -31,7 +31,7 @@ OmSipCreator has three sub-commands:
 
     omSipCreator [--nochecksums] verify batchIn
 
-Here *batchIn* is the batch directory. Optionally you may use the `--nochecksums` / `-n` flag, which will bypass checksum verification (which can be useful to speed up the verification process for large files). Note that the *prune* and 8write* commands (explained below) will *always* do a checksum verification.
+Here *batchIn* is the batch directory. Optionally you may use the `--nochecksums` / `-n` flag, which will bypass checksum verification (which can be useful to speed up the verification process for large files). Note that the *prune* and *write* commands (explained below) will *always* do a checksum verification.
 
 ### Create a sanitised version of a batch
 
