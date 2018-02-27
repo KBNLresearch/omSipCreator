@@ -179,7 +179,7 @@ def main():
         # Exit and print help message if command line is empty
         printHelpAndExit()
 
-    config.batchDir = os.path.normpath(args.batchIn)
+    batchDir = os.path.normpath(args.batchIn)
 
     if action == "write":
         config.dirOut = os.path.normpath(args.dirOut)
@@ -201,7 +201,7 @@ def main():
     checkFileExists(config.mediaInfoExe)
 
     # Create Batch instance
-    thisBatch = Batch(config.batchDir)
+    thisBatch = Batch(batchDir)
 
     # Process batch
     thisBatch.process()
