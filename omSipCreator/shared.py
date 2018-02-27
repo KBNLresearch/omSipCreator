@@ -145,6 +145,9 @@ def randomString(length):
 
 
 def index_startswith_substring(the_list, substring):
+    """Return index of element in the_list that starts with substring,
+    and -1 if substring was not found
+    """
     for i, s in enumerate(the_list):
         if s.startswith(substring):
             return i

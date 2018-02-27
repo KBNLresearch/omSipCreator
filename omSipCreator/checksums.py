@@ -4,8 +4,11 @@ Checksum reading and generation
 """
 
 import os
+import logging
 import hashlib
 from . import config
+from .shared import errorExit
+
 
 def readChecksums(fileIn):
     """Read checksum file, return contents as nested list
@@ -45,4 +48,3 @@ def generate_file_sha512(fileIn):
                 break
             m.update(buf)
     return m.hexdigest()
-

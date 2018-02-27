@@ -8,8 +8,8 @@ import os
 import io
 import uuid
 from datetime import datetime
-import pytz
 import xml.etree.ElementTree as ET
+import pytz
 from lxml import etree
 from isolyzer import isolyzer
 from . import config
@@ -47,7 +47,7 @@ def addCreationEvent(log):
 
     # Event date/time: taken from timestamp of log file (last-modified)
     eventDateTimeValue = datetime.fromtimestamp(os.path.getctime(log))
-    # Add time zone info    
+    # Add time zone info
     pst = pytz.timezone('Europe/Amsterdam')
     eventDateTimeValue = pst.localize(eventDateTimeValue)
     eventDateTimeFormatted = eventDateTimeValue.isoformat()
@@ -117,10 +117,14 @@ def addAgent(softwareName):
     """Generate agent instance for creation software"""
     # TODO: do we need this function?
 
+    # Create PREMIS event
+    eventName = etree.QName(config.premis_ns, "event")
+    event = etree.Element(eventName, nsmap=config.NSMAP)
+
     # Create PREMIS agent instance
     agentName = etree.QName(config.premis_ns, "agent")
     agent = etree.Element(agentName, nsmap=config.NSMAP)
-    agent = etree.SubElement(event, "{%s}agent" % (config.premis_ns))  # TODO event undefined!
+    agent = etree.SubElement(event, "{%s}agent" % (config.premis_ns))
     agentIdentifier = etree.SubElement(
         agent, "{%s}agentIdentifier" % (config.premis_ns))
     agentIdentifierType = etree.SubElement(
