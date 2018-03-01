@@ -137,11 +137,6 @@ def main():
     consoleHandler.setFormatter(logFormatter)
     logger.addHandler(consoleHandler)
 
-    # Locate package directory
-    packageDir = os.path.dirname(os.path.abspath(__file__))
-    # Tools directory
-    toolsDirUser = os.path.join(packageDir, 'tools')
-
     # Controlled vocabulary for 'carrierType' field
     config.carrierTypeAllowedValues = ['cd-rom',
                                        'cd-audio',
@@ -210,6 +205,11 @@ def main():
     else:
         # Dummy value
         config.dirOut = None
+
+    # Locate package directory
+    packageDir = os.path.dirname(os.path.abspath(__file__))
+    # Tools directory
+    toolsDirUser = os.path.join(packageDir, 'tools')
 
     # Path to MediaInfo
     if sys.platform == "win32":

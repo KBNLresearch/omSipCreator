@@ -330,9 +330,10 @@ class Batch:
                         checksumErr = checksums.generate_file_sha512(fileErr)
 
                         if checksumIn != checksumErr:
-                            logging.error("jobID " + jobID + ": checksum of '" +
+                            logging.fatal("jobID " + jobID + ": checksum of '" +
                                           fileIn + "' does not match '" + fileErr + "'")
                             config.errors += 1
+                            errorExit(config.errors, config.warnings)
 
                 # Write row to error batch manifest
                 logging.info("Writing batch manifest entry (batchErr)")
