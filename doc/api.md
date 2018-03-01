@@ -11,11 +11,11 @@ This module contains the main function, which does the following things:
 - Get user input from the command-line
 - Locate MediaInfo binaries
 - Create a Batch instance (using *batch.Batch*)
-- Process the batch using *batch.Batch.process*; prune the batch using *batch.Batch.prune* (only if the prune command was used)
+- Process the batch using *batch.Batch.process*; prune the batch using *batch.Batch.prune* (only if the *prune* command was used)
 
 ## batch
 
-This module contains the *Batch* class, which includes the functions *process* and *prune*.
+This module contains the *Batch* class, which represents a batch and its properties. It includes the functions *process* and *prune*.
 
 ### process function
 
@@ -23,7 +23,7 @@ Processes a batch, which involves the following steps:
 
 - Parse the batch manifest and store the contents to two lists (one for the column headers, and one for the actual data)
 - Do some basic checks on the data in the batch manifest (do all required columns exist; does every entry have the expected number of columns)
-- Sort and group all entries in batch masnifest by PPN
+- Sort and group all entries in batch manifest by PPN
 - Then for each unique PPN value:
     * Create a PPN instance (using *ppn.PPN*)
     * Call the PPN processing function (using *ppn.proces*)
@@ -33,17 +33,28 @@ Processes a batch, which involves the following steps:
 ### prune function
 
 - Create an error batch directory
-- Copy directories for all PPNs for which errors were reported to the error batch (including post-copy checksum verification)
-- For all PNN
-
-
-### Input
-
-### Output
+- Copy directories for all PPNs for which errors were reported to the error batch (including post-copy checksum verification); exit if checksum verification fails
+- Update batch manifest in source batch + make copy of original batch manifest. Make batch manifest for error batch
+- Collect any errors and warning that were encountered in the above steps
 
 ## ppn
 
-### Input
+This module contains the *PPN* class, which represents a PPN (or more precisely, an intellectual entity that corresponds to a PPN, which in turn comprises all carriers that are to be included in one SIP) and its properties. It includes the function *process*.
+
+### process function
+
+Processes one intellectual entity, which involves the following steps:
+
+- Create a METS element and its top-level subelements
+- Initialise counters that are used to assign file- and carrier-level identifiers in the METS for this SIP
+- Create a SIP directory (only if the *write* commnand is used)
+- Sort and group all carriers that belong to this PPN by carrier type
+- For each carrier:
+    * Create a Carrier instance (using *carrier.Carrier*)
+    * Call the Carrier processing function (using *carrier.Carrier.process*)
+
+
+<!--### Input
 
 * carrier: Carrier class instance (created in processPPN) for this carrier
 * SIPPath: SIP directory (config.dirOut/PPN)
@@ -61,10 +72,13 @@ Dictionary *carrierOut* with following elements:
 * cdInfoElt: element, serialized cd-info output
 * sipFileCounter: updated within-SIP file counter
 * counterTechMD: updated within-SIP counterTechMD counter
+-->
 
 ## carrier
 
+This module contains the *Carrier* class, which represents an individual carrier (disc) and its properties. It includes the function *process*.
 
-## Naming
 
-addCreationEvent, addAgent, addObjectInstance in premis.py: perhaps change *add* to *create* (since these functions do not *add* anything)
+<!-- ## Naming
+
+addCreationEvent, addAgent, addObjectInstance in premis.py: perhaps change *add* to *create* (since these functions do not *add* anything) -->
