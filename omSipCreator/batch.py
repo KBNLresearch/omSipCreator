@@ -342,7 +342,7 @@ class Batch:
                 # Remove directory from input batch
                 if os.path.isdir(imagePathInAbs):
                     logging.info("Removing  directory '" +
-                                 imagePathInAbs + "' from config.batchIn")
+                                 imagePathInAbs + "' from batchIn")
                     try:
                         shutil.rmtree(imagePathInAbs)
                     except OSError:
