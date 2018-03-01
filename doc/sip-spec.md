@@ -8,7 +8,7 @@ Each SIP is represented as a directory. Each carrier that is part of the SIP is 
 
 
     18594650X/
-    ├── cd-rom
+    ├── cd-audio
     │   └── 1
     │       ├── 01.flac
     │       ├── 02.flac

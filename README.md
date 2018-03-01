@@ -5,13 +5,13 @@ OmSipCreator is a tool for converting batches of disk images (e.g. ISO 9660 CD-R
 
 ## Notes and warnings
 
-At the moment this software is still a somewhat experimental proof-of-concept that hasn't had much testing at this stage. Neither the current batch input format nor the SIP output format (including METS metadata) have  been finalised yet, and may be subject to further changes. 
- 
+At the moment this software is still a somewhat experimental proof-of-concept that hasn't had much testing at this stage. Neither the current batch input format nor the SIP output format (including METS metadata) have  been finalised yet, and may be subject to further changes.
+
 Also, the (bibliographic) metadata component is specific to the situation and infrastructure at the KB, although it could easily be adapted to other infrastructures. To do this you would need to customize the *createMODS* function.
 
 ## Dependencies
 
-OmSipCreator was developed and tested under Python 3.6. It may (but is not guaranteed to) work under Python 2.7 as well. If you run it under Linux you need to install (a recent version of) [*MediaInfo*](https://mediaarea.net/en/MediaInfo). Installation instructions can be found [here](https://mediaarea.net/en/MediaInfo/Download/Ubuntu). OmSipCreator expects that the *mediainfo* binary is located under *usr/bin* (which is the default installation location when installing from a Debian package). A Windows version of *MediaInfo* is already included with OmSipCreator.
+OmSipCreator was developed and tested under Python 3.6. It may (but is not guaranteed to) work under Python 2.7 as well. If you run it under Linux, you need to install (a recent version of) [*MediaInfo*](https://mediaarea.net/en/MediaInfo). Installation instructions can be found [here](https://mediaarea.net/en/MediaInfo/Download/Ubuntu). OmSipCreator expects that the *mediainfo* binary is located under *usr/bin* (which is the default installation location when installing from a Debian package). A Windows version of *MediaInfo* is already included with OmSipCreator.
 
 ## Installation
 
@@ -64,37 +64,47 @@ The important thing is that any errors in the input batch are likely to result i
 
 <!-- TODO: a flowchart would be nice here! -->
 
-
 ## Structure of input batch
 
-The input batch is simply a directory that contains a number of subdirectories, each of which represents exactly one data carrier. Furthermore it contains a *batch manifest*, which is a comma-delimited text file with basic metadata about each carrier. The diagram below shows an example of a batch that contains 3 carriers.
+The input batch is simply a directory that contains a number of subdirectories, each of which represents exactly one data carrier. Furthermore it contains a *batch manifest*, which is a comma-delimited text file with basic metadata about each carrier, and a log file with details about the imaging and ripping procedure. The diagram below shows an example of a batch that contains 3 carriers (one audio CD and two CD-ROMs):
 
 
-    ├── manifest.csv
-    ├── 1628c634-edeb-11e6-a9c8-00237d497a29
-    │   ├── track01.cdda.wav
-    │   ├── track02.cdda.wav
-    │   ├── ...
-    │   ├── ...
-    │   ├── track13.cdda.wav
-    │   └── checksums.sha512
-    ├── 29c586b4-edeb-11e6-9a83-00237d497a29
-    │   ├── image1.iso
-    │   └── checksums.sha512
-    └── ceaf9bf6-edfb-11e6-9c13-00237d497a29
-        ├── image2.iso
-        └── checksums.sha512
+    ├── 1c2d6edc-34a7-11e7-8332-7446a0b42b9a
+    │   ├── 01.flac
+    │   ├── 02.flac
+    │   ├── cd-info.log
+    │   ├── checksums.sha512
+    │   └── dbpoweramp.log
+    ├── 3cba3e5e-34a7-11e7-8bd1-7446a0b42b9a
+    │   ├── cd-info.log
+    │   ├── checksums.sha512
+    │   ├── isobuster.log
+    │   ├── isobuster-report.xml
+    │   └── NEW.iso
+    ├── 61c3e58a-34a6-11e7-98d9-7446a0b42b9a
+    │   ├── cd-info.log
+    │   ├── checksums.sha512
+    │   ├── isobuster.log
+    │   ├── isobuster-report.xml
+    │   └── SPELEN_MET_KIKKER.iso
+    ├── batch.log
+    └── manifest.csv
+
 
 ## Carrier directory structure
 
 Each carrier directory contains:
 
-1. One or more files that represent the data carrier. This is typically an ISO 9660 image, but for an audio CD with multiple tracks this can also be multiple audio (e.g. WAV) files. In the latter case, it is important that the original playing order can be inferred from the file names. In other words, sorting the file names in ascending order should reproduce the original playing order. Note that (nearly?) all audio CD ripping software does this by default.
-2. Exactly one checksum file that contains the SHA-512 checksums of all files in the directory. The name of the checksum file must end with the extension *.sha512* (other than that its name doesn't matter). Each line in the file has the following format:
+1. One or more files that represent the data carrier. This is typically an ISO 9660 (or HFS+ or UDF) image, but for an audio CD with multiple tracks this can also be multiple audio (e.g. WAV or FLAC) files. In the latter case, it is important that the original playing order can be inferred from the file names. In other words, sorting the file names in ascending order should reproduce the original playing order. Note that (nearly?) all audio CD ripping software applications do this by default.
+2. A file *cd-info.log* with output of the cd-info tool.
+3. A file *isobuster.log* with an Isobuster error code (only for carriers that contain a data session).
+4.  A file *isobuster-report.xml* which is a report file in [Digital Forensics XML](https://en.wikipedia.org/wiki/Digital_Forensics_XML) format (only for carriers that contain a data session).
+5. A file *dbpoweramp.log* which is the dbpoweramp log file (only for carriers that contain audio).
+6. A file *checksums.sha512* which contains the SHA-512 checksums of all files in the directory. Each line in the file has the following format:
 
         checksum filename
 
-    Both fields are separated by 1 or more spaces. the *filename* field must not include any file path information. Here's an example:
+    Both fields are separated by 1 or more spaces. The *filename* field must not include any file path information. Here's an example:
 
         6bc4f0a53e9d866b751beff5d465f5b86a8a160d388032c079527a9cb7cabef430617f156abec03ff5a6897474ac2d31c573845d1bb99e2d02ca951da8eb2d01 01.flac
         ae6d9b5d47ecc34345bdbf5a0c45893e88b5ae4bb2927a8f053debdcd15d035827f8b81a97d3ee4c4ace5257c4cc0cde13b37ac816186e84c17b94c9a04a1608 02.flac
@@ -108,7 +118,7 @@ Each carrier directory contains:
 
 ## Batch manifest format
 
-The batch manifest is a comma-delimited text file with the name *manifest.csv*. The first line is a header line: 
+The batch manifest is a comma-delimited text file with the name *manifest.csv*. The first line is a header line:
 
     jobID,PPN,volumeNo,carrierType,title,volumeID,success,containsAudio,containsData, cdExtra
 
@@ -132,48 +142,42 @@ Each of the remaining lines represents one carrier, for which it contains the fo
 Below is a simple example of manifest file:
 
     jobID,PPN,volumeNo,carrierType,title,volumeID,success,containsAudio,containsData,cdExtra
-    1628c634-edeb-11e6-a9c8-00237d497a29,121274306,cd-audio,(Bijna) alles over bestandsformaten,Handbook,True,True,False,False
-    29c586b4-edeb-11e6-9a83-00237d497a29,155658050,1,cd-rom,(Bijna) alles over bestandsformaten,Handbook,True,False,True,False
-    ceaf9bf6-edfb-11e6-9c13-00237d497a29,236599380,1,cd-rom,(Bijna) alles over bestandsformaten,Handbook,True,False,True,False
-    b97d56f6-edfb-11e6-8311-00237d497a29,308684745,2,cd-rom,(Bijna) alles over bestandsformaten,Handbook,True,False,True,False
+    383c78fa-34a6-11e7-926c-7446a0b42b9a,18594664X,1,cd-rom,Marjan Berk,ELL3,True,True,True,True
+    61c3e58a-34a6-11e7-98d9-7446a0b42b9a,230370241,1,cd-rom,Kikker is verliefd,SPELEN_MET_KIKKER,True,False,True,False
+    06e80cb6-34a7-11e7-8466-7446a0b42b9a,378374036,1,cd-audio,Na klar!. Luister- en kijkboxen. 6 vwo,,True,True,False,False
+    3cba3e5e-34a7-11e7-8bd1-7446a0b42b9a,378374036,1,dvd-video,Na klar!. Luister- en kijkboxen. 6 vwo,NEW,True,False,True,False
 
-In the above example the second and fourth carriers are both part of a 2-volume item. Consequently the *PPN* values of both carriers are identical.
+In the above example the third and fourth carriers are both part of a 2-volume item. Consequently the *PPN* values of both carriers are identical.
 
 ## SIP structure
 
 Each SIP is represented as a directory. Each carrier that is part of the SIP is represented as a subdirectory within that directory. The SIP's root directory contains a [METS](https://www.loc.gov/mets/) file with technical, structural and bibliographic metadata. Bibliographic metadata is stored in [MODS](https://www.loc.gov/standards/mods/) format (3.4) which is embedded in a METS *mdWrap* element. Here's a simple example of a SIP that is made up of 2 carriers (which are represented as ISO 9660 images):
-  
 
-    ── 269448861
-       ├── cd-rom
-       │   ├── 1
-       │   │   └── nuvoorstraks1.iso
-       │   └── 2
-       │       └── nuvoorstraks2.iso
-       └── mets.xml
 
-And here's an example of a SIP that contains 1 audio CD, with separate tracks represented as WAV files:
+    269448861
+    ├── cd-audio
+    │   ├── 1
+    │   │   └── nuvoorstraks1.iso
+    │   └── 2
+    │       └── nuvoorstraks2.iso
+    └── mets.xml
 
-    ── 16385100X
-       ├── cd-audio
-       │   └── 1
-       │       ├── track01.cdda.wav
-       │       ├── track02.cdda.wav
-       │       ├── track03.cdda.wav
-       │       ├── track04.cdda.wav
-       │       ├── track05.cdda.wav
-       │       ├── track06.cdda.wav
-       │       ├── track07.cdda.wav
-       │       ├── track08.cdda.wav
-       │       ├── track09.cdda.wav
-       │       ├── track10.cdda.wav
-       │       ├── track11.cdda.wav
-       │       ├── track12.cdda.wav
-       │       └── track13.cdda.wav
-       └── mets.xml
+And here's an example of a SIP that contains 1 "enhanced" audio CD, with separate audio tracks represented as FLAC files, and the data track as an ISO image:
+
+    18594650X/
+    ├── cd-rom
+    │   └── 1
+    │       ├── 01.flac
+    │       ├── 02.flac
+    │       ├── 03.flac
+    │       ├── 04.flac
+    │       ├── 05.flac
+    │       ├── 06.flac
+    │       ├── 07.flac
+    │       └── ELL2.iso
+    └── mets.xml
 
 A detailed description of the SIP strucure and its associated metadata can be found [here](./doc/sip-spec.md).
-
 
 ## Quality checks
 
