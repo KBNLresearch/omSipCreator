@@ -267,7 +267,7 @@ class PPN:
         # Append metadata to METS
         xmlDataDmd.append(mdMODS)
 
-        # Append sourceMD and digiProvMD elements to amdSec
+        # Append techMD and digiProvMD elements to amdSec
         for element in techMDRepElements:
             amdSec.append(element)
         for element in digiProvElements:
