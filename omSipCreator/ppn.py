@@ -71,6 +71,12 @@ class PPN:
         structDivTop.attrib["LABEL"] = "volumes"
         structDivTop.attrib["DMDID"] = dmdSecID
 
+        # Get metadata of this PPN from catalogue and convert to MODS format
+        mdMODS = createMODS(self)
+
+        # Append metadata to METS
+        xmlDataDmd.append(mdMODS)
+
         # Initialise counters that are used to assign file and carrier-level IDs
         sipFileCounterStart = 1
         counterTechMDStart = 1
@@ -261,11 +267,6 @@ class PPN:
             # Add volumeNumbersTypeGroup to volumeNumbers list
             volumeNumbers.append(volumeNumbersTypeGroup)
 
-        # Get metadata of this PPN from GGC and convert to MODS format
-        mdMODS = createMODS(self)
-
-        # Append metadata to METS
-        xmlDataDmd.append(mdMODS)
 
         # Append sourceMD and digiProvMD elements to amdSec
         for element in techMDRepElements:

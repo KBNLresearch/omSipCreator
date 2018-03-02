@@ -46,6 +46,7 @@ This module contains the *PPN* class, which represents a PPN (or more precisely,
 Processes one intellectual entity, which involves the following steps:
 
 - Create a METS element and its top-level subelements
+- Query catalogue for bibliographical metadata, convert to MODS and append result to METS *dmdSec* section
 - Initialise counters that are used to assign file- and carrier-level identifiers in the METS for this SIP
 - Create a SIP directory (only if the *write* commnand is used)
 - Sort and group all carriers that belong to this PPN by carrier type
