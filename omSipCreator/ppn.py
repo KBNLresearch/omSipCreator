@@ -214,9 +214,11 @@ class PPN:
                 # Add to PPNGroup class instance
                 self.append(thisCarrier)
 
-                # Update sipFileCounterStart and counterTechMDStart
+                # Update counters
                 sipFileCounterStart = sipFileCounter
                 counterTechMDStart = counterTechMD
+                carrierCounter += 1
+                counterDigiprovMD += 1
 
                 # convert volumeNumber to integer (so we can do more checking below)
                 try:
@@ -255,9 +257,6 @@ class PPN:
                     config.errors += 1
                     config.failedPPNs.append(self.PPN)
 
-                # Update counters
-                carrierCounter += 1
-                counterDigiprovMD += 1
 
             # Add volumeNumbersTypeGroup to volumeNumbers list
             volumeNumbers.append(volumeNumbersTypeGroup)
