@@ -170,6 +170,9 @@ class PPN:
                 for divFile in thisCarrier.divFileElements:
                     divDisc.append(divFile)
 
+                # Update structmap in METS
+                structDivTop.append(divDisc)
+
                 # Append file-level techMD elements to amdSec
                 for techMD in thisCarrier.techMDFileElements:
                     amdSec.append(techMD)
@@ -251,9 +254,6 @@ class PPN:
                                   carrierType + "'if 'containsAudio' is 'False'")
                     config.errors += 1
                     config.failedPPNs.append(self.PPN)
-
-                # Update structmap in METS
-                structDivTop.append(divDisc)
 
                 # Update counters
                 carrierCounter += 1
