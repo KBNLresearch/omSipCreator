@@ -220,7 +220,7 @@ Both situations may indicate a data entry error, but they may also reflect that 
 
 ##  Developer documentation
 
-See (*Documentation of modules and processing flow*)[./doc/api.md]
+See [*Documentation of modules and processing flow*](./doc/api.md)
 
 ## Contributors
 
