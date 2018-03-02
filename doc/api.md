@@ -1,7 +1,7 @@
 # Documentation of modules and processing flow
 
 
-## omSipCreator
+## Module *omSipCreator*
 
 This module contains the main function, which does the following things:
 
@@ -13,15 +13,15 @@ This module contains the main function, which does the following things:
 - Create a Batch instance (using *batch.Batch*)
 - Process the batch using *batch.Batch.process*; prune the batch using *batch.Batch.prune* (only if the *prune* command was used)
 
-## batch
+## Module *batch*
 
 This module contains the *Batch* class, which represents a batch and its properties. It includes the functions *process* and *prune*.
 
-### process function
+### Function *process*
 
 Processes a batch.
 
-#### processing steps
+#### Processing steps
 
 - Parse the batch manifest and store the contents to two lists (one for the column headers, and one for the actual data)
 - Do some basic checks on the data in the batch manifest (do all required columns exist; does every entry have the expected number of columns)
@@ -32,32 +32,32 @@ Processes a batch.
 - Check if all directories in the batch that were encountered in the above step are represented in the batch manifest
 - Collect any errors and warnings that were encountered in the above steps
 
-### prune function
+### Function *prune*
 
 Prunes a batch.
 
-#### processing steps
+#### Processing steps
 
 - Create an error batch directory
 - Copy directories for all PPNs for which errors were reported to the error batch (including post-copy checksum verification); exit if checksum verification fails
 - Update batch manifest in source batch + make copy of original batch manifest. Make batch manifest for error batch
 - Collect any errors and warning that were encountered in the above steps
 
-## ppn
+## Module *ppn*
 
 This module contains the *PPN* class, which represents a PPN (or more precisely, an intellectual entity that corresponds to a PPN, which in turn comprises all carriers that are to be included in one SIP) and its properties. It includes the function *process*.
 
-### process function
+### Function *process*
 
 Processes one intellectual entity.
 
-#### input arguments
+#### Input arguments
 
 - carriers: batch manifest rows for all carriers that are part of a PPN
 - batchDir: full path to batch directory
 - colsBatchManifest: dictionary with, for each batch manifest header field, the corresponding column number
 
-#### processing steps
+#### Processing steps
 
 - Create a METS element and its top-level subelements
 - Initialise counters that are used to assign file- and carrier-level identifiers in the METS for this SIP
@@ -78,7 +78,7 @@ Processes one intellectual entity.
 - Do some SIP-level consistency checks
 - Collect any errors and warnings that were encountered in the above steps
 
-## carrier
+## Module *carrier*
 
 This module contains the *Carrier* class, which represents an individual carrier (disc) and its properties. It includes the function *process*.
 
@@ -92,18 +92,17 @@ Upon its initialisation, a class instance has a number of attributes. The most i
 
 The above attributes are populated by the *carrier.Carrier.process* function, which is described below.
 
-### process function
+### Function *process*
 
 Processes one carrier.
 
-#### input arguments
+#### Input arguments
 
 - SIPPath: SIP output directory
 - sipFileCounterStart: start value of *sipFileCounter*
 - counterTechMDStart: start value of *counterTechMD*
 
-
-#### processing steps
+#### Processing steps
 
 - Check if all expected files for this carrier exist, and do some additional consistency checks
 - Read checksum file
@@ -127,7 +126,7 @@ Processes one carrier.
     * Update counters
 - Collect any errors and warnings that were encountered in the above steps
 
-#### output
+#### Output
 
 The function returns updated values of the following variables:
 
