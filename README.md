@@ -218,6 +218,10 @@ Both situations may indicate a data entry error, but they may also reflect that 
 
 <!-- TODO elaborate a bit on difference between FATAL, ERROR and WARNING messages in output -->
 
+##  Developer documentation
+
+See (*Documentation of modules and processing flow*)[./doc/api.md]
+
 ## Contributors
 
 Written by Johan van der Knijff, except *sru.py* which was adapted from the [KB Python API](https://github.com/KBNLresearch/KB-python-API) which is written by WillemJan Faber. The KB Python API is released under the GNU GENERAL PUBLIC LICENSE.
