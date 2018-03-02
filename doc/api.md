@@ -4,7 +4,7 @@ The general flow of the software is as follows:
 
 - Module *omSipCreator* contains the main function, which calls the *batch.Batch.process* function to process the batch
 - The *batch.Batch.process* function calls *ppn.PPN.process* for each PPN in the batch
-- The *ppn.PPN.process* function calls the *carrier.Carrier.process* function for each carrier that belongs to the PPN.
+- The *ppn.PPN.process* function calls the *carrier.Carrier.process* function for each carrier that belongs to the PPN
 - In addition to the above, if the *prune* command was used, the *omSipCreator* main function calls the *batch.Batch.prune* function to prune the batch
 
 In addition to the above modules there are also some helper modules for e.g. generating metadata (MODS, PREMIS, EBUCore).
