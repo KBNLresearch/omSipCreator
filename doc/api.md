@@ -19,7 +19,9 @@ This module contains the *Batch* class, which represents a batch and its propert
 
 ### process function
 
-Processes a batch, which involves the following steps:
+Processes a batch.
+
+#### processing steps
 
 - Parse the batch manifest and store the contents to two lists (one for the column headers, and one for the actual data)
 - Do some basic checks on the data in the batch manifest (do all required columns exist; does every entry have the expected number of columns)
@@ -28,9 +30,13 @@ Processes a batch, which involves the following steps:
     * Create a PPN instance (using *ppn.PPN*)
     * Call the PPN processing function (using *ppn.PPN.proces*)
 - Check if all directories in the batch that were encountered in the above step are represented in the batch manifest
-- Collect any errors and warning that were encountered in the above steps
+- Collect any errors and warnings that were encountered in the above steps
 
 ### prune function
+
+Prunes a batch.
+
+#### processing steps
 
 - Create an error batch directory
 - Copy directories for all PPNs for which errors were reported to the error batch (including post-copy checksum verification); exit if checksum verification fails
@@ -43,7 +49,15 @@ This module contains the *PPN* class, which represents a PPN (or more precisely,
 
 ### process function
 
-Processes one intellectual entity, which involves the following steps:
+Processes one intellectual entity.
+
+#### input arguments
+
+- carriers: batch manifest rows for all carriers that are part of a PPN
+- batchDir: full path to batch directory
+- colsBatchManifest: dictionary with, for each batch manifest header field, the corresponding column number
+
+#### processing steps
 
 - Create a METS element and its top-level subelements
 - Initialise counters that are used to assign file- and carrier-level identifiers in the METS for this SIP
@@ -62,38 +76,13 @@ Processes one intellectual entity, which involves the following steps:
 - Append carrier-level *techMD* and *digiProvMD* elements to the METS *amdSec* section
 - Write the METS file to disk (only if the *write* command is used)
 - Do some SIP-level consistency checks
-
-<!--### Input
-
-* carrier: Carrier class instance (created in processPPN) for this carrier
-* SIPPath: SIP directory (config.dirOut/PPN)
-* sipFileCounterStart: start value for within-SIP file counter
-* counterTechMDStart: start value for within-SIP counterTechMD counter
-
-### Output
-
-Dictionary *carrierOut* with following elements:
-
-* divFileElements: list with, *div* elements for all file-level structMap components (level 3 in SIP specification)
-* fileElements: list, with *file* elements for all files that are part of carrier.
-* techMDFileElements: list with file-level techMD elements
-* premisCreationEvents: list with PREMIS imaging/ripping events (Isobuster/dBpoweramp logs)
-* cdInfoElt: element, serialized cd-info output
-* sipFileCounter: updated within-SIP file counter
-* counterTechMD: updated within-SIP counterTechMD counter
--->
+- Collect any errors and warnings that were encountered in the above steps
 
 ## carrier
 
 This module contains the *Carrier* class, which represents an individual carrier (disc) and its properties. It includes the function *process*.
 
-### process function
-
-Processes one carrier, which involves the following steps:
-
-- Create a METS element and its top-level subelements
-
-The function populates the following attributes, which are used by *ppn.PPN.proces*:
+Upon its initialisation, a class instance has a number of attributes. The most important ones of these are used by the *ppn.PPN.process* function (described above):
 
 - divFileElements: list with *div* elements for all file-level structMap components (level 3 in [SIP specification](./sip-spec.md))
 - fileElements: list with *file* elements for all files that are part of carrier
@@ -101,11 +90,49 @@ The function populates the following attributes, which are used by *ppn.PPN.proc
 - premisCreationEvents: list with PREMIS imaging/ripping events (Isobuster/dBpoweramp logs)
 - cdInfoElt: lxml element with serialized cd-info output
 
-In addition, it returns updated values of the following variables:
+The above attributes are populated by the *carrier.Carrier.process* function, which is described below.
 
-* sipFileCounter: incremental counter of each file in the SIP
-* counterTechMD: incremental counter for each *techMD* section in the SIP
+### process function
 
+Processes one carrier.
+
+#### input arguments
+
+- SIPPath: SIP output directory
+- sipFileCounterStart: start value of *sipFileCounter*
+- counterTechMDStart: start value of *counterTechMD*
+
+
+#### processing steps
+
+- Check if all expected files for this carrier exist, and do some additional consistency checks
+- Read checksum file
+- Verify checksum values
+- Check for any files in carrier directory that sre not referenced in the checksum file
+- Parse cd-info log and transform into serialized lxml element
+- Parse Isobuster report into lxml element
+- Read Isobuster and/or dBpoweramp logs and put contents into PREMIS creation event
+- Add all PREMIS creation events to *premisCreationEvents* list
+- Create output directory for this carrier; then for each ISO image and/or audio file do the following (only if the *write* command is used):
+    * Copy file to output directory
+    * Do a post-copy checksum verification of the copied file
+    * Create METS *file* element and *FLocat* subelement; set corresponding attributes
+    * Create METS divisor element for *structMap*; set corresponding attributes
+    * Add divisor element to *divFileElements* list
+    * Create PREMIS *techMD* element with embedded PREMIS wrapper element
+    * Generate PREMIS object info (using *premis.addObjectInstance* function) 
+    * Append PREMIS object info to *techMD* element
+    * Add *techMD* element to *techMDFileElements* list
+    * Add *file* element to *fileElements* list
+    * Update counters
+- Collect any errors and warnings that were encountered in the above steps
+
+#### output
+
+The function returns updated values of the following variables:
+
+- sipFileCounter: incremental counter of each file in the SIP
+- counterTechMD: incremental counter for each *techMD* section in the SIP
 
 
 <!-- ## Naming
