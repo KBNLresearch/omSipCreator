@@ -339,8 +339,8 @@ class Batch:
                 logging.info("Writing batch manifest entry (batchErr)")
                 csvErr.writerow(row)
 
-                # Remove directory from input batch
-                if os.path.isdir(imagePathInAbs):
+                # Remove directory from input batch (only if error count is 0!)
+                if os.path.isdir(imagePathInAbs) and config.errors == 0:
                     logging.info("Removing  directory '" +
                                  imagePathInAbs + "' from batchIn")
                     try:
@@ -356,21 +356,26 @@ class Batch:
         fbatchManifestErr.close()
         fbatchManifestTemp.close()
 
-        # Rename original batchManifest to '.old' extension
-        fileBatchManifestOld = os.path.splitext(self.fileBatchManifest)[0] + ".old"
-        batchManifestOld = os.path.join(self.batchDir, fileBatchManifestOld)
-        os.rename(self.batchManifest, batchManifestOld)
+        if config.errors == 0:
+            # Rename original batchManifest to '.old' extension
+            fileBatchManifestOld = os.path.splitext(self.fileBatchManifest)[0] + ".old"
+            batchManifestOld = os.path.join(self.batchDir, fileBatchManifestOld)
+            os.rename(self.batchManifest, batchManifestOld)
 
-        # Rename batchManifestTemp to batchManifest
-        os.rename(batchManifestTemp, self.batchManifest)
+            # Rename batchManifestTemp to batchManifest
+            os.rename(batchManifestTemp, self.batchManifest)
 
-        logging.info("Saved old batch manifest in batchIn as '" +
-                     fileBatchManifestOld + "'")
+            logging.info("Saved old batch manifest in batchIn as '" +
+                         fileBatchManifestOld + "'")
 
-        # Copy batch log to error batch
-        batchLogIn = os.path.join(self.batchDir, self.fileBatchLog)
-        batchLogErr = os.path.join(config.batchErr, self.fileBatchLog)
-        shutil.copy2(batchLogIn, batchLogErr)
+            # Copy batch log to error batch
+            batchLogIn = os.path.join(self.batchDir, self.fileBatchLog)
+            batchLogErr = os.path.join(config.batchErr, self.fileBatchLog)
+            shutil.copy2(batchLogIn, batchLogErr)
+
+        else:
+            logging.info("Errors occurred so skipping updating of batch manifests")
+            os.remove(fbatchManifestTemp)    
 
         # Summarise no. of additional warnings / errors during pruning
         logging.info("Pruning resulted in additional " + str(config.errors) +
