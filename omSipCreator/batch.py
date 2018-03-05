@@ -277,6 +277,9 @@ class Batch:
         csvErr.writerow(self.headerBatchManifest)
         csvTemp.writerow(self.headerBatchManifest)
 
+        # Create list to store all image path directories
+        imagePathsIn = []
+
         # Iterate over all entries in batch manifest
 
         for row in self.rowsBatchManifest:
@@ -294,6 +297,9 @@ class Batch:
                 imagePathErrAbs = os.path.abspath(imagePathErr)
 
                 if os.path.isdir(imagePathInAbs):
+
+                    # Add path to list
+                    imagePathsIn.append(imagePathInAbs)
 
                     # Create directory in error batch
                     try:
@@ -339,15 +345,6 @@ class Batch:
                 logging.info("Writing batch manifest entry (batchErr)")
                 csvErr.writerow(row)
 
-                # Remove directory from input batch (only if error count is 0!)
-                if os.path.isdir(imagePathInAbs) and config.errors == 0:
-                    logging.info("Removing  directory '" +
-                                 imagePathInAbs + "' from batchIn")
-                    try:
-                        shutil.rmtree(imagePathInAbs)
-                    except OSError:
-                        logging.error("cannot remove '" + imagePathInAbs + "'")
-                        config.errors += 1
             else:
                 # Write row to temp batch manifest
                 logging.info("Writing batch manifest entry (batchIn)")
@@ -357,6 +354,17 @@ class Batch:
         fbatchManifestTemp.close()
 
         if config.errors == 0:
+
+            # Remove directories from input batch
+            for imagePath in imagePathsIn:
+                logging.info("Removing  directory '" +
+                             imagePath + "' from batchIn")
+                try:
+                    shutil.rmtree(imagePath)
+                except OSError:
+                    logging.error("cannot remove '" + imagePath + "'")
+                    config.errors += 1
+
             # Rename original batchManifest to '.old' extension
             fileBatchManifestOld = os.path.splitext(self.fileBatchManifest)[0] + ".old"
             batchManifestOld = os.path.join(self.batchDir, fileBatchManifestOld)
