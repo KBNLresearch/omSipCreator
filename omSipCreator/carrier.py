@@ -79,6 +79,8 @@ class Carrier:
         noIsobusterReports = len(isobusterReports)
         dBpowerampLogs = [i for i in allFiles if i.endswith('dbpoweramp.log')]
         noDbpowerampLogs = len(dBpowerampLogs)
+        kbmdoMetaFiles = [i for i in allFiles if i.endswith('meta-kbmdo.xml')]
+        noKbmdoMetaFiles = len(kbmdoMetaFiles)
 
         # Any other files (ISOs, audio files)
         otherFiles = [i for i in allFiles if not i.endswith(('.sha512', '.log'))]
@@ -89,6 +91,14 @@ class Carrier:
                           " : expected 1 file 'cd-info.log' in directory '" +
                           self.imagePathFull +
                           " , found " + str(noCdinfoLogs))
+            config.errors += 1
+            config.failedPPNs.append(self.PPN)
+
+        if noKbmdoMetaFiles != 1:
+            logging.error("jobID " + self.jobID +
+                          " : expected 1 file 'meta-kbmdo.xml' in directory '" +
+                          self.imagePathFull +
+                          " , found " + str(noKbmdoMetaFiles))
             config.errors += 1
             config.failedPPNs.append(self.PPN)
 
