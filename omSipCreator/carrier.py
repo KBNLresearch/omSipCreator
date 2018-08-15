@@ -210,6 +210,18 @@ class Carrier:
         else:
             isobusterReportElt = etree.Element("dfxml")
 
+        # Test if kbmdo metadata file contains well-formed XML
+        if kbmdoMetaFiles != []:
+            try:
+                kbmdoMetaFileElt = etree.parse(kbmdoMetaFiles[0]).getroot()
+            except:
+                logging.error("jobID " + self.jobID +
+                              ": error parsing '" + kbmdoMetaFiles[0] + "'")
+                config.errors += 1
+                kbmdoMetaFileElt = etree.Element("searchRetrieveResponse")
+        else:
+            kbmdoMetaFileElt = etree.Element("searchRetrieveResponse")
+
         if config.createSIPs:
 
             # Generate event metadata from Isobuster/dBpoweramp logs
