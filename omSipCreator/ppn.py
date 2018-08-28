@@ -108,7 +108,6 @@ class PPN:
         carriersByType = groupby(carriers, itemgetter(3))
 
         for carrierTypeCarriers, carrierTypeGroup in carriersByType:
-            volumeNumbersTypeGroup = []
             for carrier in carrierTypeGroup:
 
                 jobID = carrier[colsBatchManifest["jobID"]]
@@ -222,7 +221,7 @@ class PPN:
 
                 # convert volumeNumber to integer (so we can do more checking below)
                 try:
-                    volumeNumbersTypeGroup.append(int(volumeNumber))
+                    volumeNumbers.append(int(volumeNumber))
                 except ValueError:
                     # Raises error if volumeNumber string doesn't represent integer
                     logging.error("jobID " + jobID + ": '" + volumeNumber +
@@ -257,9 +256,6 @@ class PPN:
                     config.errors += 1
                     config.failedPPNs.append(self.PPN)
 
-
-            # Add volumeNumbersTypeGroup to volumeNumbers list
-            volumeNumbers.append(volumeNumbersTypeGroup)
 
         # Get metadata of this PPN from catalogue and convert to MODS format
         mdMODS = createMODS(self)
@@ -297,30 +293,29 @@ class PPN:
             config.errors += 1
             config.failedPPNs.append(self.PPN)
 
-        # Consistency checks on volumeNumber values within each carrierType group
+        # Consistency checks on volumeNumber values
 
-        for volumeNumbersTypeGroup in volumeNumbers:
-            # Volume numbers within each carrierType group must be unique
-            uniqueVolumeNumbers = set(volumeNumbersTypeGroup)
-            if len(uniqueVolumeNumbers) != len(volumeNumbersTypeGroup):
-                logging.error("PPN " + self.PPN + " (" + carrierType +
-                              "): duplicate values found for 'volumeNumber'")
-                config.errors += 1
-                config.failedPPNs.append(self.PPN)
+        # Volume numbers must be unique
+        uniqueVolumeNumbers = set(volumeNumbers)
+        if len(uniqueVolumeNumbers) != len(volumeNumbers):
+            logging.error("PPN " + self.PPN + " (" + carrierType +
+                          "): duplicate values found for 'volumeNumber'")
+            config.errors += 1
+            config.failedPPNs.append(self.PPN)
 
-            # Report warning if lower value of volumeNumber not equal to '1'
-            volumeNumbersTypeGroup.sort()
-            if volumeNumbersTypeGroup[0] != 1:
-                logging.warning("PPN " + self.PPN + " (" + carrierType +
-                                "): expected '1' as lower value for 'volumeNumber', found '" +
-                                str(volumeNumbersTypeGroup[0]) + "'")
-                config.warnings += 1
+        # Report warning if lower value of volumeNumber not equal to '1'
+        volumeNumbers.sort()
+        if volumeNumbers[0] != 1:
+            logging.warning("PPN " + self.PPN + " (" + carrierType +
+                            "): expected '1' as lower value for 'volumeNumber', found '" +
+                            str(volumeNumbers[0]) + "'")
+            config.warnings += 1
 
-            # Report warning if volumeNumber does not contain consecutive numbers
-            # (indicates either missing volumes or data entry error)
+        # Report warning if volumeNumber does not contain consecutive numbers
+        # (indicates either missing volumes or data entry error)
 
-            if sorted(volumeNumbersTypeGroup) != list(range(min(volumeNumbersTypeGroup),
-                                                            max(volumeNumbersTypeGroup) + 1)):
-                logging.warning("PPN " + self.PPN + " (" + carrierType +
-                                "): values for 'volumeNumber' are not consecutive")
-                config.warnings += 1
+        if sorted(volumeNumbers) != list(range(min(volumeNumbers),
+                                                        max(volumeNumbers) + 1)):
+            logging.warning("PPN " + self.PPN + " (" + carrierType +
+                            "): values for 'volumeNumber' are not consecutive")
+            config.warnings += 1
