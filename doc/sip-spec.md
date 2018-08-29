@@ -8,44 +8,42 @@ Each SIP is represented as a directory. Each carrier that is part of the SIP is 
 
 
     18594650X/
-    ├── cd-audio
-    │   └── 1
-    │       ├── 01.flac
-    │       ├── 02.flac
-    │       ├── 03.flac
-    │       ├── 04.flac
-    │       ├── 05.flac
-    │       ├── 06.flac
-    │       ├── 07.flac
-    │       └── ELL2.iso
+    ├── 1
+    │   ├── 01.flac
+    │   ├── 01.flac
+    │   ├── 02.flac
+    │   ├── 03.flac
+    │   ├── 04.flac
+    │   ├── 05.flac
+    │   ├── 06.flac
+    │   ├── 07.flac
+    │   └── ELL2.iso
     └── mets.xml
 
 And here's an example of a SIP that contains 3 audio CDs, and one video DVD:
 
     376144572/
-    ├── cd-audio
-    │   ├── 1
-    │   │   ├── 01.flac
-    │   │   ├── 02.flac
-    │   │   ├── 03.flac
-    │   │   ├── ...
-    │   │   ├── ...
-    │   │   ├── 23.flac
-    │   │   └── 24.flac
-    │   ├── 2
-    │   │   ├── 01.flac
-    │   │   ├── 02.flac
-    │   │   ├── 03.flac
-    │   │   ├── ...
-    │   │   ├── ...
-    │   │   ├── 18.flac
-    │   │   └── 19.flac
-    │   └── 3
-    │       ├── 01.flac
-    │       └── 02.flac
-    ├── dvd-video
-    │   └── 1
-    │       └── GRANDES_LIGNES_6VWO.iso
+    ├── 1
+    │   ├── 01.flac
+    │   ├── 02.flac
+    │   ├── 03.flac
+    │   ├── ...
+    │   ├── ...
+    │   ├── 23.flac
+    │   └── 24.flac
+    ├── 2
+    │   ├── 01.flac
+    │   ├── 02.flac
+    │   ├── 03.flac
+    │   ├── ...
+    │   ├── ...
+    │   ├── 18.flac
+    │   └── 19.flac
+    ├── 3
+    │   ├── 01.flac
+    │   └── 02.flac
+    ├── 4
+    │   └── GRANDES_LIGNES_6VWO.iso
     └── mets.xml
 
 
@@ -287,7 +285,7 @@ Each *file* element also contains an *FLocat* subelement with the following attr
 |Attribute|Description|Example|
 |:--|:--|:--|
 |`@LOCTYPE`|Locator type (value is always *URL*)|`@LOCTYPE="URL"`|
-|`@xlink:href`|URL of file. Format: filepath, relative to root of SIP directory.|`@xlink:href="file:///cd-rom/1/01.flac"`|
+|`@xlink:href`|URL of file. Format: filepath, relative to root of SIP directory.|`@xlink:href="file:///1/01.flac"`|
 
 
 ### structMap
