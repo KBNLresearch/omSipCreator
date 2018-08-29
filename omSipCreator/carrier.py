@@ -237,7 +237,7 @@ class Carrier:
             # Create Volume directory
             logging.info("creating carrier directory")
             dirVolume = os.path.join(
-                SIPPath, self.carrierType, self.volumeNumber)
+                SIPPath, self.volumeNumber)
             try:
                 os.makedirs(dirVolume)
             except (OSError, IOError):
@@ -299,7 +299,7 @@ class Carrier:
                 fLocat.attrib["LOCTYPE"] = "URL"
                 # File locations relative to SIP root (= location of METS file)
                 fLocat.attrib[etree.QName(config.xlink_ns, "href")] = "file:///" + \
-                    self.carrierType + "/" + self.volumeNumber + "/" + fileName
+                    self.volumeNumber + "/" + fileName
 
                 # Add MIME type and checksum to file element
                 # Note: neither of these Mimetypes are formally registered at
