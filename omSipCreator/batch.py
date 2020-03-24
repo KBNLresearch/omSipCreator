@@ -82,12 +82,7 @@ class Batch:
         # Read batch manifest as CSV and import header and
         # row data to 2 separate lists
         try:
-            if sys.version.startswith('3'):
-                # Py3: csv.reader expects file opened in text mode
-                fBatchManifest = open(self.batchManifest, "r", encoding="utf-8")
-            elif sys.version.startswith('2'):
-                # Py2: csv.reader expects file opened in binary mode
-                fBatchManifest = open(self.batchManifest, "rb")
+            fBatchManifest = open(self.batchManifest, "r", encoding="utf-8")
             batchManifestCSV = csv.reader(fBatchManifest)
             self.headerBatchManifest = next(batchManifestCSV)
             self.rowsBatchManifest = [row for row in batchManifestCSV]
@@ -254,16 +249,10 @@ class Batch:
         batchManifestTemp = os.path.join(self.batchDir, fileBatchManifestTemp)
 
         try:
-            if sys.version.startswith('3'):
-                # Py3: csv.reader expects file opened in text mode
-                fbatchManifestErr = open(
-                    batchManifestErr, "w", encoding="utf-8")
-                fbatchManifestTemp = open(
-                    batchManifestTemp, "w", encoding="utf-8")
-            elif sys.version.startswith('2'):
-                # Py2: csv.reader expects file opened in binary mode
-                fbatchManifestErr = open(batchManifestErr, "wb")
-                fbatchManifestTemp = open(batchManifestTemp, "wb")
+            fbatchManifestErr = open(
+                batchManifestErr, "w", encoding="utf-8")
+            fbatchManifestTemp = open(
+                batchManifestTemp, "w", encoding="utf-8")
         except IOError:
             logging.fatal("cannot write batch manifest")
             config.errors += 1

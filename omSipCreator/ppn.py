@@ -271,14 +271,8 @@ class PPN:
 
         if config.createSIPs:
             logging.info("writing METS file")
-
-            if sys.version.startswith('3'):
-                metsAsString = etree.tostring(
-                    mets, pretty_print=True, encoding="unicode")
-            elif sys.version.startswith('2'):
-                metsAsString = etree.tostring(
-                    mets, pretty_print=True, encoding="utf-8")
-
+            metsAsString = etree.tostring(
+                mets, pretty_print=True, encoding="unicode")
             metsFname = os.path.join(dirSIP, "mets.xml")
 
             with open(metsFname, "w", encoding="utf-8") as text_file:

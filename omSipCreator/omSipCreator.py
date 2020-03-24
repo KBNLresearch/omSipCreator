@@ -35,7 +35,7 @@ parser = argparse.ArgumentParser(
 
 
 def main_is_frozen():
-    """Returns True if maijn function is frozen
+    """Returns True if main function is frozen
     (e.g. PyInstaller/Py2Exe executable)
     """
     return (hasattr(sys, "frozen") or  # new py2exe
