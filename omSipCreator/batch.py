@@ -35,8 +35,9 @@ class Batch:
         self.fileIromlabVersion = "version.txt"
         # Iromlab version file (full path)
         self.iromlabVersionFile = os.path.join(self.batchDir, self.fileIromlabVersion)
-        # Iromlab version string (default for pre-1.0 versions without version file)
-        self.iromlabVersion = "0.11.0"
+        # Iromlab major / minor version (default is for pre-1.0 versions without version file)
+        self.iromlabMajorVersion = 0
+        self.iromlabMinorVersion = 11
         # List with batch manifest header items
         self.headerBatchManifest = []
         # List with batch manifest row items
@@ -83,8 +84,10 @@ class Batch:
         if os.path.isfile(self.iromlabVersionFile):
             try:
                 fVersion = open(self.iromlabVersionFile, "r", encoding="utf-8")
-                self.iromlabVersion = fVersion.readline().strip()
-                print(self.iromlabVersion)
+                iromlabVersion = fVersion.readline().strip()
+                self.iromlabMajorVersion = iromlabVersion.split(".")[0]
+                self.iromlabMinorVersion = iromlabVersion.split(".")[1]
+                print(self.iromlabMajorVersion, self.iromlabMinorVersion)
                 sys.exit()
             except IOError:
                 logging.fatal("cannot read " + self.iromlabVersionFile)
