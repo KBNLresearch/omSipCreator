@@ -139,11 +139,6 @@ class PPN:
                     config.errors += 1
                     config.failedPPNs.append(self.PPN)
                 
-                ## TEST
-                # TODO: set carrierType based on other fields
-                carrierType = "cd-audio"
-                ## TEST
-
                 # Create Carrier class instance for this carrier
                 thisCarrier = Carrier(jobID, self.PPN, imagePathFull,
                                       volumeNumber)
@@ -154,8 +149,31 @@ class PPN:
                                                                     counterTechMDStart)
                 ## TEST
                 print("IB carrier type: " + thisCarrier.isobusterCarrierType)
+                print ("containsAudio: " + containsAudio)
+                print ("containsData: " + containsData)
                 ## TEST
 
+                # Set carrierType value, based on Isobuster carrier type and info read
+                # from batch manifest. TODO: could be more fine-grained for CD-Extra,
+                # cd-i, etc.
+
+                if thisCarrier.isobusterCarrierType == "DVD":
+                    # TODO:
+                    # 1. Check if value reported by Isobuster is really "DVD" 
+                    # 2. Update resourceTypeMap in mods.py, which also contains dvd-video.
+                    #    Probably better to merge both in one generic dvd class
+                    carrierType = "dvd-rom"
+                elif containsData == "True":
+                    # TODO: ambiguous in case of CD-Extra, mixed mode. Create separate classes?
+                    carrierType = "cd-rom"
+                elif containsAudio == "True":
+                    # TODO: ambiguous in case of CD-Extra, mixed mode. Create separate classes?
+                    carrierType = "cd-audio"
+
+                ## TEST
+                print("carrierType: " + carrierType)
+                ## TEST
+ 
                 # Append file elements to fileGrp
                 for fileElement in thisCarrier.fileElements:
                     fileGrp.append(fileElement)
@@ -163,7 +181,7 @@ class PPN:
                 # Create carrier-level METS div entry
                 divDiscName = etree.QName(config.mets_ns, "div")
                 divDisc = etree.Element(divDiscName, nsmap=config.NSMAP)
-                divDisc.attrib["TYPE"] = thisCarrier.carrierType
+                divDisc.attrib["TYPE"] = carrierType
                 divDisc.attrib["ORDER"] = thisCarrier.volumeNumber
 
                 # Construct unique identifiers for digiProvMD and techMD (see below)

@@ -25,6 +25,7 @@ class Carrier:
         self.PPN = PPN
         self.imagePathFull = imagePathFull
         self.volumeNumber = volumeNumber
+        self.carrierType = ""
         self.isobusterCarrierType = ""
         self.divFileElements = []
         self.fileElements = []
