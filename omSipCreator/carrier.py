@@ -68,7 +68,7 @@ class Carrier:
 
             config.errors += 1
             config.failedPPNs.append(self.PPN)
-            errorExit(config.errors, config.warnings)
+            #errorExit(config.errors, config.warnings)
 
 
         # Find logfiles and reports (by name extension)
@@ -142,7 +142,14 @@ class Carrier:
             config.failedPPNs.append(self.PPN)
 
         # Read contents of checksum file to list
-        checksumsFromFile = checksums.readChecksums(checksumFiles[0])
+        try:
+            checksumsFromFile = checksums.readChecksums(checksumFiles[0])
+        except IndexError:
+            checksumsFromFile = []
+            logging.error("jobID " + self.jobID +
+                          " : error reading checksum file")
+            config.errors += 1
+            config.failedPPNs.append(self.PPN)
 
         # Sort ascending by file name - this ensures correct order when making structMap
         checksumsFromFile.sort(key=itemgetter(1))

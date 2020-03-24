@@ -147,11 +147,6 @@ class PPN:
                 sipFileCounter, counterTechMD = thisCarrier.process(dirSIP,
                                                                     sipFileCounterStart,
                                                                     counterTechMDStart)
-                ## TEST
-                print("IB carrier type: " + thisCarrier.isobusterCarrierType)
-                print ("containsAudio: " + containsAudio)
-                print ("containsData: " + containsData)
-                ## TEST
 
                 # Set carrierType value, based on Isobuster carrier type and info read
                 # from batch manifest. TODO: could be more fine-grained for CD-Extra,
@@ -169,10 +164,9 @@ class PPN:
                 elif containsAudio == "True":
                     # TODO: ambiguous in case of CD-Extra, mixed mode. Create separate classes?
                     carrierType = "cd-audio"
-
-                ## TEST
-                print("carrierType: " + carrierType)
-                ## TEST
+                else:
+                    # Bogus value, needed below
+                    carrierType = "unknown"
  
                 # Append file elements to fileGrp
                 for fileElement in thisCarrier.fileElements:
@@ -255,9 +249,6 @@ class PPN:
                     config.failedPPNs.append(self.PPN)
 
                 # Check carrierType value against controlled vocabulary
-                ## TEST
-                print("Check carrierType value against controlled vocabulary")
-                ## TEST
                 if carrierType not in config.carrierTypeAllowedValues:
                     logging.error("jobID " + jobID + ": '" + carrierType +
                                   "' is illegal value for 'carrierType'")

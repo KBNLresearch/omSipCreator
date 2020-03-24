@@ -208,8 +208,8 @@ class Batch:
         # Report each item in list as an error
 
         for directory in diffDirs:
-            logging.error("PPN " + PPN + ": directory '" + directory +
-                          "' not referenced in '" + self.batchManifest + "'")
+            #logging.error("PPN " + PPN + ": directory '" + directory + "' not referenced in '" + self.batchManifest + "'")
+            logging.error("directory not referenced in batch manifest")
             config.errors += 1
             config.failedPPNs.append(PPN)
 
@@ -343,10 +343,10 @@ class Batch:
                         checksumErr = checksums.generate_file_sha512(fileErr)
 
                         if checksumIn != checksumErr:
-                            logging.fatal("jobID " + jobID + ": checksum of '" +
+                            logging.critical("jobID " + jobID + ": checksum of '" +
                                           fileIn + "' does not match '" + fileErr + "'")
                             config.errors += 1
-                            errorExit(config.errors, config.warnings)
+                            #errorExit(config.errors, config.warnings)
 
                 # Write row to error batch manifest
                 logging.info("Writing batch manifest entry (batchErr)")
