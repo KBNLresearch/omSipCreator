@@ -208,8 +208,7 @@ class Batch:
         # Report each item in list as an error
 
         for directory in diffDirs:
-            #logging.error("PPN " + PPN + ": directory '" + directory + "' not referenced in '" + self.batchManifest + "'")
-            logging.error("directory not referenced in batch manifest")
+            logging.error("directory '" + directory + "' not referenced in '" + self.batchManifest + "'")
             config.errors += 1
             config.failedPPNs.append(PPN)
 
