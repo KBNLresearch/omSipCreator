@@ -31,6 +31,12 @@ class Batch:
         self.batchManifest = os.path.join(self.batchDir, self.fileBatchManifest)
         # Name of batch log file
         self.fileBatchLog = "batch.log"
+        # Name of iromlab version file
+        self.fileIromlabVersion = "version.txt"
+        # Iromlab version file (full path)
+        self.iromlabVersionFile = os.path.join(self.batchDir, self.fileIromlabVersion)
+        # Iromlab version string (default for pre-1.0 versions without version file)
+        self.iromlabVersion = "0.11.0"
         # List with batch manifest header items
         self.headerBatchManifest = []
         # List with batch manifest row items
@@ -72,6 +78,18 @@ class Batch:
         # Note: all entries as full, absolute file paths!
 
         dirsInBatch = get_immediate_subdirectories(self.batchDir, ignoreDirs)
+
+        # Try to get Iromlab version from version file
+        if os.path.isfile(self.iromlabVersionFile):
+            try:
+                fVersion = open(self.iromlabVersionFile, "r", encoding="utf-8")
+                self.iromlabVersion = fVersion.readline().strip()
+                print(self.iromlabVersion)
+                sys.exit()
+            except IOError:
+                logging.fatal("cannot read " + self.iromlabVersionFile)
+                config.errors += 1
+                errorExit(config.errors, config.warnings)
 
         # Check if batch manifest exists
         if not os.path.isfile(self.batchManifest):
