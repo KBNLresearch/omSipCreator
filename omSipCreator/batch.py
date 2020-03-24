@@ -50,7 +50,6 @@ class Batch:
         self.requiredColsBatchManifest = ['jobID',
                                           'PPN',
                                           'volumeNo',
-                                          'carrierType',
                                           'title',
                                           'volumeID',
                                           'success',
@@ -80,7 +79,7 @@ class Batch:
 
         dirsInBatch = get_immediate_subdirectories(self.batchDir, ignoreDirs)
 
-        # Try to get Iromlab version from version file
+        # Try to get Iromlab major / minor version from version file
         if os.path.isfile(self.iromlabVersionFile):
             try:
                 fVersion = open(self.iromlabVersionFile, "r", encoding="utf-8")
