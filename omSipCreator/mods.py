@@ -142,7 +142,11 @@ def createMODS(PPNGroup):
     # If all carrierType values within this PPN are identical, map modsTypeOfResource
     # from that value. Otherwise, assign "mixed material"
     if carrierTypes.count(carrierTypes[0]) == len(carrierTypes):
-        resourceType = resourceTypeMap[carrierTypes[0]]
+        try:
+            resourceType = resourceTypeMap[carrierTypes[0]]
+        except KeyError:
+            resourceType = "mixed material"
+
     else:
         resourceType = "mixed material"
 

@@ -255,6 +255,9 @@ class PPN:
                     config.failedPPNs.append(self.PPN)
 
                 # Check carrierType value against controlled vocabulary
+                ## TEST
+                print("Check carrierType value against controlled vocabulary")
+                ## TEST
                 if carrierType not in config.carrierTypeAllowedValues:
                     logging.error("jobID " + jobID + ": '" + carrierType +
                                   "' is illegal value for 'carrierType'")
