@@ -19,13 +19,13 @@ from .premis import addObjectInstance
 
 class Carrier:
     """Carrier class"""
-    def __init__(self, jobID, PPN, imagePathFull, volumeNumber, carrierType):
+    def __init__(self, jobID, PPN, imagePathFull, volumeNumber):
         """Initialise Carrier class instance"""
         self.jobID = jobID
         self.PPN = PPN
         self.imagePathFull = imagePathFull
         self.volumeNumber = volumeNumber
-        self.carrierType = carrierType
+        self.isobusterCarrierType = ""
         self.divFileElements = []
         self.fileElements = []
         self.techMDFileElements = []
@@ -209,6 +209,13 @@ class Carrier:
                 isobusterReportElt = etree.Element("dfxml")
         else:
             isobusterReportElt = etree.Element("dfxml")
+        try:
+            # Get dc:type value from Isobuster report 
+            typeElt = isobusterReportElt.xpath('//dfxml:metadata/dc:type',
+                                                namespaces=config.NSMAP)
+            self.isobusterCarrierType = typeElt[0].text
+        except:
+            pass
 
         # Test if kbmdo metadata file contains well-formed XML
         if kbmdoMetaFiles != []:

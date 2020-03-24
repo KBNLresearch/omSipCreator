@@ -112,7 +112,6 @@ class PPN:
 
                 jobID = carrier[colsBatchManifest["jobID"]]
                 volumeNumber = carrier[colsBatchManifest["volumeNo"]]
-                carrierType = carrier[colsBatchManifest["carrierType"]]
                 title = carrier[colsBatchManifest["title"]]
                 volumeID = carrier[colsBatchManifest["volumeID"]]
                 success = carrier[colsBatchManifest["success"]]
@@ -139,15 +138,23 @@ class PPN:
                                   "' is not a directory")
                     config.errors += 1
                     config.failedPPNs.append(self.PPN)
+                
+                ## TEST
+                # TODO: set carrierType based on other fields
+                carrierType = "cd-audio"
+                ## TEST
 
                 # Create Carrier class instance for this carrier
                 thisCarrier = Carrier(jobID, self.PPN, imagePathFull,
-                                      volumeNumber, carrierType)
+                                      volumeNumber)
 
                 # Process carrier
                 sipFileCounter, counterTechMD = thisCarrier.process(dirSIP,
                                                                     sipFileCounterStart,
                                                                     counterTechMDStart)
+                ## TEST
+                print("IB carrier type: " + thisCarrier.isobusterCarrierType)
+                ## TEST
 
                 # Append file elements to fileGrp
                 for fileElement in thisCarrier.fileElements:

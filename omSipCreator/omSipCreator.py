@@ -151,6 +151,8 @@ def main():
     config.isolyzer_ns = 'https://github.com/KBNLresearch/isolyzer'
     config.cdInfo_ns = 'https://www.gnu.org/software/libcdio/libcdio.html#cd_002dinfo'  # TODO: is this a proper namespace?
     config.dfxml_ns = 'http://www.forensicswiki.org/wiki/Category:Digital_Forensics_XML'
+    config.dc_ns = 'http://purl.org/dc/elements/1.1/'
+    config.hfs_ns ='http://www.forensicswiki.org/wiki/HFS'
     config.xlink_ns = 'http://www.w3.org/1999/xlink'
     config.xsi_ns = 'http://www.w3.org/2001/XMLSchema-instance'
     config.metsSchema = 'http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd'
@@ -165,6 +167,8 @@ def main():
                     "isolyzer": config.isolyzer_ns,
                     "cd-info": config.cdInfo_ns,
                     "dfxml": config.dfxml_ns,
+                    "dc": config.dc_ns,
+                    "hfs": config.hfs_ns,
                     "xlink": config.xlink_ns,
                     "xsi": config.xsi_ns}
 

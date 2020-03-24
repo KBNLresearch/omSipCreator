@@ -86,8 +86,6 @@ class Batch:
                 iromlabVersion = fVersion.readline().strip()
                 self.iromlabMajorVersion = iromlabVersion.split(".")[0]
                 self.iromlabMinorVersion = iromlabVersion.split(".")[1]
-                print(self.iromlabMajorVersion, self.iromlabMinorVersion)
-                sys.exit()
             except IOError:
                 logging.fatal("cannot read " + self.iromlabVersionFile)
                 config.errors += 1
