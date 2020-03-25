@@ -389,6 +389,10 @@ class Batch:
             batchLogErr = os.path.join(config.batchErr, self.fileBatchLog)
             shutil.copy2(batchLogIn, batchLogErr)
 
+            # Copy Iromlab version file to error batch
+            iromlabVersionFileErr = os.path.join(config.batchErr, self.fileIromlabVersion)
+            shutil.copy2(self.iromlabVersionFile, iromlabVersionFileErr)
+
         else:
             logging.info("Errors occurred so skipping updating of batch manifests")
             os.remove(fbatchManifestTemp)    
