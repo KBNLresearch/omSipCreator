@@ -20,7 +20,10 @@ def createMODS(PPNGroup):
         "cd-rom": "software, multimedia",
         "dvd-rom": "software, multimedia",
         "dvd-video": "moving image",
-        "cd-audio": "sound recording"
+        "cd-audio": "sound recording",
+        "cd-interactive": "software, multimedia",
+        "cd-extra": "software, multimedia",
+        "cd-mixedmode": "software, multimedia"
     }
 
     PPN = PPNGroup.PPN
@@ -146,7 +149,6 @@ def createMODS(PPNGroup):
             resourceType = resourceTypeMap[carrierTypes[0]]
         except KeyError:
             resourceType = "mixed material"
-
     else:
         resourceType = "mixed material"
 

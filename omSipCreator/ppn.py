@@ -119,6 +119,10 @@ class PPN:
                 containsData = carrier[colsBatchManifest["containsData"]]
                 cdExtra = carrier[colsBatchManifest["cdExtra"]]
 
+                if config.iromlabMajorVersion == 1:
+                    mixedMode = carrier[colsBatchManifest["mixedMode"]]
+                    cdInteractive = carrier[colsBatchManifest["cdInteractive"]]
+
                 # Update jobIDs list
                 jobIDs.append(jobID)
 
@@ -158,11 +162,19 @@ class PPN:
                     # 2. Update resourceTypeMap in mods.py, which also contains dvd-video.
                     #    Probably better to merge both in one generic dvd class
                     carrierType = "dvd-rom"
+                elif cdInteractive == "True":
+                    carrierType = "cd-interactive"
+                elif cdExtra == "True":
+                    # TODO: vaguely recall cd-info flagging mixed mode CDs as cd-extra as well,
+                    # or vice versa. If so needs additional exclusion here.
+                    carrierType = "cd-extra"
+                elif mixedMode == "True":
+                    # TODO: vaguely recall cd-info flagging mixed mode CDs as cd-extra as well,
+                    # or vice versa. If so needs additional exclusion here.
+                    carrierType = "cd-mixedmode"
                 elif containsData == "True":
-                    # TODO: ambiguous in case of CD-Extra, mixed mode. Create separate classes?
                     carrierType = "cd-rom"
                 elif containsAudio == "True":
-                    # TODO: ambiguous in case of CD-Extra, mixed mode. Create separate classes?
                     carrierType = "cd-audio"
                 else:
                     # Bogus value, needed below

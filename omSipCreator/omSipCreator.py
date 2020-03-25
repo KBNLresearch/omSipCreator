@@ -141,7 +141,10 @@ def main():
     config.carrierTypeAllowedValues = ['cd-rom',
                                        'cd-audio',
                                        'dvd-rom',
-                                       'dvd-video']
+                                       'dvd-video',
+                                       'cd-interactive',
+                                       'cd-extra',
+                                       'cd-mixedmode']
 
     # Define name spaces for METS output
     config.mets_ns = 'http://www.loc.gov/METS/'

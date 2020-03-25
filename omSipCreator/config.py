@@ -36,6 +36,8 @@ batchErr = ""
 dirOut = ""
 dirsInMetaCarriers = []
 carrierTypeAllowedValues = []
+iromlabMajorVersion = 0
+iromlabMinorVersion = 11
 # Set encoding of the terminal to UTF-8
 if sys.version.startswith("2"):
     out = codecs.getwriter("UTF-8")(sys.stdout)
