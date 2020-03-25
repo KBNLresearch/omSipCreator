@@ -122,6 +122,9 @@ class PPN:
                 if config.iromlabMajorVersion == 1:
                     mixedMode = carrier[colsBatchManifest["mixedMode"]]
                     cdInteractive = carrier[colsBatchManifest["cdInteractive"]]
+                else:
+                    mixedMode = "False"
+                    cdInteractive = "False"
 
                 # Update jobIDs list
                 jobIDs.append(jobID)
