@@ -84,12 +84,17 @@ class Batch:
             try:
                 fVersion = open(self.iromlabVersionFile, "r", encoding="utf-8")
                 iromlabVersion = fVersion.readline().strip()
-                self.iromlabMajorVersion = iromlabVersion.split(".")[0]
-                self.iromlabMinorVersion = iromlabVersion.split(".")[1]
+                self.iromlabMajorVersion = int(iromlabVersion.split(".")[0])
+                self.iromlabMinorVersion = int(iromlabVersion.split(".")[1])
             except IOError:
                 logging.fatal("cannot read " + self.iromlabVersionFile)
                 config.errors += 1
                 errorExit(config.errors, config.warnings)
+
+        # Update list with required batch manifest columns if Iromlab
+        # major version is 1
+        if self.iromlabMajorVersion == 1:
+            self.requiredColsBatchManifest.extend(('mixedMode', 'cdInteractive'))
 
         # Check if batch manifest exists
         if not os.path.isfile(self.batchManifest):
