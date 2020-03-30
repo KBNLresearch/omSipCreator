@@ -89,7 +89,6 @@ class Scans:
             scannerDpi = infoElt.xpath('//info/scanner/info/dpi')[0].text
             scannerColordepth = infoElt.xpath('//info/scanner/info/colordepth')[0].text
             scannerOutputformat = infoElt.xpath('//info/scanner/info/outputformat')[0].text
-
             scanElts = infoElt.xpath('//scans/scan')[0]
 
             scanIndex = 0
@@ -104,7 +103,10 @@ class Scans:
                 checksumsFromFile.append([checksum, fileName])
                 scanIndex += 1
         except:
-            pass
+            logging.error("PPN " + self.PPN +
+                            ": error processing '" + infoFiles[0] + "'")
+            config.errors += 1
+            config.failedPPNs.append(self.PPN)
 
         # Sort ascending by file name - this ensures correct order when making structMap
         checksumsFromFile.sort(key=itemgetter(1))
@@ -155,92 +157,6 @@ class Scans:
                 config.failedPPNs.append(self.PPN)
 
         """
-        # Sort ascending by file name - this ensures correct order when making structMap
-        checksumsFromFile.sort(key=itemgetter(1))
-
-        # List to store names of all files that are referenced in the checksum file
-        allFilesinChecksumFile = []
-        for entry in checksumsFromFile:
-            checksum = entry[0]
-            # Raises IndexError if entry only 1 col (malformed checksum file)!
-            fileName = entry[1]
-            # Normalise file path relative to imagePath
-            fileNameWithPath = os.path.normpath(
-                self.imagePathFull + "/" + fileName)
-
-            # Calculate SHA-512 hash of actual file
-            if os.path.isfile(fileNameWithPath) and config.skipChecksumFlag == False:
-                checksumCalculated = checksums.generate_file_sha512(fileNameWithPath)
-            elif os.path.isfile(fileNameWithPath) and config.skipChecksumFlag == True:
-                checksumCalculated = "bogus"
-            else:
-                logging.fatal("jobID " + self.jobID + ": file '" +
-                              fileNameWithPath + "' is referenced in '" + checksumFiles[0] +
-                              "', but does not exist")
-                config.errors += 1
-                config.failedPPNs.append(self.PPN)
-                errorExit(config.errors, config.warnings)
-
-            if checksumCalculated != checksum and config.skipChecksumFlag == False:
-                logging.error("jobID " + self.jobID + ": checksum mismatch for file '" +
-                              fileNameWithPath + "'")
-                config.errors += 1
-                config.failedPPNs.append(self.PPN)
-
-            # Get file size and append to allFilesinChecksumFile list
-            # (needed later for METS file entry)
-            entry.append(str(os.path.getsize(fileNameWithPath)))
-
-            # Append file name to list
-            allFilesinChecksumFile.append(fileNameWithPath)
-
-        # Check if any files in directory are missing
-        for f in otherFiles:
-            if f not in allFilesinChecksumFile:
-                logging.error("jobID " + self.jobID + ": file '" + f +
-                              "' not referenced in '" +
-                              checksumFiles[0] + "'")
-                config.errors += 1
-                config.failedPPNs.append(self.PPN)
-
-        # Carrier-level (representation) tech metadata from cd-info.log
-        if cdinfoLogs != []:
-            self.cdInfoElt, dataSectorOffset = parseCDInfoLog(cdinfoLogs[0])
-        else:
-            dataSectorOffset = 0
-
-        # Metadata from Isobuster report (return empy element in case of parse
-        # errors)
-        if isobusterReports != []:
-            try:
-                isobusterReportElt = etree.parse(isobusterReports[0]).getroot()
-            except:
-                logging.error("jobID " + self.jobID +
-                              ": error parsing '" + isobusterReports[0] + "'")
-                config.errors += 1
-                isobusterReportElt = etree.Element("dfxml")
-        else:
-            isobusterReportElt = etree.Element("dfxml")
-        try:
-            # Get dc:type value from Isobuster report 
-            typeElt = isobusterReportElt.xpath('//dfxml:metadata/dc:type',
-                                                namespaces=config.NSMAP)
-            self.isobusterCarrierType = typeElt[0].text
-        except:
-            pass
-
-        # Test if kbmdo metadata file contains well-formed XML
-        if kbmdoMetaFiles != []:
-            try:
-                kbmdoMetaFileElt = etree.parse(kbmdoMetaFiles[0]).getroot()
-            except:
-                logging.error("jobID " + self.jobID +
-                              ": error parsing '" + kbmdoMetaFiles[0] + "'")
-                config.errors += 1
-                kbmdoMetaFileElt = etree.Element("searchRetrieveResponse")
-        else:
-            kbmdoMetaFileElt = etree.Element("searchRetrieveResponse")
-
         if config.createSIPs:
 
             # Generate event metadata from Isobuster/dBpoweramp logs
