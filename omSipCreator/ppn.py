@@ -10,6 +10,7 @@ from operator import itemgetter
 from itertools import groupby
 from lxml import etree
 from . import config
+from .scans import Scans
 from .carrier import Carrier
 from .shared import errorExit
 from .mods import createMODS
@@ -30,7 +31,7 @@ class PPN:
         self.carriers.append(carrier)
         self.carrierTypes.append(carrier.carrierType)
 
-    def process(self, carriers, batchDir, colsBatchManifest):
+    def process(self, carriers, batchDir, scansDir, colsBatchManifest):
 
         """Process a PPN"""
         # PPN is PPN identifier (by which we grouped data)
@@ -297,6 +298,19 @@ class PPN:
         # Append metadata to METS
         xmlDataDmd.append(mdMODS)
 
+        # Process scans directory for this PPN
+        scansDirPPN = os.path.join(scansDir, self.PPN)
+        if not os.path.isdir(scansDirPPN):
+            logging.error("PPN " + self.PPN + ": scans directory does not exist")
+            config.errors += 1
+            config.failedPPNs.append(self.PPN)
+        else:
+            theseScans = Scans(self.PPN, scansDirPPN)
+            # Call scans processing function
+            sipFileCounter, counterTechMD = theseScans.process(dirSIP,
+                                                               sipFileCounterStart,
+                                                               counterTechMDStart)
+
         # Append techMD and digiProvMD elements to amdSec
         for element in techMDRepElements:
             amdSec.append(element)
@@ -343,7 +357,7 @@ class PPN:
         # (indicates either missing volumes or data entry error)
 
         if sorted(volumeNumbers) != list(range(min(volumeNumbers),
-                                                        max(volumeNumbers) + 1)):
+                                         max(volumeNumbers) + 1)):
             logging.warning("PPN " + self.PPN + " (" + carrierType +
                             "): values for 'volumeNumber' are not consecutive")
             config.warnings += 1

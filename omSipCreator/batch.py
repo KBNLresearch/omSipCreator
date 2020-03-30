@@ -207,7 +207,7 @@ class Batch:
             # Create PPN class instance for this PPN
             thisPPN = PPN(PPNValue)
             # Call PPN processing function
-            thisPPN.process(carriers, self.batchDir, self.colsBatchManifest)
+            thisPPN.process(carriers, self.batchDir, self.scansDir, self.colsBatchManifest)
 
         # Check if directories that are part of batch are all represented in carrier metadata file
         # (reverse already covered by checks above)
