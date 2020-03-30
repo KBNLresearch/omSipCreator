@@ -4,6 +4,7 @@ Class and processing functions for scans directory of one PPN
 """
 
 import os
+import ntpath
 import shutil
 import glob
 import logging
@@ -51,11 +52,6 @@ class Scans:
         # Find info files (by extension)
         infoFiles = [i for i in allFiles if i.endswith('.xml')]
 
-        ## TEST
-        print(allFiles)
-        print(infoFiles)
-        ## TEST
-
         # Number of info files must be exactly 1
         noInfoFiles = len(infoFiles)
 
@@ -76,6 +72,9 @@ class Scans:
             config.errors += 1
             config.failedPPNs.append(self.PPN)
 
+        # Nested list to store file names and checksum values
+        checksumsFromFile = []
+
         # Read contents of info file
         try:
             infoElt = etree.parse(infoFiles[0]).getroot()
@@ -84,12 +83,76 @@ class Scans:
                             ": error parsing '" + infoFiles[0] + "'")
             config.errors += 1
             config.failedPPNs.append(self.PPN)
-
         try:
-            scannerName = infoElt.xpath('//info/scanner/info/name').text
-            print(scannerName)
+            scannerName = infoElt.xpath('//info/scanner/info/name')[0].text
+            scannerDriver = infoElt.xpath('//info/scanner/info/driver')[0].text
+            scannerDpi = infoElt.xpath('//info/scanner/info/dpi')[0].text
+            scannerColordepth = infoElt.xpath('//info/scanner/info/colordepth')[0].text
+            scannerOutputformat = infoElt.xpath('//info/scanner/info/outputformat')[0].text
+
+            scanElts = infoElt.xpath('//scans/scan')[0]
+
+            scanIndex = 0
+
+            for _ in scanElts:
+                fileRef = scanElts.xpath('//scans/scan/file')[scanIndex].text
+                checksum = scanElts.xpath('//scans/scan/checksum')[scanIndex].text
+                checksumType = scanElts.xpath('//scans/scan/checksum')[scanIndex].get('type')
+
+                # fileRef is absolute paths, so strip away everything but file name
+                fileName = ntpath.basename(fileRef)
+                checksumsFromFile.append([checksum, fileName])
+                scanIndex += 1
         except:
             pass
+
+        # Sort ascending by file name - this ensures correct order when making structMap
+        checksumsFromFile.sort(key=itemgetter(1))
+
+        # List to store names of all files that are referenced in the info file
+        allFilesinChecksumFile = []
+        for entry in checksumsFromFile:
+            checksum = entry[0]
+            # Raises IndexError if entry only 1 col (malformed checksum file)!
+            fileName = entry[1]
+            # Normalise file path relative to imagePath
+            fileNameWithPath = os.path.normpath(
+                self.scansDirPPN + "/" + fileName)
+
+            # Calculate SHA-512 hash of actual file
+            if os.path.isfile(fileNameWithPath) and config.skipChecksumFlag == False:
+                checksumCalculated = checksums.generate_file_sha512(fileNameWithPath)
+            elif os.path.isfile(fileNameWithPath) and config.skipChecksumFlag == True:
+                checksumCalculated = "bogus"
+            else:
+                logging.fatal("PPN " + self.PPN + ": file '" +
+                              fileNameWithPath + "' is referenced in '" + infoFiles[0] +
+                              "', but does not exist")
+                config.errors += 1
+                config.failedPPNs.append(self.PPN)
+                errorExit(config.errors, config.warnings)
+
+            if checksumCalculated != checksum and config.skipChecksumFlag == False:
+                logging.error("PPN " + self.PPN + ": checksum mismatch for file '" +
+                              fileNameWithPath + "'")
+                config.errors += 1
+                config.failedPPNs.append(self.PPN)
+
+            # Get file size and append to allFilesinChecksumFile list
+            # (needed later for METS file entry)
+            entry.append(str(os.path.getsize(fileNameWithPath)))
+
+            # Append file name to list
+            allFilesinChecksumFile.append(fileNameWithPath)
+
+        # Check if any files in directory are missing
+        for f in otherFiles:
+            if f not in allFilesinChecksumFile:
+                logging.error("PPN " + self.PPN + ": file '" + f +
+                              "' not referenced in '" +
+                              infoFiles[0] + "'")
+                config.errors += 1
+                config.failedPPNs.append(self.PPN)
 
         """
         # Sort ascending by file name - this ensures correct order when making structMap
