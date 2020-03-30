@@ -29,6 +29,8 @@ class Batch:
         self.fileBatchManifest = "manifest.csv"
         # Batch manifest (full path)
         self.batchManifest = os.path.join(self.batchDir, self.fileBatchManifest)
+        # Scans directory
+        self.scansDir = os.path.join(self.batchDir, "scans")
         # Name of batch log file
         self.fileBatchLog = "batch.log"
         # Name of iromlab version file
@@ -64,6 +66,12 @@ class Batch:
         # Check if batch dir exists
         if not os.path.isdir(self.batchDir):
             logging.fatal("input batch directory does not exist")
+            config.errors += 1
+            errorExit(config.errors, config.warnings)
+
+        # Check if scans dir exists
+        if not os.path.isdir(self.scansDir):
+            logging.fatal("no scans directory found in batch")
             config.errors += 1
             errorExit(config.errors, config.warnings)
 
