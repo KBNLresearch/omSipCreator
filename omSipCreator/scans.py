@@ -89,20 +89,18 @@ class Scans:
             scannerDpi = infoElt.xpath('//info/scanner/info/dpi')[0].text
             scannerColordepth = infoElt.xpath('//info/scanner/info/colordepth')[0].text
             scannerOutputformat = infoElt.xpath('//info/scanner/info/outputformat')[0].text
-            scanElts = infoElt.xpath('//scans/scan')[0]
+            scanElts = infoElt.xpath('//scans/scan')
 
-            scanIndex = 0
-
-            for _ in scanElts:
-                fileRef = scanElts.xpath('//scans/scan/file')[scanIndex].text
-                checksum = scanElts.xpath('//scans/scan/checksum')[scanIndex].text
-                checksumType = scanElts.xpath('//scans/scan/checksum')[scanIndex].get('type')
+            for scanElt in scanElts:
+                fileRef = scanElt.find('file').text
+                checksum = scanElt.find('checksum').text
+                checksumType = scanElt.find('checksum').get('type')
 
                 # fileRef is absolute paths, so strip away everything but file name
                 fileName = ntpath.basename(fileRef)
                 checksumsFromFile.append([checksum, fileName])
-                scanIndex += 1
         except:
+            raise
             logging.error("PPN " + self.PPN +
                             ": error processing '" + infoFiles[0] + "'")
             config.errors += 1
