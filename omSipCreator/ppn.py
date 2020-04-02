@@ -349,9 +349,6 @@ class PPN:
 
             techMDRepElements.append(techMDRep)
 
-            # Add to PPNGroup class instance
-            # self.append(theseScans)
-
             # Update counters
             sipFileCounterStart = sipFileCounter
             counterTechMDStart = counterTechMD
