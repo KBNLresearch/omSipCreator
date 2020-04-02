@@ -310,8 +310,58 @@ class PPN:
             sipFileCounter, counterTechMD = theseScans.process(dirSIP,
                                                                sipFileCounterStart,
                                                                counterTechMDStart)
+            # Append file elements to fileGrp
+            for fileElement in theseScans.fileElements:
+                fileGrp.append(fileElement)
+ 
+            # Create METS div entry for scans
+            divScansName = etree.QName(config.mets_ns, "div")
+            divScans = etree.Element(divScansName, nsmap=config.NSMAP)
+            divScans.attrib["TYPE"] = "scans"
 
-        # Append techMD and digiProvMD elements to amdSec
+            # Construct unique identifiers for techMD (see below)
+            # and add to divScans as ADMID
+            techID = "techMD_" + str(counterTechMD)
+            divScans.attrib["ADMID"] = " ".join([techID])
+
+            # Append file-level div elements to scans div element
+            for divFile in theseScans.divFileElements:
+                divScans.append(divFile)
+            # Append file-level techMD elements to amdSec
+            for techMD in theseScans.techMDFileElements:
+                amdSec.append(techMD)
+
+            counterTechMD += 1
+
+            # Create representation-level techMD, mdWrap and xmlData
+            # child elements
+            techMDRepName = etree.QName(config.mets_ns, "techMD")
+            techMDRep = etree.Element(techMDRepName, nsmap=config.NSMAP)
+            techMDRep.attrib["ID"] = techID
+            mdWrapTechMDRep = etree.SubElement(
+                techMDRep, "{%s}mdWrap" % (config.mets_ns))
+            mdWrapTechMDRep.attrib["MIMETYPE"] = "text/xml"
+            mdWrapTechMDRep.attrib["MDTYPE"] = "OTHER"
+            mdWrapTechMDRep.attrib["OTHERMDTYPE"] = "cd-info output"
+            xmlDatatechMDRep = etree.SubElement(
+                mdWrapTechMDRep, "{%s}xmlData" % (config.mets_ns))
+            xmlDatatechMDRep.append(thisCarrier.cdInfoElt)
+
+            techMDRepElements.append(techMDRep)
+
+            # Add to PPNGroup class instance
+            # self.append(theseScans)
+
+            # Update counters
+            sipFileCounterStart = sipFileCounter
+            counterTechMDStart = counterTechMD
+            carrierCounter += 1
+            counterDigiprovMD += 1
+
+            # Update structmap in METS
+            structDivTop.append(divScans)
+
+        # Append techMD and digiProvMD elements to amdSec TODO: move before Process scans directory?
         for element in techMDRepElements:
             amdSec.append(element)
         for element in digiProvElements:
