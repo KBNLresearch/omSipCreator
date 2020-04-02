@@ -321,8 +321,8 @@ class PPN:
 
             # Construct unique identifiers for techMD (see below)
             # and add to divScans as ADMID
-            techID = "techMD_" + str(counterTechMD)
-            divScans.attrib["ADMID"] = " ".join([techID])
+            #techID = "techMD_" + str(counterTechMD)
+            #divScans.attrib["ADMID"] = " ".join([techID])
 
             # Append file-level div elements to scans div element
             for divFile in theseScans.divFileElements:
@@ -335,6 +335,7 @@ class PPN:
 
             # Create representation-level techMD, mdWrap and xmlData
             # child elements
+            """
             techMDRepName = etree.QName(config.mets_ns, "techMD")
             techMDRep = etree.Element(techMDRepName, nsmap=config.NSMAP)
             techMDRep.attrib["ID"] = techID
@@ -342,18 +343,19 @@ class PPN:
                 techMDRep, "{%s}mdWrap" % (config.mets_ns))
             mdWrapTechMDRep.attrib["MIMETYPE"] = "text/xml"
             mdWrapTechMDRep.attrib["MDTYPE"] = "OTHER"
-            mdWrapTechMDRep.attrib["OTHERMDTYPE"] = "cd-info output"
-            xmlDatatechMDRep = etree.SubElement(
-                mdWrapTechMDRep, "{%s}xmlData" % (config.mets_ns))
-            xmlDatatechMDRep.append(thisCarrier.cdInfoElt)
+            #mdWrapTechMDRep.attrib["OTHERMDTYPE"] = "empty-reserved-for-scans"
+            #xmlDatatechMDRep = etree.SubElement(
+            #    mdWrapTechMDRep, "{%s}xmlData" % (config.mets_ns))
+            #xmlDatatechMDRep.append(theseScans.cdInfoElt)
 
             techMDRepElements.append(techMDRep)
+            """
 
             # Update counters
-            sipFileCounterStart = sipFileCounter
-            counterTechMDStart = counterTechMD
-            carrierCounter += 1
-            counterDigiprovMD += 1
+            #sipFileCounterStart = sipFileCounter
+            #counterTechMDStart = counterTechMD
+            #carrierCounter += 1
+            #counterDigiprovMD += 1
 
             # Update structmap in METS
             structDivTop.append(divScans)
