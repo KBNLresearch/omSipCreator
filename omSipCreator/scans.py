@@ -13,7 +13,6 @@ from lxml import etree
 from . import config
 from . import checksums
 from .shared import errorExit
-from .cdinfo import parseCDInfoLog
 from .premis import addCreationEvent
 from .premis import addObjectInstance
 
@@ -24,6 +23,7 @@ class Scans:
         """Initialise Carrier class instance"""
         self.PPN = PPN
         self.scansDirPPN = scansDirPPN
+        self.scansDirNameSIP = "scans"
         self.divFileElements = []
         self.fileElements = []
         self.techMDFileElements = []
@@ -154,39 +154,30 @@ class Scans:
                 config.errors += 1
                 config.failedPPNs.append(self.PPN)
 
-        """
         if config.createSIPs:
 
-            # Generate event metadata from Isobuster/dBpoweramp logs
-            # For each carrier we can have an Isobuster even, a dBpoweramp event, or both
-            # Events are wrapped in a list premisEvents
-            if isobusterLogs != []:
-                premisEvent = addCreationEvent(isobusterLogs[0])
-                self.premisCreationEvents.append(premisEvent)
-            if dBpowerampLogs != []:
-                premisEvent = addCreationEvent(dBpowerampLogs[0])
-                self.premisCreationEvents.append(premisEvent)
-
-            # Create Volume directory
-            logging.info("creating carrier directory")
-            dirVolume = os.path.join(
-                SIPPath, self.volumeNumber)
+            # Create scans directory
+            # TODO: naming of this dir?
+            logging.info("creating scans directory")
+            dirScans = os.path.join(
+                SIPPath, self.scansDirNameSIP)
             try:
-                os.makedirs(dirVolume)
+                os.makedirs(dirScans)
             except (OSError, IOError):
-                logging.fatal("jobID " + self.jobID +
-                              ": cannot create '" + dirVolume + "'")
+                logging.fatal("PPN " + self.PPN +
+                              ": cannot create '" + dirScans + "'")
                 config.errors += 1
+                config.failedPPNs.append(self.PPN)
                 errorExit(config.errors, config.warnings)
 
-            # Copy files to SIP Volume directory
-            logging.info("copying files to carrier directory")
+            # Copy files to scans directory
+            logging.info("copying files to scans directory")
 
-            # Get file names from checksum file, as this is the easiest way to make
+            # Get file names from checksums list, as this is the easiest way to make
             # post-copy checksum verification work. Filter out log files first!
 
             filesToCopy = [
-                i for i in checksumsFromFile if not i[1].endswith(('.log', '.xml'))]
+                i for i in checksumsFromFile if i[1].endswith(('.tif', '.tiff', '.TIF', '.TIFF'))]
 
             for entry in filesToCopy:
 
@@ -195,25 +186,26 @@ class Scans:
                 fileSize = entry[2]
                 # Generate unique file ID (used in structMap)
                 fileID = "file_" + str(sipFileCounter)
-                # Construct path relative to carrier directory
-                fIn = os.path.join(self.imagePathFull, fileName)
+                # Construct path relative to scans directory
+                fIn = os.path.join(self.scansDirPPN, fileName)
 
-                # Construct path relative to volume directory
-                fSIP = os.path.join(dirVolume, fileName)
+                # Construct path relative to scans directory
+                fSIP = os.path.join(dirScans, fileName)
                 try:
                     # Copy to volume dir
                     shutil.copy2(fIn, fSIP)
                 except OSError:
-                    logging.fatal("jobID " + self.jobID +
+                    logging.fatal("PPN " + self.PPN +
                                   ": cannot copy '" +
                                   fileName + "' to '" + fSIP + "'")
                     config.errors += 1
+                    config.failedPPNs.append(self.PPN)
                     errorExit(config.errors, config.warnings)
 
                 # Calculate hash of copied file, and verify against known value
                 checksumCalculated = checksums.generate_file_sha512(fSIP)
                 if checksumCalculated != checksum:
-                    logging.error("jobID " + self.jobID + ": checksum mismatch for file '" +
+                    logging.error("PPN " + self.PPN + ": checksum mismatch for file '" +
                                   fSIP + "'")
                     config.errors += 1
                     config.failedPPNs.append(self.PPN)
@@ -232,26 +224,17 @@ class Scans:
                 fLocat.attrib["LOCTYPE"] = "URL"
                 # File locations relative to SIP root (= location of METS file)
                 fLocat.attrib[etree.QName(config.xlink_ns, "href")] = "file:///" + \
-                    self.volumeNumber + "/" + fileName
+                    self.scansDirNameSIP + "/" + fileName
 
                 # Add MIME type and checksum to file element
-                # Note: neither of these Mimetypes are formally registered at
-                # IANA but they seem to be widely used. Also, DIAS filetypes list
-                # uses /audio/x-wav!
-                if fileName.endswith(".iso"):
-                    mimeType = "application/x-iso9660-image"
-                elif fileName.endswith(".wav"):
-                    mimeType = "audio/wav"
-                elif fileName.endswith(".flac"):
-                    mimeType = "audio/flac"
+                # TODO: use proper magic-based identification
+                if fileName.endswith(('.tif', '.tiff', '.TIF', '.TIFF')):
+                    mimeType = "image/tiff"
                 else:
                     mimeType = "application/octet-stream"
                 fileElt.attrib["MIMETYPE"] = mimeType
                 fileElt.attrib["CHECKSUM"] = checksum
                 fileElt.attrib["CHECKSUMTYPE"] = "SHA-512"
-
-                # TODO: check if mimeType values matches carrierType
-                # (e.g. no audio/x-wav if cd-rom, etc.)
 
                 # Create track divisor element for structmap
                 divFileName = etree.QName(config.mets_ns, "div")
@@ -280,7 +263,7 @@ class Scans:
                     mdWrapObjectPremis, "{%s}xmlData" % (config.mets_ns))
 
                 premisObjectInfo = addObjectInstance(
-                    fSIP, fileSize, mimeType, checksum, dataSectorOffset, isobusterReportElt)
+                    fSIP, fileSize, mimeType, checksum)
                 xmlDataObjectPremis.append(premisObjectInfo)
                 self.techMDFileElements.append(techMDPremis)
 
@@ -296,6 +279,6 @@ class Scans:
                 fileCounter += 1
                 sipFileCounter += 1
                 counterTechMD += 1
-                """
+
 
         return sipFileCounter, counterTechMD
