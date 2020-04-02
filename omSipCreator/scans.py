@@ -27,7 +27,7 @@ class Scans:
         self.divFileElements = []
         self.fileElements = []
         self.techMDFileElements = []
-        self.premisCreationEvents = []
+        #self.premisCreationEvents = []
         #cdInfoName = etree.QName(config.cdInfo_ns, "cd-info")
         #self.cdInfoElt = etree.Element(cdInfoName, nsmap=config.NSMAP)
 
@@ -43,7 +43,8 @@ class Scans:
         mimeTypeMap = {
             "application/x-iso9660-image": "disk image",
             "audio/flac": "audio track",
-            "audio/wav": "audio track"
+            "audio/wav": "audio track",
+            "image/tiff": "cover" # TODO: what to call this?
         }
 
         # All files in directory
