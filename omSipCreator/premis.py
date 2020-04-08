@@ -234,19 +234,21 @@ def addObjectInstance(fileName, fileSize, mimeType, sha512Sum, sectorOffset=0, i
         formatRegistry, "{%s}formatRegistryKey" % (config.premis_ns))
     formatRegistryKey.text = fileTypeIDs.get(mimeType)
 
-    # objectCharacteristicsExtension - EBUCore, isolyzer, Isobuster DFXML
-    objectCharacteristicsExtension1 = etree.SubElement(
-        objectCharacteristics, "{%s}objectCharacteristicsExtension" % (config.premis_ns))
-
     if fileName.endswith(('.wav', '.WAV', 'flac', 'FLAC')):
         audioMDOut = getAudioMetadata(fileName)
         audioMD = audioMDOut["outElt"]
+        objectCharacteristicsExtension1 = etree.SubElement(
+                                                           objectCharacteristics,
+                                                           "{%s}objectCharacteristicsExtension" % (config.premis_ns))
         objectCharacteristicsExtension1.append(audioMD)
     elif fileName.endswith(('.iso', '.ISO')):
         # TODO: modify to accommodate BIN and BIN/CUE (in this case IsoBuster report exists,
         # but Isolyzer cannot be used)
         # Add Isobuster's DFXML report
         isobusterReportElt = add_ns_prefix(isobusterReportElt, config.dfxml_ns)
+        objectCharacteristicsExtension1 = etree.SubElement(
+                                                           objectCharacteristics,
+                                                           "{%s}objectCharacteristicsExtension" % (config.premis_ns))
         objectCharacteristicsExtension1.append(isobusterReportElt)
         # Add another objectCharacteristicsExtension element for Isolyzer output
         objectCharacteristicsExtension2 = etree.SubElement(
