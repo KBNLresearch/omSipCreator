@@ -155,17 +155,21 @@ def addObjectInstance(fileName, fileSize, mimeType, sha512Sum, sectorOffset=0, i
     """Generate object instance for file"""
 
     # Dictionary that links formatName values to mimeTypes
-    # TODO: add values for CUE and BIN/CUE images!
+    # TODO: more specific values for CUE and BIN instead of generic ocyet-stream and text?
     formatNames = {
         # From LoC: https://www.loc.gov/preservation/digital/formats/fdd/fdd000348.shtml
         'application/x-iso9660-image': 'ISO_Image',
-        'audio/wav': 'Wave',  # from DIAS filetypes list
-        'audio/flac': 'FLAC',  # Not on DIAS filetypes list
-        'image/tiff': 'TIFF'  # TODO: DIAS filetypes list value?
+        'application/octet-stream': 'n/a', # BIN file, not on LoC list
+        'text/plain': 'n/a', # Cue sheet, not on LoC list
+        'audio/wav': 'Wave',
+        'audio/flac': 'FLAC',
+        'image/tiff': 'TIFF'
     }
     # Dictionary that links DIAS fileTypeID values to mimeTypes
     fileTypeIDs = {
         'application/x-iso9660-image': 'n/a',  # Not on DIAS filetypes list
+        'application/octet-stream': 'n/a', # BIN file, not on DIAS filetypes list
+        'text/plain': '20', # CUE sheet
         'audio/wav': '60',
         'audio/flac': 'n/a',  # Not on DIAS filetypes list
         'image/tiff': '9'  # Multiple values in DIAS filetypes list (9, 10, 32-39)
