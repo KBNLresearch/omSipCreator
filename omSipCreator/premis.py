@@ -245,7 +245,7 @@ def addObjectInstance(fileName, fileSize, mimeType, sha512Sum, sectorOffset=0, i
                                                            objectCharacteristics,
                                                            "{%s}objectCharacteristicsExtension" % (config.premis_ns))
         objectCharacteristicsExtension1.append(audioMD)
-    elif fileName.endswith(('.iso', '.ISO')):
+    elif fileName.endswith(('.iso', '.ISO', '.bin', '.BIN')):
         # TODO: modify to accommodate BIN and BIN/CUE (in this case IsoBuster report exists,
         # but Isolyzer cannot be used)
         # Add Isobuster's DFXML report
@@ -254,29 +254,31 @@ def addObjectInstance(fileName, fileSize, mimeType, sha512Sum, sectorOffset=0, i
                                                            objectCharacteristics,
                                                            "{%s}objectCharacteristicsExtension" % (config.premis_ns))
         objectCharacteristicsExtension1.append(isobusterReportElt)
-        # Add another objectCharacteristicsExtension element for Isolyzer output
-        objectCharacteristicsExtension2 = etree.SubElement(
-            objectCharacteristics, "{%s}objectCharacteristicsExtension" % (config.premis_ns))
-        # Analyze ISO image with isolyzer
-        isolyzerOut = isolyzer.processImage(fileName, sectorOffset)
-        # Isolyzer output is Elementtree element, which must be converted
-        # to lxml element
-        makeHumanReadable(isolyzerOut)
-        isolyzerOutAsXML = ET.tostring(isolyzerOut, 'UTF-8', 'xml')
-        isolyzerOutLXML = etree.fromstring(isolyzerOutAsXML)
-        isolyzerOutLXML = add_ns_prefix(isolyzerOutLXML, config.isolyzer_ns)
-        isoMDOut = etree.Element("{%s}isolyzer" % (config.isolyzer_ns), nsmap=config.NSMAP)
-        toolInfo = etree.SubElement(isoMDOut, "{%s}toolInfo" % (config.isolyzer_ns))
-        toolName = etree.SubElement(toolInfo, "{%s}toolName" % (config.isolyzer_ns))
-        toolVersion = etree.SubElement(toolInfo, "{%s}toolVersion" % (config.isolyzer_ns))
-        toolName.text = "isolyzer"
-        toolVersion.text = isolyzer.__version__
-        isoMDOut.append(isolyzerOutLXML)
-        objectCharacteristicsExtension2.append(isoMDOut)
-    elif fileName.endswith(('.tif', '.tiff', '.TIF', '.TIFF')):
-        # TODO: add image metadata (MIX?)
+        # Add another objectCharacteristicsExtension element for Isolyzer output (only for ISO images!)
+        if fileName.endswith(('.iso', '.ISO')):
+            objectCharacteristicsExtension2 = etree.SubElement(
+                objectCharacteristics, "{%s}objectCharacteristicsExtension" % (config.premis_ns))
+            # Analyze ISO image with isolyzer
+            isolyzerOut = isolyzer.processImage(fileName, sectorOffset)
+            # Isolyzer output is Elementtree element, which must be converted
+            # to lxml element
+            makeHumanReadable(isolyzerOut)
+            isolyzerOutAsXML = ET.tostring(isolyzerOut, 'UTF-8', 'xml')
+            isolyzerOutLXML = etree.fromstring(isolyzerOutAsXML)
+            isolyzerOutLXML = add_ns_prefix(isolyzerOutLXML, config.isolyzer_ns)
+            isoMDOut = etree.Element("{%s}isolyzer" % (config.isolyzer_ns), nsmap=config.NSMAP)
+            toolInfo = etree.SubElement(isoMDOut, "{%s}toolInfo" % (config.isolyzer_ns))
+            toolName = etree.SubElement(toolInfo, "{%s}toolName" % (config.isolyzer_ns))
+            toolVersion = etree.SubElement(toolInfo, "{%s}toolVersion" % (config.isolyzer_ns))
+            toolName.text = "isolyzer"
+            toolVersion.text = isolyzer.__version__
+            isoMDOut.append(isolyzerOutLXML)
+            objectCharacteristicsExtension2.append(isoMDOut)
+    elif fileName.endswith(('.cue', '.CUE')):
         pass
-
+    elif fileName.endswith(('.tif', '.tiff', '.TIF', '.TIFF')):
+        # TODO: add image metadata (MIX)?
+        pass
     # originalName
     originalName = etree.SubElement(
         pObject, "{%s}originalName" % (config.premis_ns))

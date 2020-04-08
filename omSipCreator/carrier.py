@@ -45,10 +45,11 @@ class Carrier:
         counterTechMD = counterTechMDStart
 
         # Mapping between mimeType and structmap TYPE field
-        # TODO: add .bin, .cue
 
         mimeTypeMap = {
             "application/x-iso9660-image": "disk image",
+            'application/octet-stream': "disk image",
+            'text/plain': "cue sheet",
             "audio/flac": "audio track",
             "audio/wav": "audio track"
         }
@@ -110,15 +111,27 @@ class Carrier:
             config.errors += 1
             config.failedPPNs.append(self.PPN)
 
-        # Get number of ISO files and number of audio files, and cross-check consistency
+        # Get number of ISO, BIN, CUE and audio files, and cross-check consistency
         # with log file names
         isOFiles = [i for i in otherFiles if i.endswith(('.iso', '.ISO'))]
         noIsoFiles = len(isOFiles)
+        binFiles = [i for i in otherFiles if i.endswith(('.bin', '.BIN'))]
+        noBinFiles = len(binFiles)
+        cueFiles = [i for i in otherFiles if i.endswith(('.cue', '.CUE'))]
+        noCueFiles = len(cueFiles)
         audioFiles = [i for i in otherFiles if i.endswith(
             ('.wav', '.WAV', 'flac', 'FLAC'))]
         noAudioFiles = len(audioFiles)
 
-        if noIsoFiles > 0 and noIsobusterLogs != 1:
+        if noCueFiles > 0 and noCueFiles != noBinFiles:
+            logging.error("jobID " + self.jobID +
+                        " : number of cue sheets in directory '" +
+                        self.imagePathFull +
+                        " is different from number of bin files")
+            config.errors += 1
+            config.failedPPNs.append(self.PPN)
+
+        if (noIsoFiles + noBinFiles) > 0 and noIsobusterLogs != 1:
             logging.error("jobID " + self.jobID +
                           " : expected 1 file 'isobuster.log' in directory '" +
                           self.imagePathFull +
@@ -126,7 +139,7 @@ class Carrier:
             config.errors += 1
             config.failedPPNs.append(self.PPN)
 
-        if noIsoFiles > 0 and noIsobusterReports != 1:
+        if (noIsoFiles + noBinFiles) > 0 and noIsobusterReports != 1:
             logging.error("jobID " + self.jobID +
                           " : expected 1 file 'isobuster-report.xml' in directory '" +
                           self.imagePathFull +
@@ -323,6 +336,10 @@ class Carrier:
                 # uses /audio/x-wav!
                 if fileName.endswith(".iso"):
                     mimeType = "application/x-iso9660-image"
+                elif fileName.endswith(".bin"):
+                    mimeType = "application/octet-stream"
+                elif fileName.endswith(".cue"):
+                    mimeType = "text/plain"
                 elif fileName.endswith(".wav"):
                     mimeType = "audio/wav"
                 elif fileName.endswith(".flac"):
