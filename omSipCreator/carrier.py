@@ -45,6 +45,7 @@ class Carrier:
         counterTechMD = counterTechMDStart
 
         # Mapping between mimeType and structmap TYPE field
+        # TODO: add .bin, .cue
 
         mimeTypeMap = {
             "application/x-iso9660-image": "disk image",
