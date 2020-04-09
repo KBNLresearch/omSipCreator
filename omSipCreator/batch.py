@@ -87,11 +87,10 @@ class Batch:
         # Get listing of all directories (not files) in batch dir (used later for
         # completeness check)
         # Note: all entries as full, absolute file paths!
-
         dirsInBatch = get_immediate_subdirectories(self.batchDir, ignoreDirs)
-        #print(ignoreDirs)
-        #print(dirsInBatch)
-        #sys.exit()
+
+        # Get listing of all directories in scans dir
+        dirsInScans = get_immediate_subdirectories(self.scansDir, [])
 
         # Try to get Iromlab major / minor version from version file
         if os.path.isfile(self.iromlabVersionFile):
@@ -210,15 +209,42 @@ class Batch:
         # ********
         # ** Iterate over PPNs**
         # ********
+        PPNs = []
 
         for PPNValue, carriers in metaCarriersByPPN:
             logging.info("Processing PPN " + PPNValue)
+            # Add PPN value to list of all PPNs
+            PPNs.append(PPNValue) 
             # Create PPN class instance for this PPN
             thisPPN = PPN(PPNValue)
             # Call PPN processing function
             thisPPN.process(carriers, self.batchDir, self.scansDir, self.colsBatchManifest)
 
-        # Check if directories that are part of batch are all represented in carrier metadata file
+        # Get all unique values in PPNs list by converting to a set (and then back to a list)
+        PPNs = (list(set(PPNs)))
+        PPNDirs = []
+
+        # Get PPN values from scans dir subdirectories
+        for directory in dirsInScans:
+            _, dirName = os.path.split(directory)
+            PPNDirs.append(dirName)
+
+        # Check if each PPN has a corresponding scans directory
+        missingScanDirs =  list(set(PPNs) - set(PPNDirs))
+
+        for PPNValue in missingScanDirs:
+            logging.error("PPN " + PPNValue + ": no corresponding scans directory")
+            config.errors += 1
+            config.failedPPNs.append(PPNValue)
+
+        # Check if each subdirectory in scans dir has corresponding PPN
+        orphanScanDirs =  list(set(PPNDirs) - set(PPNs))
+
+        for PPNValue in orphanScanDirs:
+            logging.error("scans directory '" + PPNValue + "' not referenced in '" + self.batchManifest + "'")
+            config.errors += 1
+
+        # Check if directories that are part of batch are all represented in batch manifest
         # (reverse already covered by checks above)
 
         # Diff as list
@@ -229,7 +255,6 @@ class Batch:
         for directory in diffDirs:
             logging.error("directory '" + directory + "' not referenced in '" + self.batchManifest + "'")
             config.errors += 1
-            config.failedPPNs.append(PPN)
 
         # Summarise no. of warnings / errors
         logging.info("Verify / write resulted in " + str(config.errors) +
