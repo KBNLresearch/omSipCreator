@@ -31,6 +31,10 @@ class Batch:
         self.batchManifest = os.path.join(self.batchDir, self.fileBatchManifest)
         # Scans directory
         self.scansDir = os.path.join(self.batchDir, "scans")
+        # jobs directory  (only in unfinished batch)
+        self.jobsDir = os.path.join(self.batchDir, "jobs")
+        # failed jobs directory (only in unfinished batch)
+        self.jobsFailedDir = os.path.join(self.batchDir, "jobsFailed")
         # Name of batch log file
         self.fileBatchLog = "batch.log"
         # Name of iromlab version file
@@ -75,14 +79,19 @@ class Batch:
             config.errors += 1
             errorExit(config.errors, config.warnings)
 
-        # Define dirs to ignore (jobs and jobsFailed)
-        ignoreDirs = ["jobs", "jobsFailed"]
+        # Define dirs to ignore (jobs, jobsFailed and scans)
+        ignoreDirs = [os.path.abspath(self.scansDir),
+                      os.path.abspath(self.jobsDir),
+                      os.path.abspath(self.jobsFailedDir)]
 
         # Get listing of all directories (not files) in batch dir (used later for
         # completeness check)
         # Note: all entries as full, absolute file paths!
 
         dirsInBatch = get_immediate_subdirectories(self.batchDir, ignoreDirs)
+        #print(ignoreDirs)
+        #print(dirsInBatch)
+        #sys.exit()
 
         # Try to get Iromlab major / minor version from version file
         if os.path.isfile(self.iromlabVersionFile):

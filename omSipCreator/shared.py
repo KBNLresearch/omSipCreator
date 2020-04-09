@@ -125,17 +125,18 @@ def launchSubProcess(args):
 
 def get_immediate_subdirectories(a_dir, ignoreDirs):
     """Returns list of immediate subdirectories
-    Directories that end with suffixes defined by ignoreDirs are ignored
+    Directories defined by ignoreDirs are ignored
     """
     subDirs = []
-    for root, dirs, files in os.walk(a_dir):
+
+    for root, dirs, _ in os.walk(a_dir):
         for myDir in dirs:
-            ignore = False
-            for ignoreDir in ignoreDirs:
-                if myDir.endswith(ignoreDir):
-                    ignore = True
-            if not ignore:
-                subDirs.append(os.path.abspath(os.path.join(root, myDir)))
+            myDir = os.path.abspath(os.path.join(root, myDir))
+
+            if myDir not in ignoreDirs:
+                subDirs.append(myDir)
+            
+        break # this prevents recursing into lower-level subdirectories
 
     return subDirs
 
