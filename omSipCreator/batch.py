@@ -403,6 +403,64 @@ class Batch:
         fbatchManifestErr.close()
         fbatchManifestTemp.close()
 
+        # Prune scans directory
+
+        # Create list to store all scans path directories
+        scansPathsIn = []
+
+        for PPNValue in config.failedPPNs:
+
+            # Image path for this jobID in input, pruned and error batch
+            scansPathIn = os.path.normpath(os.path.join(self.scansDir, PPNValue))
+            scansPathErr = os.path.normpath(os.path.join(config.batchErr, "scans", PPNValue))
+
+            scansPathInAbs = os.path.abspath(scansPathIn)
+            scansPathErrAbs = os.path.abspath(scansPathErr)
+
+            if os.path.isdir(scansPathInAbs):
+
+                # Add path to list
+                scansPathsIn.append(scansPathInAbs)
+
+                # Create directory in error batch
+                try:
+                    os.makedirs(scansPathErrAbs)
+                except (OSError, IOError):
+                    logging.error("PPN " + PPNValue +
+                                  ": could not create directory '" +
+                                  scansPathErrAbs)
+                    config.errors += 1
+
+                # All files in directory
+                allFiles = glob.glob(scansPathInAbs + "/*")
+
+                # Copy all files to error batch and do post-copy checksum verification
+                logging.info("Copying files to error batch")
+
+                for fileIn in allFiles:
+                    # File base name
+                    fileBaseName = os.path.basename(fileIn)
+
+                    # Path to copied file
+                    fileErr = os.path.join(scansPathErrAbs, fileBaseName)
+
+                    # Copy file to batchErr
+                    try:
+                        shutil.copy2(fileIn, fileErr)
+                    except (IOError, OSError):
+                        logging.error("PPN " + PPNValue + ": cannot copy '" +
+                                        fileIn + "' to '" + fileErr + "'")
+                        config.errors += 1
+
+                    # Verify checksum
+                    checksumIn = checksums.generate_file_sha512(fileIn)
+                    checksumErr = checksums.generate_file_sha512(fileErr)
+
+                    if checksumIn != checksumErr:
+                        logging.critical("PPN " + PPNValue + ": checksum of '" +
+                                        fileIn + "' does not match '" + fileErr + "'")
+                        config.errors += 1
+
         if config.errors == 0:
 
             # Remove directories from input batch
@@ -413,6 +471,16 @@ class Batch:
                     shutil.rmtree(imagePath)
                 except OSError:
                     logging.error("cannot remove '" + imagePath + "'")
+                    config.errors += 1
+
+            # Remove scans directories from input batch
+            for scansPath in scansPathsIn:
+                logging.info("Removing  directory '" +
+                             scansPath + "' from batchIn")
+                try:
+                    shutil.rmtree(scansPath)
+                except OSError:
+                    logging.error("cannot remove '" + scansPath + "'")
                     config.errors += 1
 
             # Rename original batchManifest to '.old' extension
