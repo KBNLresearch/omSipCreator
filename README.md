@@ -204,13 +204,12 @@ A detailed description of the SIP strucure and its associated metadata can be fo
 When run in either *verify* or *write* mode, omSipCreator performs a number checks on the input batch. Each of he following checks will result in an *error* in case of failure:
 
 - Does the batch directory exist?
+_ Does the batch contain a *scans* directory?
 - Does the batch manifest exist?
 - Can the batch manifest be opened and is it parsable?
 - Does the batch manifest contain exactly 1 instance of each mandatory column?
 - Does each *jobID* entry point to an existing directory?
 - Is each *volumeNumber* entry an integer value?
-- Is each *carrierType* entry a permitted value (check against controlled vocabulary)?
-- Is each *carrierType* entry consistent with the values of *containsAudio* and *containsData*?
 - Is the value of the *success* flag 'True'?
 - Are all values of *jobID* within the batch manifest unique (no duplicate values)?
 - Are all instances of *volumeNumber* within each *carrierType* group unique?
@@ -220,6 +219,10 @@ When run in either *verify* or *write* mode, omSipCreator performs a number chec
 - For each entry in the checksum file, is the SHA-512 checksum identical to the re-calculated checksum for that file?
 - Does a carrier directory contain any files that are not referenced in the checksum file?
 - Does a search for *PPN* in the KB catalogue result in exactly 1 matching record?
+- Does each *PPN* have a corresponding subdirectory in the *scans* directory?
+- Does each subdirectory of the *scans* directory have a corresponding *PPN*?
+- Is the scans metadata file (*info.xml*) in each *scans* subdirectory parsable?
+- For each entry in scans metadata file, is the SHA-512 checksum identical to the re-calculated checksum for the corresponding image file?
 
 In *write* mode omSipCreator performs the following additional checks:
 
@@ -227,12 +230,12 @@ In *write* mode omSipCreator performs the following additional checks:
 - Could a SIP directory be created for the current PPN?
 - Could a carrier directory be created for the current carrier?
 - Could the image file(s) for the current carrier be copied to its SIP carrier directory?
-- Does the SHA-512 checksum of each copied image file match the original checksum (post-copy checksum verification)?
+- Does the SHA-512 checksum of each copied file match the original checksum (post-copy checksum verification)?
 
 Finally, omSipcreator will report a *warning* in the following situations:
 
-- Lower value of *volumeNumber* within a *carrierType* group is not equal to 1.
-- Values of *volumeNumber* within a *carrierType* group are not consecutive numbers.
+- Lower value of *volumeNumber* is not equal to 1.
+- Values of *volumeNumber* are not consecutive numbers.
 
 Both situations may indicate a data entry error, but they may also reflect that the physical carriers are simply missing.
 
