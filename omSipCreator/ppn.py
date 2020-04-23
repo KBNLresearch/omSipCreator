@@ -69,13 +69,7 @@ class PPN:
         # Add top-level volumes divisor element to structMap
         structDivTop = etree.SubElement(structMap, "{%s}div" % (config.mets_ns))
         structDivTop.attrib["TYPE"] = "physical"
-        #structDivTop.attrib["LABEL"] = "volumes"
         structDivTop.attrib["DMDID"] = dmdSecID
-
-        # Add top-level scans divisor element to structMap
-        #scansDivTop = etree.SubElement(structMap, "{%s}div" % (config.mets_ns))
-        #scansDivTop.attrib["TYPE"] = "scans"
-        #scansDivTop.attrib["DMDID"] = dmdSecID
 
         # Initialise counters that are used to assign file and carrier-level IDs
         sipFileCounterStart = 1
@@ -364,7 +358,6 @@ class PPN:
 
             # Update structmap in METS
             structDivTop.append(divScans)
-            #scansDivTop.append(divScans)
 
         # Append techMD and digiProvMD elements to amdSec TODO: move before Process scans directory?
         for element in techMDRepElements:
