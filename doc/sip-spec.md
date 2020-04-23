@@ -301,29 +301,36 @@ Each *file* element also contains an *FLocat* subelement with the following attr
 The METS *structMap* section describes the hierarchical structure of the carriers that are part of the SIP. Each level is represented by one or more *div* elements inside the *structMap* element. The general structure is:
 
 1. Top level: represents all carriers that are part of the SIP
-2. Intermediate level: represents a single carrier (cd-rom, audio cd, dvd-rom, dvd-video)
-3. Lowest level: represents a file that is extracted from the carrier (a disk image of the filesystem, one or more ripped audio tracks, or both)
+2. Intermediate level: represents a single carrier (cd-rom, audio cd, dvd-rom, dvd-video) or a set of cover scans
+3. Lowest level: represents a file that is extracted from the carrier (a disk image of the filesystem, one or more ripped audio tracks, or both), or a scanned cover image
 
 The top-level *div* element (which represents all carriers that are part of the SIP has the following attributes:
 
 - `@TYPE="physical"`
-- `@LABEL="volumes"`
 - `@DMDID="dmdSec_1"`
 
 The value of `@DMDID` links to the METS *dmdSec* section (which contains the descriptive and bibliographic metadata for all carriers in this SIP).
 
-The top-level *div* element contains one or more intermediate-level *div* elements that each descibe an individual carrier, using the following attributes:
+The top-level *div* element contains one or more intermediate-level *div* elements that each describe an individual carrier, and one intermediate-level *div* element
+that describes a set of scanned cover images. For an individual carrier it uses the following attributes:
 
 |Attribute|Description|Example|
 |:--|:--|:--|
 |`@TYPE`|describes the carrier type; possible values are *cd-rom*, *cd-audio*, *dvd-rom*, *dvd-video*|`@TYPE="cd-rom"`|
-|`@ORDER`|in case of multiple carriers, this attribute describes -for each *TYPE* the order of this carrier|`@ORDER="1"`|
+|`@ORDER`|in case of multiple carriers, this attribute describes their order|`@ORDER="1"`|
 
-Each intermediate-level *div* element contains one or more low-level *div* elements that each descibe an individual file that was extracted from the carrier, using the following attributes:
+And for a set of scanned cover images:
 
 |Attribute|Description|Example|
 |:--|:--|:--|
-|`@TYPE`|describes the nature of the carrier component. Possible values are *disk image* and *audio track*|`@TYPE="disk image"`|
+|`@TYPE`|defines that the element contains a set of scans; the only possible value is *scans*|`@TYPE="scans"`|
+|`@ORDER`|in case of multiple scans, this attribute describes their order|`@ORDER="1"`|
+
+Each of the above intermediate-level *div* elements contains one or more low-level *div* elements that describe individual files, using the following attributes:
+
+|Attribute|Description|Example|
+|:--|:--|:--|
+|`@TYPE`|describes the nature of the carrier component. Possible values are *disk image*, *audio track* and *cover*|`@TYPE="disk image"`|
 |`@ORDER`|describes the order of each component (e.g. for an audio CD that is represented as multiple audio files, it describes the playing order)|`@ORDER="1"`|
 
 Finally each file-level *div* element contains one *fptr* element. It contains the following attribute:
@@ -335,4 +342,3 @@ Here, *x* is an index. The value of `@FILEID` provides a link to the correspondi
 **TODO:**
 
 - `@TYPE` of top-level *div* element is now set to *physical*, not sure if this shouldn't be *logical* (see [issue](https://github.com/KBNLresearch/omSipCreator/issues/53))
-- Currently the assignment of the carrier-level values for `@ORDER` is repeated for all carriers with the same `@TYPE`. This results in some complexity that is probably unnecessary. A simpler approach would be to continue the numbering throughout *all* carriers. In that case the *cd-rom*, *cd-audio* etc. directory level in the SIP can also be eliminated. See also this [omSipCreator issue](https://github.com/KBNLresearch/omSipCreator/issues/54) and this [Iromlab issue](https://github.com/KBNLresearch/iromlab/issues/66).
