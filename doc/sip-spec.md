@@ -4,7 +4,7 @@ This document describes the structure of the SIPs created by *omSipCreator*, inc
 
 ## General structure of a SIP
 
-Each SIP is represented as a directory. Each carrier that is part of the SIP is represented as a subdirectory within that directory. The SIP's root directory contains a [METS](https://www.loc.gov/mets/) file with technical, structural and bibliographic metadata. Here's a simple example of a SIP that is made up of 1 "enhanced"  audio CD (which is represented as 7 audio tracks in FLAC format and one ISO image):
+Each SIP is represented as a directory. Each carrier that is part of the SIP is represented as a subdirectory within that directory. The SIP's root also contains a *scans* directory with scanned booklet covers, and a [METS](https://www.loc.gov/mets/) file with technical, structural and bibliographic metadata. Here's a simple example of a SIP that is made up of 1 "enhanced"  audio CD (which is represented as 7 audio tracks in FLAC format and one ISO image):
 
 
     18594650X/
@@ -18,6 +18,9 @@ Each SIP is represented as a directory. Each carrier that is part of the SIP is 
     │   ├── 06.flac
     │   ├── 07.flac
     │   └── ELL2.iso
+    ├── scans
+    │   ├── 1.tiff
+    │   └── 2.tiff
     └── mets.xml
 
 And here's an example of a SIP that contains 3 audio CDs, and one video DVD:
@@ -44,6 +47,9 @@ And here's an example of a SIP that contains 3 audio CDs, and one video DVD:
     │   └── 02.flac
     ├── 4
     │   └── GRANDES_LIGNES_6VWO.iso
+    ├── scans
+    │   ├── 1.tiff
+    │   └── 2.tiff
     └── mets.xml
 
 
@@ -53,7 +59,7 @@ The METS file contains various types of metadata. Here's an overview:
 
 - Bibliographic metadata, which are stored in [MODS](https://www.loc.gov/standards/mods/) format (3.4).
 - Carrier-level technical metadata in the form of XML-serialized output of the [cd-info](https://www.gnu.org/software/libcdio/libcdio.html#cd_002dinfo) tool.
-- File-level technical metadata. Each file (ISO image, audio file) has an associated METS *techMD* section that wraps around a [PREMIS](https://www.loc.gov/standards/premis/) *Object*. The PREMIS *objectCharacteristicsExtension* unit is used to wrap additional, format-specific metadata that are not covered by the PREMIS semantic units:
+- File-level technical metadata. Each file (ISO image, audio file, TIFF image) has an associated METS *techMD* section that wraps around a [PREMIS](https://www.loc.gov/standards/premis/) *Object*. The PREMIS *objectCharacteristicsExtension* unit is used to wrap additional, format-specific metadata that are not covered by the PREMIS semantic units:
     * An [Isobuster DFXML report](https://www.isobuster.com/dfxml-example.php) that contains, amongst other things, a listing of all files inside the image (only for ISO/HFS/UDF images).
     * Output of the [Isolyzer](https://github.com/KBNLresearch/isolyzer) tool, which provides information about the file systems used inside the image (only for  ISO/HFS/UDF images).
     * Descriptive and technical metadata on audio files in [EBUCore](https://tech.ebu.ch/MetadataEbuCore) format (only for audio files).
@@ -216,7 +222,7 @@ The following table lists all subelements of the PREMIS *object*:
 |`object/objectCharacteristics/fixity/messageDigest`|value of computed SHA-512 hash|
 |`object/objectCharacteristics/fixity/messageDigestOriginator`|value *python.hashlib.sha512.hexdigest*|
 |`object/objectCharacteristics/size`|File size|
-|`object/objectCharacteristics/format/formatDesignation/formatName`|either *ISO_Image*, *Wave* or *FLAC*|
+|`object/objectCharacteristics/format/formatDesignation/formatName`|either *ISO_Image*, *Wave*, *FLAC* or *TIFF*|
 |`object/objectCharacteristics/format/formatDesignation/formatRegistry/formatRegistryName`|value *DIAS*|
 |`object/objectCharacteristics/format/formatDesignation/formatRegistry/formatRegistryKey`|value *n/a* **TODO**: figure how out to use the *formatRegistry* elements!|
 |`object/objectCharacteristics/objectCharacteristicsExtension`|used to wrap additional format-specific metadata (see below)|
@@ -231,6 +237,8 @@ The *objectCharacteristicsExtension* element is used to wrap additional format-s
 For an audio file (FLAC or Wave format) only one *objectCharacteristicsExtension* element is written. In this case it contains descriptive and technical audio-specific metadata that were extracted using the [*MediaInfo*](https://mediaarea.net/en/MediaInfo) tool in [EBUCore](https://tech.ebu.ch/MetadataEbuCore) format.
 
 Note that for now the choice for the EBUCore format is provisional. The main reason it was chose here is the fact that EBUCore is natively supported by MediaInfo, which makes implementing it trivially simple.
+
+For TIFF files (cover images) no *objectCharacteristicsExtension* element is written.
 
 ### METS digiprovMD
 
